@@ -10,7 +10,7 @@ void AStar::configure(rclcpp_lifecycle::LifecycleNode::SharedPtr parent, std::sh
 {
   this->parent_node = parent;
   this->tf_buffer = tf;
-  this->name = name;
+  this->name = "A Star Algo";
 
   _clock = parent->get_clock();
 
@@ -161,7 +161,11 @@ AStar::computeTrajectory(const std::shared_ptr<const planning_interfaces::action
   nav2_costmap_2d::Costmap2D* costmap_nav2 = new nav2_costmap_2d::Costmap2D(
       request->costmap.metadata.size_x, request->costmap.metadata.size_y, request->costmap.metadata.resolution,
       request->costmap.metadata.origin.position.x, request->costmap.metadata.origin.position.y);
-  // _a_star->setFootprint(costmap_nav2->getRo, false);
+  // TODO: pass in a polygon here instead of using the circular robot
+  // See original code:
+  // https://github.com/ros-planning/navigation2/blob/foxy-devel/smac_planner/src/smac_planner.cpp#L152
+  _a_star->setFootprint(true);
+
   // p_debugCostMapMsg(&request->costmap);
   // p_debugCostMap(costmap_nav2);
 
@@ -262,7 +266,7 @@ AStar::computeTrajectory(const std::shared_ptr<const planning_interfaces::action
       }
     }
   }
-  catch (std::exception& e)
+  catch (const std::runtime_error& e)
   {
     RCLCPP_WARN(_logger,
                 "%s: failed to create plan due to unknown "
@@ -279,14 +283,15 @@ AStar::computeTrajectory(const std::shared_ptr<const planning_interfaces::action
   {
     p_defaultSolution(&plan_global, &request->next_waypoint, "unable to produce a plan for unknown reasons");
     RCLCPP_WARN(_logger,
-                "%s: failed to create plan due to unknown "
+                "%s failed to create plan due to unknown "
                 "reasons, using default plan");
     return plan_global;
   }
 
   if (!error.empty())
   {
-    RCLCPP_WARN(_logger, "%s: failed to create plan, %s.", _name.c_str(), error.c_str());
+    RCLCPP_WARN(_logger, "%s: failed to create plan: [%s].", _name.c_str(), error.c_str());
+    p_defaultSolution(&plan_global, &request->next_waypoint, error);
     return plan_global;
   }
   RCLCPP_DEBUG(_logger, "Plan creation success");
