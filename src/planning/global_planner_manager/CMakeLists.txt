@@ -54,6 +54,22 @@ target_include_directories(waypoint_recorder PUBLIC
 install(TARGETS waypoint_recorder
   DESTINATION lib/${PROJECT_NAME})
 
+#waypoint_recorder_su23
+add_executable(waypoint_path_visualizer src/waypoint_path_visualizer.cpp)
+ament_target_dependencies(waypoint_path_visualizer
+  rclcpp
+  rclcpp_action
+  std_msgs
+  nav2_msgs
+  nav_msgs
+  sensor_msgs
+)
+target_include_directories(waypoint_path_visualizer PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+install(TARGETS waypoint_path_visualizer
+  DESTINATION lib/${PROJECT_NAME})
+
 # waypoint_follower
 add_executable(waypoint_follower src/waypoint_follower.cpp)
 ament_target_dependencies(waypoint_follower

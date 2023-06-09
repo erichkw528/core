@@ -12,6 +12,12 @@ waypoint_recorder_node:
     odom_topic: "/carla/ego_vehicle/odometry"
     record_interval: 1.0
 
+waypoint_path_visualizer_node:
+  ros__parameters:
+    nav_topic: "sensor_msgs/msg/nav_sat_fix"
+    record_interval: 1.0
+
+
 lifecycle_manager_global_planning:
   ros__parameters:
     autostart: true
