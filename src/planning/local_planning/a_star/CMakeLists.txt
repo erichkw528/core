@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(a_star)
 
-
 find_package(ament_cmake_auto REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(nav2_core REQUIRED)
@@ -58,6 +57,7 @@ set(dependencies
   trajectory_generator
   tf2_ros
   eigen3_cmake_module
+  smac_planner
 )
 
 include_directories(include)
@@ -72,7 +72,6 @@ ament_target_dependencies(${library_name}
 target_link_libraries(${library_name} ${CERES_LIBRARIES} ${OMPL_LIBRARIES} ${OpenMP_LIBRARIES} OpenMP::OpenMP_CXX)
 target_include_directories(${library_name} PUBLIC ${Eigen3_INCLUDE_DIRS})
 target_compile_definitions(${library_name} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
-
 
 add_executable(a_star src/a_star_node.cpp)
 ament_target_dependencies(a_star

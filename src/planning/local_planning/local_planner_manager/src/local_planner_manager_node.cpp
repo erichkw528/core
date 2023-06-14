@@ -184,10 +184,9 @@ std::shared_ptr<nav2_msgs::msg::Costmap> LocalPlannerManagerNode::p_GetLatestCos
  */
 void LocalPlannerManagerNode::register_generators()
 {
-  this->trajectory_generator_node_->registerTrajectoryGenerator(
-      std::make_shared<local_planning::DummyTrajectoryGenerator>());
-  // this->trajectory_generator_node_->registerTrajectoryGenerator(
-  //     std::make_shared<local_planning::AStar>());
+  //   this->trajectory_generator_node_->registerTrajectoryGenerator(
+  //       std::make_shared<local_planning::DummyTrajectoryGenerator>());
+  this->trajectory_generator_node_->registerTrajectoryGenerator(std::make_shared<local_planning::AStar>());
 }
 void LocalPlannerManagerNode::send_trajectory_generator_action(
     const nav2_msgs::msg::Costmap::SharedPtr costmap, const nav_msgs::msg::Odometry::SharedPtr odom,
@@ -202,7 +201,6 @@ void LocalPlannerManagerNode::send_trajectory_generator_action(
   goal_msg.next_waypoint = *next_waypoint;
   goal_msg.odom = *odom;
   goal_msg.footprint = *footprint;
-  RCLCPP_DEBUG(get_logger(), "sending goal 1");
 
   auto send_goal_options = rclcpp_action::Client<TrajectoryGeneration>::SendGoalOptions();
   send_goal_options.goal_response_callback =
