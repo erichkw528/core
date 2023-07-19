@@ -75,6 +75,7 @@ class ManualControllerNode(Node):
             self.get_logger().set_level(LoggingSeverity.INFO)
 
     def on_image_received(self, msg: Image):
+        print("HERE")
         try:
             image = cv2.rotate(
                 self.cv_bridge_.imgmsg_to_cv2(msg, desired_encoding="bgr8"),
