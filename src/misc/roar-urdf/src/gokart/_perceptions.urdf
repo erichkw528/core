@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot name="gokart" xmlns:xacro="http://ros.org/wiki/xacro">
+
+<link name="center_lidar">
+    <visual>
+        <geometry>
+            <mesh filename="file://$(find roar-urdf)/meshes/livox_horizon.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <origin xyz="0.05 0.05 0" rpy="1.57 0 3.14" /> 
+        <material name="grey">
+            <color rgba="0.86 0.86 0.86 1.0"/>
+        </material>
+    </visual>
+</link>
+<joint name="center_lidar_joint" type="fixed">
+    <parent link="sensor_platform_upper"/>
+    <child link="center_lidar"/>
+    <origin xyz="0.1 0 0.01" rpy="0 0 0"/>
+</joint>
+
+</robot>
