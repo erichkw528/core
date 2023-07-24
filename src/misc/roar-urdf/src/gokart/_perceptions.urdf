@@ -18,7 +18,7 @@
     <origin xyz="0.1 0 0.01" rpy="0 0 0"/>
 </joint>
 
-<link name="zed">
+<link name="camera">
     <visual>
         <geometry>
             <mesh filename="file://$(find roar-urdf)/meshes/ZED2i.stl" scale="0.001 0.001 0.001" />
@@ -29,9 +29,9 @@
         </material>
     </visual>
 </link>
-<joint name="zed2i" type="fixed">
+<joint name="camera" type="fixed">
     <parent link="center_lidar"/>
-    <child link="zed"/>
+    <child link="camera"/>
     <origin xyz="0.0 0 0.1" rpy="0 0 0"/>
 </joint>
 
