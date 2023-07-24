@@ -6,7 +6,7 @@
         <geometry>
             <mesh filename="file://$(find roar-urdf)/meshes/livox_horizon.stl" scale="0.001 0.001 0.001" />
         </geometry>
-        <origin xyz="0.05 0.05 0" rpy="1.57 0 3.14" /> 
+        <origin xyz="0.05 0.04 0" rpy="1.57 0 3.14" /> 
         <material name="grey">
             <color rgba="0.86 0.86 0.86 1.0"/>
         </material>
@@ -16,6 +16,23 @@
     <parent link="sensor_platform_upper"/>
     <child link="center_lidar"/>
     <origin xyz="0.1 0 0.01" rpy="0 0 0"/>
+</joint>
+
+<link name="zed">
+    <visual>
+        <geometry>
+            <mesh filename="file://$(find roar-urdf)/meshes/ZED2i.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0.0 0.0 1.57" /> 
+        <material name="grey">
+            <color rgba="0.86 0.86 0.86 1.0"/>
+        </material>
+    </visual>
+</link>
+<joint name="zed2i" type="fixed">
+    <parent link="center_lidar"/>
+    <child link="zed"/>
+    <origin xyz="0.0 0 0.1" rpy="0 0 0"/>
 </joint>
 
 </robot>
