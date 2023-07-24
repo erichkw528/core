@@ -136,17 +136,24 @@ class ManualControllerNode(Node):
                 if event.key == K_s or event.key == K_DOWN:
                     self.state.target_speed = self.state.target_speed - self.speed_inc
 
-                if event.key == K_d or event.key == K_RIGHT:
-                    self.state.steering_angle = (
-                        self.state.steering_angle + self.angle_inc
-                    )
-                if event.key == K_a or event.key == K_LEFT:
-                    self.state.steering_angle = (
-                        self.state.steering_angle - self.angle_inc
-                    )
+                # if event.key == K_d or event.key == K_RIGHT:
+                #     self.state.steering_angle = (
+                #         self.state.steering_angle + self.angle_inc
+                #     )
+                # if event.key == K_a or event.key == K_LEFT:
+                #     self.state.steering_angle = (
+                #         self.state.steering_angle - self.angle_inc
+                #     )
 
                 if event.key == K_SPACE:
                     self.state.brake = 1 - self.state.brake
+        keys = pygame.key.get_pressed()
+
+        if keys[K_a] or keys[K_LEFT]:
+            self.state.steering_angle = self.state.steering_angle - self.angle_inc
+        if keys[K_d] or keys[K_RIGHT]:
+            self.state.steering_angle = self.state.steering_angle + self.angle_inc
+
         self.get_logger().debug(f"Control: {self.state.__repr__()}")
 
     def destroy_node(self):
