@@ -3,6 +3,8 @@ project(global_planner_manager)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/usr/share/cmake/geographiclib")
+find_package(GeographicLib REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(nav2_common REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -23,6 +25,7 @@ link_libraries(stdc++fs)
 
 # global_planner_manager
 add_executable(global_planner_manager src/global_planner_manager.cpp)
+
 ament_target_dependencies(global_planner_manager
   rclcpp
   rclcpp_action
