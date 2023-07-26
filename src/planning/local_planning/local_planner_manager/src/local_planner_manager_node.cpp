@@ -33,7 +33,7 @@ namespace local_planning
   {
     RCLCPP_DEBUG(this->get_logger(), "on_configure");
 
-    this->next_waypoint_sub_ = this->create_subscription<geometry_msgs::msg::Pose>(
+    this->next_waypoint_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
         "/next_waypoint", rclcpp::SystemDefaultsQoS(),
         std::bind(&LocalPlannerManagerNode::onLatestWaypointReceived, this, std::placeholders::_1));
     this->odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
@@ -41,7 +41,7 @@ namespace local_planning
         std::bind(&LocalPlannerManagerNode::onLatestOdomReceived, this, std::placeholders::_1));
 
     this->footprint_sub_ = this->create_subscription<geometry_msgs::msg::PolygonStamped>(
-        "/local_costmap/published_footprint", rclcpp::SystemDefaultsQoS(),
+        "/footprint", rclcpp::SystemDefaultsQoS(),
         std::bind(&LocalPlannerManagerNode::onLatestFootprintReceived, this, std::placeholders::_1));
 
     trajectory_generator_node_ = std::make_shared<local_planning::TrajectoryGeneratorROS>(
@@ -111,17 +111,10 @@ namespace local_planning
     return nav2_util::CallbackReturn::SUCCESS;
   }
 
-  void LocalPlannerManagerNode::onLatestWaypointReceived(geometry_msgs::msg::Pose::SharedPtr msg)
+  void LocalPlannerManagerNode::onLatestWaypointReceived(geometry_msgs::msg::PoseStamped::SharedPtr msg)
   {
     std::lock_guard<std::mutex> lock(waypoint_mutex);
-    // TODO: change global waypoint to be PoseStamped
-    geometry_msgs::msg::PoseStamped ps;
-    ps.pose = *msg;
-    std_msgs::msg::Header header;
-    header.frame_id = "map";
-    header.stamp = this->get_clock()->now();
-    ps.header = header;
-    this->latest_waypoint_ = std::make_shared<geometry_msgs::msg::PoseStamped>(ps);
+    this->latest_waypoint_ = msg;
   }
   void LocalPlannerManagerNode::onLatestOdomReceived(nav_msgs::msg::Odometry::SharedPtr msg)
   {
