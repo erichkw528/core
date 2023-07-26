@@ -58,7 +58,7 @@
   </joint>
 
 
-  <link name="gps_antenna">
+  <link name="gnss">
     <visual>
         <geometry>
             <mesh filename="file://$(find roar-urdf)/meshes/gps_antenna.stl" scale="0.001 0.001 0.001" />
@@ -69,9 +69,9 @@
         </material>
     </visual>
   </link>
-  <joint name="gps_antenna_joint" type="fixed">
+  <joint name="gnss_joint" type="fixed">
       <parent link="gps_platform"/>
-      <child link="gps_antenna"/>
+      <child link="gnss"/>
       <origin xyz="0 0 0.1" rpy="0 0 0"/>
   </joint>
 

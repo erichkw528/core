@@ -3,7 +3,6 @@
 
 #include "nav2_util/lifecycle_node.hpp"
 #include "nav_msgs/msg/path.hpp"
-#include <visualization_msgs/msg/marker.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include "GeographicLib/Geocentric.hpp"
 #include "GeographicLib/LocalCartesian.hpp"
@@ -57,11 +56,12 @@ namespace roar
             void convert_gnss_to_local_cartesian(GeodeticPosition inputGeoPosition, CartesianPosition &outputCartesianPosition);
             std::vector<GeodeticPosition> read_gnss_waypoints(const std::string &file_path);
             size_t findClosestWaypoint(const CartesianPosition &vehicle_position);
+            void p_publish_global_path();
+            void p_publish_next_waypoint();
 
             // publishers
             std::shared_ptr<nav_msgs::msg::Path> waypoints_;
-            std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Pose>> next_waypoint_publisher_;
-            std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>> next_waypoint_visualization_publisher_;
+            std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> next_waypoint_publisher_;
             std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_publisher_;
             rclcpp::TimerBase::SharedPtr global_path_publisher_timer_;
 
@@ -75,7 +75,8 @@ namespace roar
             std::vector<GeodeticPosition> gnss_waypoints_;
             std::vector<CartesianPosition> local_waypoints_;
             float next_waypoint_distance_threshold_ = 5.0;
-            int curr_waypoint_index = -1;
+            int last_waypoint_index = -1;
+            std::shared_ptr<geometry_msgs::msg::Pose> next_waypoint_;
         };
 
     } // namespace global_planning

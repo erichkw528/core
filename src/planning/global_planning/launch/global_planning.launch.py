@@ -28,6 +28,12 @@ def generate_launch_description():
         name="global_planning_node",
         output="screen",
         parameters=[config_file_path.as_posix()],
+        remappings=[
+            ("/global_path","/roar/global_planning/global_path"),
+            ("/next_waypoint","/roar/global_planning/next_waypoint"),
+            ("/next_waypoint_visualization","/roar/global_planning/next_waypoint_visualization"),
+            ("/roar/gnss","/roar/gnss"),
+        ]
     )
     ld.add_action(global_planning_node)
 
