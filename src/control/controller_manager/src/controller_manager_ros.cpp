@@ -11,8 +11,10 @@ namespace controller
     {
         this->declare_parameter("debug", false);
         this->declare_parameter("loop_rate", 10.0);
-        this->declare_parameter("pid_config_file_path");
-        this->declare_parameter("algorithm", "PID");
+        this->declare_parameter("target_speed", 5.0);
+        this->declare_parameter("base_link_frame", "base_link");
+        this->declare_parameter("map_frame", "map");
+        this->declare_parameter("min_distance", 5.0);
 
         if (this->get_parameter("debug").as_bool())
         {
@@ -55,9 +57,16 @@ namespace controller
             std::chrono::milliseconds(50),
             std::bind(&ControllerManagerNode::execution_callback, this));
 
-        this->control_safety_switch_ = this->create_service<roar_msgs::srv::ToggleControlSafetySwitch>("toggle",
+        this->control_safety_switch_ = this->create_service<roar_msgs::srv::ToggleControlSafetySwitch>(std::string(this->get_namespace()) + "/" +
+                                                                                                           std::string(this->get_name()) + "/safety_toggle",
                                                                                                        std::bind(&ControllerManagerNode::toggle_safety_switch, this, std::placeholders::_1, std::placeholders::_2));
+        tf_buffer_ =
+            std::make_unique<tf2_ros::Buffer>(this->get_clock());
+        tf_listener_ =
+            std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
+        this->vehicle_control_publisher_ = this->create_publisher<roar_msgs::msg::VehicleControl>("vehicle_control", 10);
+        ;
         RCLCPP_DEBUG(get_logger(), "configured");
 
         return nav2_util::CallbackReturn::SUCCESS;
@@ -66,6 +75,7 @@ namespace controller
     ControllerManagerNode::on_activate(const rclcpp_lifecycle::State &state)
     {
         RCLCPP_DEBUG(get_logger(), "on_activate");
+        this->vehicle_control_publisher_->on_activate();
         RCLCPP_DEBUG(get_logger(), "activated");
         return nav2_util::CallbackReturn::SUCCESS;
     }
@@ -73,6 +83,7 @@ namespace controller
     ControllerManagerNode::on_deactivate(const rclcpp_lifecycle::State &state)
     {
         RCLCPP_DEBUG(get_logger(), "on_deactivate");
+        this->vehicle_control_publisher_->on_deactivate();
         return nav2_util::CallbackReturn::SUCCESS;
     }
     nav2_util::CallbackReturn
@@ -145,15 +156,119 @@ namespace controller
     void ControllerManagerNode::p_execute(
         const std::shared_ptr<GoalHandleControlAction> goal_handle)
     {
-
         std::lock_guard<std::mutex> lock(active_goal_mutex_);
-        auto result = std::make_shared<ControlAction::Result>();
+        // get path from goal
+        nav_msgs::msg::Path path = goal_handle->get_goal()->path;
 
+        // transform path to ego centric frame
+        nav_msgs::msg::Path egoCentricPath = this->p_transformToEgoCentric(path);
+        if (egoCentricPath.poses.size() == 0)
+        {
+            RCLCPP_ERROR(get_logger(), "rejecting goal - path is empty or failed to transform to target frame");
+            auto result = std::make_shared<ControlAction::Result>();
+            result->status = control_interfaces::action::Control::Result::FAILED;
+            goal_handle->succeed(result);
+            active_goal_ = nullptr; // release lock
+            return;
+        }
+
+        // find the next waypoint that is min_executable_dist away
+        int nextWaypointIndex = this->p_findNextWaypoint(egoCentricPath);
+        RCLCPP_DEBUG(get_logger(), "found next waypoint at index %d", nextWaypointIndex);
+        if (nextWaypointIndex > egoCentricPath.poses.size() - 1)
+        {
+            RCLCPP_ERROR(get_logger(), "rejecting goal - unable to find steering angle");
+            auto result = std::make_shared<ControlAction::Result>();
+            result->status = control_interfaces::action::Control::Result::FAILED;
+            goal_handle->succeed(result);
+            active_goal_ = nullptr; // release lock
+            return;
+        }
+
+        // construct control msg
+        roar_msgs::msg::VehicleControl controlMsg;
+
+        // find the steering needed to reach that position
+        double steeringAngle = this->p_findSteeringAngle(egoCentricPath, nextWaypointIndex);
+        controlMsg.steering_angle = float(steeringAngle);
+
+        // assign target_speed
+        controlMsg.target_speed = float(this->get_parameter("target_speed").as_double());
+
+        // publish control
+        this->vehicle_control_publisher_->publish(controlMsg);
+
+        auto result = std::make_shared<ControlAction::Result>();
         result->status = control_interfaces::action::Control::Result::NORMAL;
         goal_handle->succeed(result);
         active_goal_ = nullptr; // release lock
         RCLCPP_DEBUG(get_logger(), "goal reached");
         return;
+    }
+
+    nav_msgs::msg::Path ControllerManagerNode::p_transformToEgoCentric(nav_msgs::msg::Path path)
+    {
+        std::string target_frame = this->get_parameter("base_link_frame").as_string();
+        std::string fromFrameRel = path.header.frame_id == "" ? this->get_parameter("map_frame").as_string() : path.header.frame_id;
+        std::string toFrameRel = target_frame;
+
+        // Get the current pose of the robot (ego vehicle) in the target frame
+        geometry_msgs::msg::PoseStamped ego_pose;
+        ego_pose.header.frame_id = target_frame;
+        ego_pose.pose.orientation.w = 1.0; // Assuming the orientation is identity
+
+        nav_msgs::msg::Path transformed_path;
+
+        // Transform each pose in the path to the ego-centric frame
+        for (auto &pose : path.poses)
+        {
+            try
+            {
+                geometry_msgs::msg::TransformStamped t;
+                t = tf_buffer_->lookupTransform(toFrameRel, fromFrameRel, tf2::TimePointZero);
+                geometry_msgs::msg::PoseStamped transformOut;
+
+                tf2::doTransform(pose, transformOut, t);
+                transformed_path.poses.push_back(transformOut); // Add the transformed pose to the new path
+            }
+            catch (tf2::TransformException &ex)
+            {
+                // Handle the exception if the transform is not available
+                // (e.g., if the required transformation is not in the tf tree)
+                // You can choose to skip or abort the transformation for this pose.
+                RCLCPP_WARN(this->get_logger(), "Failed to transform pose: %s", ex.what());
+            }
+        }
+
+        return transformed_path;
+    }
+    int ControllerManagerNode::p_findNextWaypoint(nav_msgs::msg::Path path)
+    {
+        float min_dist = this->get_parameter("min_distance").as_double();
+        int next_waypoint = 0;
+        for (int i = 0; i < path.poses.size(); i++)
+        {
+            float dist = sqrt(pow(path.poses[i].pose.position.x, 2) + pow(path.poses[i].pose.position.y, 2));
+            if (dist > min_dist)
+            {
+                next_waypoint = i;
+                break;
+            }
+        }
+        return next_waypoint;
+    }
+    double ControllerManagerNode::p_findSteeringAngle(nav_msgs::msg::Path path, int next_waypoint)
+    {
+        double steering_angle = 0.0;
+        if (next_waypoint <= path.poses.size() - 1)
+        {
+            steering_angle = -1 * atan2(path.poses[next_waypoint].pose.position.y, path.poses[next_waypoint].pose.position.x);
+
+            // rad to deg
+            steering_angle = steering_angle * 180 / M_PI;
+        }
+        RCLCPP_DEBUG(get_logger(), "steering angle: %f", steering_angle);
+        return steering_angle;
     }
 
     void ControllerManagerNode::toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,

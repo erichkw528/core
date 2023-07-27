@@ -24,6 +24,9 @@ def generate_launch_description():
                     config_file.as_posix(),
                     ],
         emulate_tty=True,
+        remappings=[
+            ("/controller/vehicle_control", "/roar/vehicle/control"),
+        ]
     )
 
     lifecycle_manager = Node(

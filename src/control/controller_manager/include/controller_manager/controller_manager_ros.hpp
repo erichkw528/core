@@ -12,6 +12,7 @@
 #include "roar_msgs/msg/vehicle_control.hpp"
 #include "roar_msgs/srv/toggle_control_safety_switch.hpp"
 #include "controller_manager/controller_interface.hpp"
+#include <tf2_ros/transform_listener.h>
 
 namespace controller
 {
@@ -58,10 +59,17 @@ namespace controller
          */
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
 
-        bool is_safety_on = false;
+        bool is_safety_on = true;
         rclcpp::Service<roar_msgs::srv::ToggleControlSafetySwitch>::SharedPtr control_safety_switch_;
         void toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
                                   std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Response> response);
+
+        nav_msgs::msg::Path p_transformToEgoCentric(nav_msgs::msg::Path path);
+        int p_findNextWaypoint(nav_msgs::msg::Path path);
+        double p_findSteeringAngle(nav_msgs::msg::Path path, int next_waypoint);
+
+        std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+        std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     };
 } // controller
 
