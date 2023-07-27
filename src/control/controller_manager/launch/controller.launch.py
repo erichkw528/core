@@ -22,7 +22,6 @@ def generate_launch_description():
         package="controller_manager",
         parameters=[
                     config_file.as_posix(),
-                    {"pid_config_file_path": (base_path / "params" / "carla_pid.json").as_posix()}
                     ],
         emulate_tty=True,
     )
