@@ -14,7 +14,7 @@ def generate_launch_description():
         name="pointcloud_to_laserscan",
         executable="pointcloud_to_laserscan_node",
         package="pointcloud_to_laserscan",
-        parameters=[launch.substitutions.LaunchConfiguration("config_path")],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
         remappings=[
             ("cloud_in", "/roar/front/lidar"),
             ("scan", "/roar/front/scan"),
@@ -25,7 +25,7 @@ def generate_launch_description():
         executable="costmap_node_manager",
         package="costmap_node_manager",
         parameters=[
-            launch.substitutions.LaunchConfiguration("config_path")
+            launch.substitutions.LaunchConfiguration("params_file")
         ],
     )
 
@@ -34,13 +34,13 @@ def generate_launch_description():
         executable="lifecycle_manager",
         name="lifecycle_manager_costmap",
         output="screen",
-        parameters=[launch.substitutions.LaunchConfiguration("config_path")],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
     )
 
     ld = launch.LaunchDescription(
         [
             launch.actions.DeclareLaunchArgument(
-                name="config_path",
+                name="params_file",
                 default_value=default_config_file_path.as_posix(),
             ),
             costmap_manager,

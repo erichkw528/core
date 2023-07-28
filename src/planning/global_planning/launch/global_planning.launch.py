@@ -18,16 +18,17 @@ def generate_launch_description():
     base_path = Path(get_package_share_directory("global_planning"))
     config_file_path = base_path / "param" / "carla" / "config.yaml"
     assert config_file_path.exists(), f"[{config_file_path}] does not exist"
-    ld.add_action(DeclareLaunchArgument('config_file_path', 
+    ld.add_action(DeclareLaunchArgument('params_file', 
                                         default_value= config_file_path.as_posix(), 
-                                        description="config_file_path"))
+                                        description="params_file"))
     ld.add_action(LogInfo(msg=f"Global Planning config file path: [{config_file_path.as_posix()}]"))
+    
     global_planning_node = launch_ros.actions.Node(
         package="global_planning",
         executable="global_planner_node",
         name="global_planning_node",
         output="screen",
-        parameters=[config_file_path.as_posix()],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
         remappings=[
             ("/global_path","/roar/global_planning/global_path"),
             ("/next_waypoint","/roar/global_planning/next_waypoint"),
@@ -42,7 +43,7 @@ def generate_launch_description():
         executable="lifecycle_manager",
         name="lifecycle_manager_global_planning",
         output="screen",
-        parameters=[config_file_path.as_posix()],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
     )
     ld.add_action(lifecycle_manager)
     return ld 
