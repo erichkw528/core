@@ -21,6 +21,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(control_interfaces REQUIRED)
 find_package(ackermann_msgs REQUIRED)
 find_package(control_toolbox REQUIRED)
+find_package(roar_msgs REQUIRED)
 
 include_directories(
   include
@@ -41,6 +42,7 @@ set(dependencies
   control_interfaces
   ackermann_msgs
   control_toolbox
+  roar_msgs
 )
 
 ament_target_dependencies(controller_manager_core

@@ -8,7 +8,7 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from ament_index_python.packages import get_package_share_directory
 from pathlib import Path
-
+from launch.actions import LogInfo
 
 def generate_launch_description():
     ld = launch.LaunchDescription()
@@ -16,13 +16,22 @@ def generate_launch_description():
 
     config_file = base_path / "params" / "configs.yaml"
     assert config_file.exists()
-    print(f"Local Planner config file: [{config_file}]")
+    ld.add_action(LogInfo(msg=[f"Local Planner config file: [{config_file}]"]))
+
+    ld.add_action(launch.actions.DeclareLaunchArgument(name="params_file",
+                                                       default_value=config_file.as_posix()))
+    
     local_planner_manager_node = Node(
         name="local_planner_manager",
         executable="local_planner_manager_node",
         package="local_planner_manager",
-        parameters=[config_file.as_posix()],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
         emulate_tty=True,
+        remappings=[
+            ("/carla/ego_vehicle/odometry","/roar/odometry"),
+            ("/next_waypoint","/roar/global_planning/next_waypoint"),
+            ("/footprint","/local_costmap/published_footprint")
+        ]
     )
 
     lifecycle_manager = Node(
@@ -30,7 +39,8 @@ def generate_launch_description():
         executable="lifecycle_manager",
         name="lifecycle_manager_local_planning",
         output="screen",
-        parameters=[config_file.as_posix()],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
+
     )
 
     # node

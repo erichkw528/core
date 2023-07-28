@@ -16,15 +16,19 @@ def generate_launch_description():
 
     config_file = base_path / "params" / "configs.yaml"
     assert config_file.exists()
+    ld.add_action(launch.actions.DeclareLaunchArgument(name="params_file",
+                                                    default_value=config_file.as_posix()))
     controller_manager = Node(
         name="manager",
         executable="controller_manager",
         package="controller_manager",
         parameters=[
-                    config_file.as_posix(),
-                    {"pid_config_file_path": (base_path / "params" / "carla_pid.json").as_posix()}
+                    launch.substitutions.LaunchConfiguration("params_file"),
                     ],
         emulate_tty=True,
+        remappings=[
+            ("/controller/vehicle_control", "/roar/vehicle/control"),
+        ]
     )
 
     lifecycle_manager = Node(
@@ -32,7 +36,7 @@ def generate_launch_description():
         executable="lifecycle_manager",
         name="lifecycle_manager_controller",
         output="screen",
-        parameters=[config_file.as_posix()],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
     )
 
     # node

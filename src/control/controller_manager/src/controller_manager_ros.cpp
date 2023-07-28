@@ -4,237 +4,279 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <rclcpp_lifecycle/state.hpp>
 
-namespace controller {
-ControllerManagerNode::ControllerManagerNode()
-    : LifecycleNode("manager", "controller", true) {
-    this->declare_parameter("debug", false);
-    this->declare_parameter("frame_id", "ego_vehicle");
-    this->declare_parameter("loop_rate", 10.0);
-    this->declare_parameter("pid_config_file_path");
-    this->declare_parameter("algorithm", "PID");
+namespace controller
+{
+    ControllerManagerNode::ControllerManagerNode()
+        : LifecycleNode("manager", "controller", true)
+    {
+        this->declare_parameter("debug", false);
+        this->declare_parameter("loop_rate", 10.0);
+        this->declare_parameter("target_speed", 5.0);
+        this->declare_parameter("base_link_frame", "base_link");
+        this->declare_parameter("map_frame", "map");
+        this->declare_parameter("min_distance", 5.0);
 
-    this->frame_id = this->get_parameter("frame_id").as_string();
+        if (this->get_parameter("debug").as_bool())
+        {
+            bool _ = rcutils_logging_set_logger_level(get_logger().get_name(),
+                                                      RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
+        }
 
-    if (this->get_parameter("debug").as_bool()) {
-        // rcutils_logging_set_logger_level(get_logger().get_name(),
-        // RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
-        bool _ = rcutils_logging_set_logger_level(
-            "pid_controller",
-            RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
+        RCLCPP_INFO(this->get_logger(),
+                    "ControllerManagerNode initialized with Debug Mode = [%s]",
+                    this->get_parameter("debug").as_bool() ? "YES" : "NO");
     }
 
-    RCLCPP_INFO(this->get_logger(),
-                "ControllerManagerNode initialized with Debug Mode = [%s]",
-                this->get_parameter("debug").as_bool() ? "YES" : "NO");
-}
-ControllerManagerNode ::~ControllerManagerNode() {
-    if (this->execution_timer) {
-        this->execution_timer->cancel();
+    ControllerManagerNode ::~ControllerManagerNode()
+    {
+        if (this->execution_timer)
+        {
+            this->execution_timer->cancel();
+        }
     }
-}
 
-/**
- * Lifecycles
- */
-nav2_util::CallbackReturn
-ControllerManagerNode::on_configure(const rclcpp_lifecycle::State &state) {
-    RCLCPP_DEBUG(get_logger(), "on_configure");
-    this->odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-        "/carla/ego_vehicle/odometry", rclcpp::SystemDefaultsQoS(),
-        std::bind(&ControllerManagerNode::onLatestOdomReceived, this,
-                  std::placeholders::_1));
+    /**
+     * Lifecycles
+     */
+    nav2_util::CallbackReturn
+    ControllerManagerNode::on_configure(const rclcpp_lifecycle::State &state)
+    {
+        RCLCPP_DEBUG(get_logger(), "on_configure");
 
-    this->action_server_ = rclcpp_action::create_server<ControlAction>(
-        this,
-        std::string(this->get_namespace()) + "/" +
-            std::string(this->get_name()),
-        std::bind(&ControllerManagerNode::handle_goal, this,
-                  std::placeholders::_1, std::placeholders::_2),
-        std::bind(&ControllerManagerNode::handle_cancel, this,
-                  std::placeholders::_1),
-        std::bind(&ControllerManagerNode::handle_accepted, this,
-                  std::placeholders::_1));
-    ackermann_publisher_ =
-        this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(
+        this->action_server_ = rclcpp_action::create_server<ControlAction>(
+            this,
             std::string(this->get_namespace()) + "/" +
-                std::string(this->get_name()) + "/" + "output",
-            10);
-    this->execution_timer = this->create_wall_timer(
-        std::chrono::milliseconds(50),
-        std::bind(&ControllerManagerNode::execution_callback, this));
+                std::string(this->get_name()),
+            std::bind(&ControllerManagerNode::handle_goal, this,
+                      std::placeholders::_1, std::placeholders::_2),
+            std::bind(&ControllerManagerNode::handle_cancel, this,
+                      std::placeholders::_1),
+            std::bind(&ControllerManagerNode::handle_accepted, this,
+                      std::placeholders::_1));
+        this->execution_timer = this->create_wall_timer(
+            std::chrono::milliseconds(50),
+            std::bind(&ControllerManagerNode::execution_callback, this));
 
-    std::map<std::string, boost::any> configs;
-    configs.insert(std::make_pair(
-        "pid_config_file_path",
-        this->get_parameter("pid_config_file_path").as_string()));
-    std::string algo = this->get_parameter("algorithm").as_string();
-    RCLCPP_INFO(get_logger(), "Using algorithm: [%s]", algo.c_str());
-    this->registerControlAlgorithm(this->p_algorithmChooser(algo), configs);
+        this->control_safety_switch_ = this->create_service<roar_msgs::srv::ToggleControlSafetySwitch>(std::string(this->get_namespace()) + "/" +
+                                                                                                           std::string(this->get_name()) + "/safety_toggle",
+                                                                                                       std::bind(&ControllerManagerNode::toggle_safety_switch, this, std::placeholders::_1, std::placeholders::_2));
+        tf_buffer_ =
+            std::make_unique<tf2_ros::Buffer>(this->get_clock());
+        tf_listener_ =
+            std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    return nav2_util::CallbackReturn::SUCCESS;
-}
-nav2_util::CallbackReturn
-ControllerManagerNode::on_activate(const rclcpp_lifecycle::State &state) {
-    RCLCPP_DEBUG(get_logger(), "on_activate");
-    this->ackermann_publisher_->on_activate();
-    RCLCPP_DEBUG(get_logger(), "activated");
+        this->vehicle_control_publisher_ = this->create_publisher<roar_msgs::msg::VehicleControl>("vehicle_control", 10);
+        ;
+        RCLCPP_DEBUG(get_logger(), "configured");
 
-    return nav2_util::CallbackReturn::SUCCESS;
-}
-nav2_util::CallbackReturn
-ControllerManagerNode::on_deactivate(const rclcpp_lifecycle::State &state) {
-    RCLCPP_DEBUG(get_logger(), "on_deactivate");
-    this->ackermann_publisher_->on_deactivate();
-    return nav2_util::CallbackReturn::SUCCESS;
-}
-nav2_util::CallbackReturn
-ControllerManagerNode::on_cleanup(const rclcpp_lifecycle::State &state) {
-    RCLCPP_DEBUG(get_logger(), "on_cleanup");
-    return nav2_util::CallbackReturn::SUCCESS;
-}
-nav2_util::CallbackReturn
-ControllerManagerNode::on_shutdown(const rclcpp_lifecycle::State &state) {
-    RCLCPP_DEBUG(get_logger(), "on_shutdown");
-    return nav2_util::CallbackReturn::SUCCESS;
-}
+        return nav2_util::CallbackReturn::SUCCESS;
+    }
+    nav2_util::CallbackReturn
+    ControllerManagerNode::on_activate(const rclcpp_lifecycle::State &state)
+    {
+        RCLCPP_DEBUG(get_logger(), "on_activate");
+        this->vehicle_control_publisher_->on_activate();
+        RCLCPP_DEBUG(get_logger(), "activated");
+        return nav2_util::CallbackReturn::SUCCESS;
+    }
+    nav2_util::CallbackReturn
+    ControllerManagerNode::on_deactivate(const rclcpp_lifecycle::State &state)
+    {
+        RCLCPP_DEBUG(get_logger(), "on_deactivate");
+        this->vehicle_control_publisher_->on_deactivate();
+        return nav2_util::CallbackReturn::SUCCESS;
+    }
+    nav2_util::CallbackReturn
+    ControllerManagerNode::on_cleanup(const rclcpp_lifecycle::State &state)
+    {
+        RCLCPP_DEBUG(get_logger(), "on_cleanup");
+        return nav2_util::CallbackReturn::SUCCESS;
+    }
+    nav2_util::CallbackReturn
+    ControllerManagerNode::on_shutdown(const rclcpp_lifecycle::State &state)
+    {
+        RCLCPP_DEBUG(get_logger(), "on_shutdown");
+        return nav2_util::CallbackReturn::SUCCESS;
+    }
 
-/**
- * subscriber
- */
-void ControllerManagerNode::onLatestOdomReceived(
-    nav_msgs::msg::Odometry::SharedPtr msg) {
-    std::lock_guard<std::mutex> lock(odom_mutex_);
-    this->latest_odom = msg;
-}
-
-/**
- * Action server
- */
-rclcpp_action::GoalResponse ControllerManagerNode::handle_goal(
-    const rclcpp_action::GoalUUID &uuid,
-    std::shared_ptr<const ControlAction::Goal> goal) {
-    RCLCPP_DEBUG(get_logger(), "received goal - goal uuid: [%s]",
-                 rclcpp_action::to_string(uuid).c_str());
-
-    if (this->canExecute(goal)) {
+    /**
+     * Action server
+     */
+    rclcpp_action::GoalResponse ControllerManagerNode::handle_goal(
+        const rclcpp_action::GoalUUID &uuid,
+        std::shared_ptr<const ControlAction::Goal> goal)
+    {
+        RCLCPP_DEBUG(get_logger(), "received goal - goal uuid: [%s]",
+                     rclcpp_action::to_string(uuid).c_str());
+        if (this->is_safety_on == false)
+        {
+            RCLCPP_WARN(get_logger(), "rejecting goal - safety switch is off");
+            return rclcpp_action::GoalResponse::REJECT;
+        }
+        if (this->active_goal_ != nullptr)
+        {
+            RCLCPP_WARN(get_logger(), "rejecting goal - goal already in progress");
+            return rclcpp_action::GoalResponse::REJECT;
+        }
+        if (goal->path.poses.size() == 0)
+        {
+            RCLCPP_WARN(get_logger(), "rejecting goal - path is empty");
+            return rclcpp_action::GoalResponse::REJECT;
+        }
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     }
-    return rclcpp_action::GoalResponse::REJECT;
-}
 
-rclcpp_action::CancelResponse ControllerManagerNode::handle_cancel(
-    const std::shared_ptr<GoalHandleControlAction> goal_handle) {
-    RCLCPP_DEBUG(get_logger(), "handle_cancel - goal uuid: [%s]",
-                 rclcpp_action::to_string(goal_handle->get_goal_id()).c_str());
-    return rclcpp_action::CancelResponse::ACCEPT;
-}
-
-void ControllerManagerNode::handle_accepted(
-    const std::shared_ptr<GoalHandleControlAction> goal_handle) {
-    active_goal_ = goal_handle;
-    RCLCPP_DEBUG(get_logger(), "handle_accepted - goal uuid: [%s]",
-                 rclcpp_action::to_string(goal_handle->get_goal_id()).c_str());
-    this->controller->setTarget(
-        std::make_shared<nav_msgs::msg::Path>(goal_handle->get_goal()->path),
-        10); // TODO: pass in target speed here
-}
-
-/**
- * main execution loops
- */
-void ControllerManagerNode::execution_callback() {
-    if (this->active_goal_) {
-        this->p_execute(active_goal_);
-    }
-}
-
-void ControllerManagerNode::p_execute(
-    const std::shared_ptr<GoalHandleControlAction> goal_handle) {
-    std::lock_guard<std::mutex> lock(active_goal_mutex_);
-    auto result = std::make_shared<ControlAction::Result>();
-    const nav_msgs::msg::Path::SharedPtr trajectory =
-        std::make_shared<nav_msgs::msg::Path>(goal_handle->get_goal()->path);
-
-    // check if goal is cancel
-    if (goal_handle->is_canceling()) {
-        result->status = control_interfaces::action::Control::Result::NORMAL;
-        goal_handle->canceled(result);
-        active_goal_ = nullptr; // release lock
-        RCLCPP_DEBUG(get_logger(), "goal canceled");
-        return;
+    rclcpp_action::CancelResponse ControllerManagerNode::handle_cancel(
+        const std::shared_ptr<GoalHandleControlAction> goal_handle)
+    {
+        RCLCPP_DEBUG(get_logger(), "handle_cancel - goal uuid: [%s]",
+                     rclcpp_action::to_string(goal_handle->get_goal_id()).c_str());
+        return rclcpp_action::CancelResponse::ACCEPT;
     }
 
-    // check if trajectory is done
-    if (this->isDone(trajectory, this->latest_odom,
-                     this->closeness_threshold)) {
+    void ControllerManagerNode::handle_accepted(
+        const std::shared_ptr<GoalHandleControlAction> goal_handle)
+    {
+        active_goal_ = goal_handle;
+        RCLCPP_DEBUG(get_logger(), "handle_accepted - goal uuid: [%s]",
+                     rclcpp_action::to_string(goal_handle->get_goal_id()).c_str());
+    }
+
+    /**
+     * main execution loops
+     */
+    void ControllerManagerNode::execution_callback()
+    {
+        if (this->active_goal_ != nullptr)
+        {
+            this->p_execute(active_goal_);
+        }
+    }
+
+    void ControllerManagerNode::p_execute(
+        const std::shared_ptr<GoalHandleControlAction> goal_handle)
+    {
+        std::lock_guard<std::mutex> lock(active_goal_mutex_);
+        // get path from goal
+        nav_msgs::msg::Path path = goal_handle->get_goal()->path;
+
+        // transform path to ego centric frame
+        nav_msgs::msg::Path egoCentricPath = this->p_transformToEgoCentric(path);
+        if (egoCentricPath.poses.size() == 0)
+        {
+            RCLCPP_ERROR(get_logger(), "rejecting goal - path is empty or failed to transform to target frame");
+            auto result = std::make_shared<ControlAction::Result>();
+            result->status = control_interfaces::action::Control::Result::FAILED;
+            goal_handle->succeed(result);
+            active_goal_ = nullptr; // release lock
+            return;
+        }
+
+        // find the next waypoint that is min_executable_dist away
+        int nextWaypointIndex = this->p_findNextWaypoint(egoCentricPath);
+        RCLCPP_DEBUG(get_logger(), "found next waypoint at index %d", nextWaypointIndex);
+        if (nextWaypointIndex > egoCentricPath.poses.size() - 1)
+        {
+            RCLCPP_ERROR(get_logger(), "rejecting goal - unable to find steering angle");
+            auto result = std::make_shared<ControlAction::Result>();
+            result->status = control_interfaces::action::Control::Result::FAILED;
+            goal_handle->succeed(result);
+            active_goal_ = nullptr; // release lock
+            return;
+        }
+
+        // construct control msg
+        roar_msgs::msg::VehicleControl controlMsg;
+
+        // find the steering needed to reach that position
+        double steeringAngle = this->p_findSteeringAngle(egoCentricPath, nextWaypointIndex);
+        controlMsg.steering_angle = float(steeringAngle);
+
+        // assign target_speed
+        controlMsg.target_speed = float(this->get_parameter("target_speed").as_double());
+
+        // publish control
+        this->vehicle_control_publisher_->publish(controlMsg);
+
+        auto result = std::make_shared<ControlAction::Result>();
         result->status = control_interfaces::action::Control::Result::NORMAL;
         goal_handle->succeed(result);
         active_goal_ = nullptr; // release lock
         RCLCPP_DEBUG(get_logger(), "goal reached");
         return;
     }
-    // if not done, run controller
-    ControlResult controlResult =
-        this->controller->compute(this->latest_odom, this->odom_mutex_, {});
 
-    // publish control cmd
-    ackermann_msgs::msg::AckermannDriveStamped ackermannStamped =
-        this->p_controlResultToAckermannStamped(controlResult);
-    this->ackermann_publisher_->publish(ackermannStamped);
+    nav_msgs::msg::Path ControllerManagerNode::p_transformToEgoCentric(nav_msgs::msg::Path path)
+    {
+        std::string target_frame = this->get_parameter("base_link_frame").as_string();
+        std::string fromFrameRel = path.header.frame_id == "" ? this->get_parameter("map_frame").as_string() : path.header.frame_id;
+        std::string toFrameRel = target_frame;
 
-    auto feedback = std::make_shared<ControlAction::Feedback>();
-    feedback->curr_index = controlResult.waypoint_index;
-    goal_handle->publish_feedback(feedback);
-}
+        // Get the current pose of the robot (ego vehicle) in the target frame
+        geometry_msgs::msg::PoseStamped ego_pose;
+        ego_pose.header.frame_id = target_frame;
+        ego_pose.pose.orientation.w = 1.0; // Assuming the orientation is identity
 
-bool ControllerManagerNode::canExecute(
-    const std::shared_ptr<const ControlAction::Goal> goal) {
-    std::lock_guard<std::mutex> lock(active_goal_mutex_);
-    if (goal->path.poses.size() == 0) {
-        RCLCPP_ERROR(this->get_logger(), "Received goal of length [0]");
-        return false;
-    }
+        nav_msgs::msg::Path transformed_path;
 
-    if (active_goal_) {
-        if (goal->overwrite_previous && active_goal_ != nullptr) {
-            auto result = std::make_shared<ControlAction::Result>();
-            result->status = result->NORMAL;
-            active_goal_->abort(result);
-            active_goal_ = nullptr; // release the active goal checker
-            return true;
-        } else {
-            RCLCPP_WARN(
-                this->get_logger(),
-                "Another goal is already active, please cancel [%s] before "
-                "sending a new goal",
-                rclcpp_action::to_string(active_goal_->get_goal_id()).c_str());
-            return false;
+        // Transform each pose in the path to the ego-centric frame
+        for (auto &pose : path.poses)
+        {
+            try
+            {
+                geometry_msgs::msg::TransformStamped t;
+                t = tf_buffer_->lookupTransform(toFrameRel, fromFrameRel, tf2::TimePointZero);
+                geometry_msgs::msg::PoseStamped transformOut;
+
+                tf2::doTransform(pose, transformOut, t);
+                transformed_path.poses.push_back(transformOut); // Add the transformed pose to the new path
+            }
+            catch (tf2::TransformException &ex)
+            {
+                // Handle the exception if the transform is not available
+                // (e.g., if the required transformation is not in the tf tree)
+                // You can choose to skip or abort the transformation for this pose.
+                RCLCPP_WARN(this->get_logger(), "Failed to transform pose: %s", ex.what());
+            }
         }
-    }
-    return true;
-}
 
-void ControllerManagerNode::registerControlAlgorithm(
-    const Algorithms algo, const std::map<std::string, boost::any> configs) {
-    switch (algo) {
-    case PID:
-        this->controller = std::make_shared<controller::PIDController>();
-        break;
-    default:
-        RCLCPP_ERROR(get_logger(), "Unable to match control algorithm");
-        return;
+        return transformed_path;
     }
-    RCLCPP_INFO(get_logger(), "configuring...");
-    this->controller->configure(configs, this);
-}
+    int ControllerManagerNode::p_findNextWaypoint(nav_msgs::msg::Path path)
+    {
+        float min_dist = this->get_parameter("min_distance").as_double();
+        int next_waypoint = 0;
+        for (int i = 0; i < path.poses.size(); i++)
+        {
+            float dist = sqrt(pow(path.poses[i].pose.position.x, 2) + pow(path.poses[i].pose.position.y, 2));
+            if (dist > min_dist)
+            {
+                next_waypoint = i;
+                break;
+            }
+        }
+        return next_waypoint;
+    }
+    double ControllerManagerNode::p_findSteeringAngle(nav_msgs::msg::Path path, int next_waypoint)
+    {
+        double steering_angle = 0.0;
+        if (next_waypoint <= path.poses.size() - 1)
+        {
+            steering_angle = -1 * atan2(path.poses[next_waypoint].pose.position.y, path.poses[next_waypoint].pose.position.x);
 
-ackermann_msgs::msg::AckermannDriveStamped
-ControllerManagerNode::p_controlResultToAckermannStamped(
-    ControlResult controlResult) {
-    ackermann_msgs::msg::AckermannDriveStamped ackermannDriveStamped;
-    ackermannDriveStamped.drive = controlResult.drive;
-    ackermannDriveStamped.header.stamp = this->get_clock()->now();
-    ackermannDriveStamped.header.frame_id = this->frame_id;
-    return ackermannDriveStamped;
-}
+            // rad to deg
+            steering_angle = steering_angle * 180 / M_PI;
+        }
+        RCLCPP_DEBUG(get_logger(), "steering angle: %f", steering_angle);
+        return steering_angle;
+    }
+
+    void ControllerManagerNode::toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
+                                                     std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Response> response)
+    {
+        this->is_safety_on = request->is_safety_on;
+        response->status = this->is_safety_on;
+
+        RCLCPP_INFO(this->get_logger(), "Safety switch is %s", this->is_safety_on ? "ON" : "OFF");
+    }
 } // namespace controller

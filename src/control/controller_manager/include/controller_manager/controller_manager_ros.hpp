@@ -9,11 +9,15 @@
 #include "control_interfaces/action/control.hpp"
 #include <nav2_util/lifecycle_node.hpp>
 #include <ackermann_msgs/msg/ackermann_drive_stamped.hpp>
+#include "roar_msgs/msg/vehicle_control.hpp"
+#include "roar_msgs/srv/toggle_control_safety_switch.hpp"
 #include "controller_manager/controller_interface.hpp"
+#include <tf2_ros/transform_listener.h>
 
 namespace controller
 {
-    enum Algorithms {
+    enum Algorithms
+    {
         PID,
     };
     class ControllerManagerNode : public nav2_util::LifecycleNode
@@ -21,12 +25,9 @@ namespace controller
         using ControlAction = control_interfaces::action::Control;
         using GoalHandleControlAction = rclcpp_action::ServerGoalHandle<ControlAction>;
 
-        public:
-            ControllerManagerNode();
-            ~ControllerManagerNode();
-
-            void registerControlAlgorithm(const Algorithms algo, const std::map<std::string, boost::any> configs);
-
+    public:
+        ControllerManagerNode();
+        ~ControllerManagerNode();
 
     protected:
         // implement the lifecycle interface
@@ -43,20 +44,11 @@ namespace controller
         rclcpp::TimerBase::SharedPtr execution_timer;
         void execution_callback();
 
-
-        /* Odometry */
-        std::shared_ptr<nav_msgs::msg::Odometry> latest_odom;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::ConstSharedPtr
-            odom_sub_;
-        std::mutex odom_mutex_;
-        void onLatestOdomReceived(nav_msgs::msg::Odometry::SharedPtr msg);
-
-
         /**
          * action server
-        */
+         */
         rclcpp_action::Server<ControlAction>::SharedPtr action_server_;
-        rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const ControlAction::Goal> goal);
+        rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const ControlAction::Goal> goal);
         rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<GoalHandleControlAction> goal_handle);
         void handle_accepted(const std::shared_ptr<GoalHandleControlAction> goal_handle);
         std::shared_ptr<GoalHandleControlAction> active_goal_; // use this to ensure that only one goal is executing at a time
@@ -64,61 +56,21 @@ namespace controller
 
         /**
          * control publisher
-        */
-        std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<ackermann_msgs::msg::AckermannDriveStamped>> ackermann_publisher_;
+         */
+        std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
 
-        /**
-         * control algorithm registry
-        */
-       
-       std::shared_ptr<controller::ControllerInterface> controller; 
+        bool is_safety_on = false;
+        rclcpp::Service<roar_msgs::srv::ToggleControlSafetySwitch>::SharedPtr control_safety_switch_;
+        void toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
+                                  std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Response> response);
 
+        nav_msgs::msg::Path p_transformToEgoCentric(nav_msgs::msg::Path path);
+        int p_findNextWaypoint(nav_msgs::msg::Path path);
+        double p_findSteeringAngle(nav_msgs::msg::Path path, int next_waypoint);
 
-        /**
-         * Helper functions
-        */
-        ackermann_msgs::msg::AckermannDriveStamped p_controlResultToAckermannStamped(ControlResult controlResult);
-
-        Algorithms p_algorithmChooser(const std::string input)
-        {
-            if (input == "PID")
-            {
-                return PID;
-            }
-            // TODO: add more algorithms here
-            return PID;
-            
-        }
-
-        /**
-         * check if is close enough to the last index of the trajectory
-         * 
-         * Note: this function assumes trajectory and odom are in the same frame of reference
-        */
-        bool isDone(const nav_msgs::msg::Path::SharedPtr trajectory, const nav_msgs::msg::Odometry::SharedPtr odom, float closeness_threshold=1)
-        {
-            // Get the last point in the trajectory
-            geometry_msgs::msg::PoseStamped last_pose = trajectory->poses.back();
-
-            // Get the current position of the robot
-            geometry_msgs::msg::Pose current_pose = odom->pose.pose;
-
-            // Calculate the Euclidean distance between the last point in the trajectory and the current position of the robot
-            double distance = sqrt(pow(last_pose.pose.position.x - current_pose.position.x, 2) +
-                                pow(last_pose.pose.position.y - current_pose.position.y, 2) +
-                                pow(last_pose.pose.position.z - current_pose.position.z, 2));
-
-            // Check if the distance is less than a certain threshold
-            if (distance < closeness_threshold) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        float closeness_threshold = 1.0;
-        std::string frame_id;
+        std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+        std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     };
-
 } // controller
+
 #endif
