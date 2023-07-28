@@ -3,6 +3,8 @@ project(global_planner_manager)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/usr/share/cmake/geographiclib")
+find_package(GeographicLib REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(nav2_common REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -23,6 +25,7 @@ link_libraries(stdc++fs)
 
 # global_planner_manager
 add_executable(global_planner_manager src/global_planner_manager.cpp)
+
 ament_target_dependencies(global_planner_manager
   rclcpp
   rclcpp_action
@@ -52,6 +55,22 @@ target_include_directories(waypoint_recorder PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 install(TARGETS waypoint_recorder
+  DESTINATION lib/${PROJECT_NAME})
+
+#waypoint_recorder_su23
+add_executable(waypoint_path_visualizer src/waypoint_path_visualizer.cpp)
+ament_target_dependencies(waypoint_path_visualizer
+  rclcpp
+  rclcpp_action
+  std_msgs
+  nav2_msgs
+  nav_msgs
+  sensor_msgs
+)
+target_include_directories(waypoint_path_visualizer PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+install(TARGETS waypoint_path_visualizer
   DESTINATION lib/${PROJECT_NAME})
 
 # waypoint_follower

@@ -14,7 +14,6 @@ find_package(nav2_msgs REQUIRED)
 find_package(nav_2d_utils REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(nav2_waypoint_follower REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(trajectory_msgs REQUIRED)
@@ -22,6 +21,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(control_interfaces REQUIRED)
 find_package(ackermann_msgs REQUIRED)
 find_package(control_toolbox REQUIRED)
+find_package(roar_msgs REQUIRED)
 
 include_directories(
   include
@@ -42,6 +42,7 @@ set(dependencies
   control_interfaces
   ackermann_msgs
   control_toolbox
+  roar_msgs
 )
 
 ament_target_dependencies(controller_manager_core
