@@ -1,7 +1,7 @@
 controller:
   manager:
     ros__parameters:
-      debug: true
+      debug: false
       use_sim_time: true
       loop_rate: 10.0
       target_speed: 5.0
