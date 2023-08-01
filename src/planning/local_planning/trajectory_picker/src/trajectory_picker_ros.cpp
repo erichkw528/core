@@ -4,7 +4,7 @@
 namespace local_planning
 {
     TrajectoryPickerROS::TrajectoryPickerROS(const std::string &name)
-        : TrajectoryPickerROS(name, "/", name) 
+        : TrajectoryPickerROS(name, "/", name)
     {
         this->init(false);
     }
@@ -26,11 +26,10 @@ namespace local_planning
         const std::string &name,
         const std::string &parent_namespace,
         const std::string &local_namespace,
-        const bool is_debug
-        ) : LifecycleNode(name, "", true,
-                        rclcpp::NodeOptions().arguments({"--ros-args", "-r", std::string("__ns:=") + nav2_util::add_namespaces(parent_namespace, local_namespace),
-                                                         "--ros-args", "-r", name + ":" + std::string("__node:=") + name})), 
-                        name_(name), parent_namespace_(parent_namespace)
+        const bool is_debug) : LifecycleNode(name, "", true,
+                                             rclcpp::NodeOptions().arguments({"--ros-args", "-r", std::string("__ns:=") + nav2_util::add_namespaces(parent_namespace, local_namespace),
+                                                                              "--ros-args", "-r", name + ":" + std::string("__node:=") + name})),
+                               name_(name), parent_namespace_(parent_namespace)
     {
         this->init(is_debug);
     }
@@ -38,31 +37,30 @@ namespace local_planning
     void TrajectoryPickerROS::init(const bool is_debug)
     {
         this->declare_parameter("debug", is_debug);
-        
+
         if (this->get_parameter("debug").as_bool())
         {
             auto ret = rcutils_logging_set_logger_level(get_logger().get_name(), RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
         }
-        RCLCPP_INFO(this->get_logger(), "TrajectoryGeneratorROS initialized with Debug Mode = [%s]", this->get_parameter("debug").as_bool() ? "YES" : "NO");
+        RCLCPP_INFO(this->get_logger(), "TrajectoryPickerROS initialized with Debug Mode = [%s]", this->get_parameter("debug").as_bool() ? "YES" : "NO");
     }
 
     TrajectoryPickerROS::~TrajectoryPickerROS()
     {
-
     }
 
     nav2_util::CallbackReturn
     TrajectoryPickerROS::on_configure(const rclcpp_lifecycle::State &state)
     {
         best_trajectory_publisher_ = this->create_publisher<planning_interfaces::msg::Trajectory>(
-            std::string(this->get_namespace()) + "/"+std::string(this->get_name()) + "/best_trajectory", 10);
+            std::string(this->get_namespace()) + "/" + std::string(this->get_name()) + "/best_trajectory", 10);
         new_trajectory_sub_ = this->create_subscription<planning_interfaces::msg::Trajectory>(
-            std::string(this->get_namespace()) + "/"+std::string(this->get_name()) + "/possible_trajectory", 
+            std::string(this->get_namespace()) + "/" + std::string(this->get_name()) + "/possible_trajectory",
             10,
             std::bind(&TrajectoryPickerROS::on_new_trajectory_received, this, std::placeholders::_1));
         reset_trajectory_picker_service = this->create_service<planning_interfaces::srv::ResetTrajectoryPicker>(
-            "reset", std::bind(&TrajectoryPickerROS::reset_trajectory_picker, 
-                                this, std::placeholders::_1, std::placeholders::_2));
+            "reset", std::bind(&TrajectoryPickerROS::reset_trajectory_picker,
+                               this, std::placeholders::_1, std::placeholders::_2));
         return nav2_util::CallbackReturn::SUCCESS;
     }
 
@@ -83,7 +81,7 @@ namespace local_planning
     nav2_util::CallbackReturn TrajectoryPickerROS::on_cleanup(const rclcpp_lifecycle::State &state)
     {
         RCLCPP_DEBUG(get_logger(), "on_cleanup");
-        
+
         return nav2_util::CallbackReturn::SUCCESS;
     }
 
@@ -94,25 +92,23 @@ namespace local_planning
         return nav2_util::CallbackReturn::SUCCESS;
     }
 
-
     void TrajectoryPickerROS::on_new_trajectory_received(const planning_interfaces::msg::Trajectory::SharedPtr msg)
     {
         RCLCPP_DEBUG(get_logger(), "on_new_trajectory_recevied");
 
         // TODO: do some selection here
         this->publish_best_trajectory(msg);
-
     }
     void TrajectoryPickerROS::publish_best_trajectory(const std::shared_ptr<planning_interfaces::msg::Trajectory> traj)
     {
-        float score = traj->score.scale*traj->score.raw_score;
+        float score = traj->score.scale * traj->score.raw_score;
         RCLCPP_DEBUG(get_logger(), "new local trajectory published -- length: [%d] - Score: [%.3f]", traj->trajectory.poses.size(), score);
         this->best_trajectory_publisher_->publish(*traj);
         this->p_reset_trajectory_picker();
     }
 
     void TrajectoryPickerROS::reset_trajectory_picker(const std::shared_ptr<planning_interfaces::srv::ResetTrajectoryPicker::Request> req,
-                                 std::shared_ptr<planning_interfaces::srv::ResetTrajectoryPicker::Response> resp)
+                                                      std::shared_ptr<planning_interfaces::srv::ResetTrajectoryPicker::Response> resp)
     {
         RCLCPP_DEBUG(get_logger(), "reset_trajectory_picker");
         this->p_reset_trajectory_picker();

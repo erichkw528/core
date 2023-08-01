@@ -20,6 +20,8 @@ namespace controller
         {
             bool _ = rcutils_logging_set_logger_level(get_logger().get_name(),
                                                       RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
+            _ = rcutils_logging_set_logger_level("controller.manager.rclcpp_action",
+                                                 RCUTILS_LOG_SEVERITY_FATAL); // enable or disable debug
         }
 
         RCLCPP_INFO(this->get_logger(),
@@ -106,8 +108,6 @@ namespace controller
         const rclcpp_action::GoalUUID &uuid,
         std::shared_ptr<const ControlAction::Goal> goal)
     {
-        RCLCPP_DEBUG(get_logger(), "received goal - goal uuid: [%s]",
-                     rclcpp_action::to_string(uuid).c_str());
         if (this->is_safety_on == false)
         {
             RCLCPP_WARN(get_logger(), "rejecting goal - safety switch is off");
@@ -129,8 +129,6 @@ namespace controller
     rclcpp_action::CancelResponse ControllerManagerNode::handle_cancel(
         const std::shared_ptr<GoalHandleControlAction> goal_handle)
     {
-        RCLCPP_DEBUG(get_logger(), "handle_cancel - goal uuid: [%s]",
-                     rclcpp_action::to_string(goal_handle->get_goal_id()).c_str());
         return rclcpp_action::CancelResponse::ACCEPT;
     }
 
@@ -138,8 +136,6 @@ namespace controller
         const std::shared_ptr<GoalHandleControlAction> goal_handle)
     {
         active_goal_ = goal_handle;
-        RCLCPP_DEBUG(get_logger(), "handle_accepted - goal uuid: [%s]",
-                     rclcpp_action::to_string(goal_handle->get_goal_id()).c_str());
     }
 
     /**
@@ -156,6 +152,7 @@ namespace controller
     void ControllerManagerNode::p_execute(
         const std::shared_ptr<GoalHandleControlAction> goal_handle)
     {
+        RCLCPP_DEBUG(get_logger(), "------ controller manager ------");
         std::lock_guard<std::mutex> lock(active_goal_mutex_);
         // get path from goal
         nav_msgs::msg::Path path = goal_handle->get_goal()->path;
@@ -202,7 +199,6 @@ namespace controller
         result->status = control_interfaces::action::Control::Result::NORMAL;
         goal_handle->succeed(result);
         active_goal_ = nullptr; // release lock
-        RCLCPP_DEBUG(get_logger(), "goal reached");
         return;
     }
 
@@ -238,6 +234,13 @@ namespace controller
                 // You can choose to skip or abort the transformation for this pose.
                 RCLCPP_WARN(this->get_logger(), "Failed to transform pose: %s", ex.what());
             }
+        }
+
+        RCLCPP_DEBUG(get_logger(), "transformed path size: %d", transformed_path.poses.size());
+        // print every x, y of every pose in the path
+        for (auto &pose : transformed_path.poses)
+        {
+            RCLCPP_DEBUG(get_logger(), "x: %f, y: %f", pose.pose.position.x, pose.pose.position.y); // TODO: figure out why this is wrong here
         }
 
         return transformed_path;

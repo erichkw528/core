@@ -133,19 +133,22 @@ namespace local_planning
 
   void LocalPlannerManagerNode::p_execute()
   {
-    std::lock_guard<std::mutex> odom_lock(odom_mutex_);
-    std::lock_guard<std::mutex> waypoint_lock(waypoint_mutex);
-
+    // std::lock_guard<std::mutex> odom_lock(odom_mutex_);
+    // std::lock_guard<std::mutex> waypoint_lock(waypoint_mutex);
+    RCLCPP_DEBUG(this->get_logger(), "-----LocalPlannerManagerNode-----");
     if (this->canExecute()) // only one request at a time
     {
       num_execution += 1;
       num_generator_execution += 1;
-      latest_costmap_ = this->p_GetLatestCostmap();
-      if (latest_costmap_ != nullptr)
-      {
-        this->send_trajectory_generator_action(latest_costmap_, this->latest_odom, this->latest_waypoint_,
-                                               this->latest_footprint_);
-      }
+      // latest_costmap_ = this->p_GetLatestCostmap(); // add back
+      // if (latest_costmap_ != nullptr)
+      // {
+      //   this->send_trajectory_generator_action(latest_costmap_, this->latest_odom, this->latest_waypoint_,
+      //                                          this->latest_footprint_);
+      // }
+
+      this->send_trajectory_generator_action(latest_costmap_, this->latest_odom, this->latest_waypoint_,
+                                             this->latest_footprint_);
     }
   }
 
@@ -190,10 +193,10 @@ namespace local_planning
     RCLCPP_DEBUG(get_logger(), "sending goal");
 
     planning_interfaces::action::TrajectoryGeneration_Goal goal_msg = TrajectoryGeneration::Goal();
-    goal_msg.costmap = *costmap;
+    // goal_msg.costmap = *costmap;
     goal_msg.next_waypoint = *next_waypoint;
-    goal_msg.odom = *odom;
-    goal_msg.footprint = *footprint;
+    // goal_msg.odom = *odom;
+    // goal_msg.footprint = *footprint;
 
     auto send_goal_options = rclcpp_action::Client<TrajectoryGeneration>::SendGoalOptions();
     send_goal_options.goal_response_callback =
@@ -347,20 +350,20 @@ namespace local_planning
   }
   bool LocalPlannerManagerNode::didReceiveAllMessages()
   {
-    if (this->latest_odom == nullptr)
-    {
-      RCLCPP_DEBUG(this->get_logger(), "odom not received, not executing...");
-    }
+    // if (this->latest_odom == nullptr)
+    // {
+    //   RCLCPP_DEBUG(this->get_logger(), "odom not received, not executing...");
+    // }
     if (this->latest_waypoint_ == nullptr)
     {
       RCLCPP_DEBUG(this->get_logger(), "latest_waypoint_ not received, not executing...");
     }
-    if (this->latest_footprint_ == nullptr)
-    {
-      RCLCPP_DEBUG(this->get_logger(), "latest_footprint_ not received, not executing...");
-    }
-
-    return this->latest_odom != nullptr && this->latest_waypoint_ != nullptr && this->latest_footprint_ != nullptr;
+    // if (this->latest_footprint_ == nullptr)
+    // {
+    //   RCLCPP_DEBUG(this->get_logger(), "latest_footprint_ not received, not executing...");
+    // }
+    // return this->latest_odom != nullptr && this->latest_waypoint_ != nullptr && this->latest_footprint_ != nullptr;
+    return this->latest_waypoint_ != nullptr;
   }
   void LocalPlannerManagerNode::p_PrintCostMapInfo(const nav2_msgs::msg::Costmap::SharedPtr msg)
   {
