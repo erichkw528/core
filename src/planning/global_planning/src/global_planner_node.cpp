@@ -169,7 +169,7 @@ namespace roar
       // convert to local coordinate
       CartesianPosition local_position;
       convert_gnss_to_local_cartesian(p, local_position);
-      RCLCPP_DEBUG(get_logger(), "local_coord: %.6f, %.6f, %.6f", local_position.x, local_position.y, local_position.z);
+      RCLCPP_DEBUG(get_logger(), "vehicle_coord: %.6f, %.6f, %.6f", local_position.x, local_position.y, local_position.z);
 
       // project the car to the waypoint path
       size_t vehicle_position_on_waypoint_path = this->p_projectOntoWaypointPath(local_position);
@@ -177,11 +177,29 @@ namespace roar
 
       // find the next waypoint that is next_waypoint_distance_threshold_ away from projected_waypoint
       size_t next_waypoint_index = this->p_searchNextWaypoint(vehicle_position_on_waypoint_path);
-      RCLCPP_DEBUG(get_logger(), "next_waypoint_index: %zu", next_waypoint_index);
-      // print waypoint coordinate
-      RCLCPP_DEBUG(get_logger(), "next_waypoint_coord: %.6f, %.6f, %.6f", local_waypoints_[next_waypoint_index].x, local_waypoints_[next_waypoint_index].y, local_waypoints_[next_waypoint_index].z);
+      CartesianPosition next_waypoint = local_waypoints_[next_waypoint_index];
+      RCLCPP_DEBUG(get_logger(), "waypoint index: %zu", next_waypoint_index);
+      RCLCPP_DEBUG(get_logger(), "waypoint coord: %.6f, %.6f, %.6f", local_waypoints_[next_waypoint_index].x, local_waypoints_[next_waypoint_index].y, local_waypoints_[next_waypoint_index].z);
 
-      this->publish_marker(local_waypoints_[next_waypoint_index]);
+      // find next next waypoint
+      size_t next_next_waypoint_index = this->p_searchNextWaypoint(next_waypoint_index);
+      RCLCPP_DEBUG(get_logger(), "next_next_waypoint_index: %zu", next_next_waypoint_index);
+
+      // find angle between two waypoints
+      float angle = std::atan2(local_waypoints_[next_next_waypoint_index].y - local_waypoints_[next_waypoint_index].y, local_waypoints_[next_next_waypoint_index].x - local_waypoints_[next_waypoint_index].x);
+      RCLCPP_DEBUG(get_logger(), "angle: %f", angle);
+
+      // publish next waypoint
+      this->next_waypoint_ = std::make_shared<geometry_msgs::msg::Pose>();
+      geometry_msgs::msg::PoseStamped next_waypoint_msg;
+      next_waypoint_msg.header.frame_id = "map";
+      next_waypoint_msg.header.stamp = this->now();
+      next_waypoint_msg.pose = *this->next_waypoint_;
+      next_waypoint_msg.pose.position.x = float(next_waypoint.x);
+      next_waypoint_msg.pose.position.y = float(next_waypoint.y);
+      next_waypoint_msg.pose.position.z = float(next_waypoint.z);
+      next_waypoint_msg.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), angle));
+      this->next_waypoint_publisher_->publish(next_waypoint_msg);
     }
 
     void GlobalPlannerNode::publish_marker(CartesianPosition position)
@@ -364,7 +382,7 @@ namespace roar
         geometry_msgs::msg::PoseStamped pose_stamped;
         pose_stamped.pose.position.x = local_waypoint.x;
         pose_stamped.pose.position.y = local_waypoint.y;
-        pose_stamped.pose.position.z = 0;
+        pose_stamped.pose.position.z = local_waypoint.z;
         pose_stamped.pose.orientation.w = 1.0; // Assuming no orientation information
 
         global_path_msg.poses.push_back(pose_stamped);
@@ -404,21 +422,6 @@ namespace roar
       }
       global_path_visualization_publisher_->publish(markers);
     }
-    void GlobalPlannerNode::p_publish_next_waypoint()
-    {
-      if (this->next_waypoint_publisher_ == nullptr || this->next_waypoint_ == nullptr)
-      {
-        return;
-      }
-
-      geometry_msgs::msg::PoseStamped next_waypoint_msg;
-      next_waypoint_msg.header.frame_id = this->get_parameter("map_frame").as_string();
-      next_waypoint_msg.header.stamp = this->now();
-      next_waypoint_msg.pose = *this->next_waypoint_;
-      // publish
-      this->next_waypoint_publisher_->publish(next_waypoint_msg);
-    }
-
   } // namespace global_planning
 } // namespace roar
 

@@ -58,7 +58,6 @@ namespace roar
             std::vector<GeodeticPosition> read_gnss_waypoints(const std::string &file_path);
             size_t findNextWaypoint(const CartesianPosition &vehicle_position);
             void p_publish_global_path();
-            void p_publish_next_waypoint();
 
             // publishers
             std::shared_ptr<nav_msgs::msg::Path> waypoints_;
