@@ -31,6 +31,14 @@ namespace roar
       this->declare_parameter("next_waypoint_distance_threshold", 5.0);
       this->declare_parameter("loop_rate_millis", 100);
       this->declare_parameter("map_frame", "map");
+
+      // print parameter datum, gnss file path, next waypoint and map frame
+      RCLCPP_DEBUG(get_logger(), "datum: [%s] | gnss_file_path: [%s] | map_frame: [%s]",
+                   this->get_parameter("datum").as_string().c_str(),
+                   this->get_parameter("gnss_file_path").as_string().c_str(),
+                   this->get_parameter("map_frame").as_string().c_str()
+
+      );
     }
 
     GlobalPlannerNode::~GlobalPlannerNode()
@@ -48,6 +56,8 @@ namespace roar
                                                                    std::bind(&GlobalPlannerNode::timer_callback, this));
       this->next_waypoint_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("next_waypoint", 10);
       this->global_path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("global_path", 10);
+      this->global_path_visualization_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>("global_path_visualization", 10);
+      this->vehicle_curr_position_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>("vehicle_curr_position", 10);
       this->nav_sat_fix_subscriber_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("/roar/gnss", 10,
                                                                                              std::bind(&GlobalPlannerNode::onGnssReceived, this, std::placeholders::_1));
       // read in waypoints in gnss format
@@ -74,6 +84,8 @@ namespace roar
       // Custom activation logic goes here
       this->next_waypoint_publisher_->on_activate();
       this->global_path_publisher_->on_activate();
+      this->global_path_visualization_publisher_->on_activate();
+      this->vehicle_curr_position_publisher_->on_activate();
       RCLCPP_DEBUG(get_logger(), "GlobalPlannerNode is now active.");
 
       return nav2_util::CallbackReturn::SUCCESS;
@@ -86,6 +98,8 @@ namespace roar
 
       this->next_waypoint_publisher_->on_deactivate();
       this->global_path_publisher_->on_deactivate();
+      this->global_path_visualization_publisher_->on_deactivate();
+      this->vehicle_curr_position_publisher_->on_deactivate();
 
       return nav2_util::CallbackReturn::SUCCESS;
     }
@@ -104,77 +118,98 @@ namespace roar
       return nav2_util::CallbackReturn::SUCCESS;
     }
 
+    size_t GlobalPlannerNode::p_projectOntoWaypointPath(const CartesianPosition position)
+    {
+      // given position, find the index of the closest waypoint on local_waypoints
+      // return the index of the closest waypoint
+
+      float min_distance = std::numeric_limits<float>::max();
+      size_t min_index = 0;
+      for (size_t i = 0; i < local_waypoints_.size(); i++)
+      {
+        float distance = std::sqrt(std::pow(position.x - local_waypoints_[i].x, 2) + std::pow(position.y - local_waypoints_[i].y, 2));
+        if (distance < min_distance)
+        {
+          min_distance = distance;
+          min_index = i;
+        }
+      }
+      return min_index;
+    }
+
+    size_t GlobalPlannerNode::p_searchNextWaypoint(const size_t vehicleIndex)
+    {
+      // given the current vehicleIndex on the local_waypoint_
+      // find the next waypoint that is min_distance away from the vehicle
+      // return the index of the next waypoint
+      size_t next_waypoint_index = vehicleIndex;
+      CartesianPosition vehicle_position = local_waypoints_[vehicleIndex];
+
+      for (size_t i = 0; i < local_waypoints_.size() / 10; i++)
+      {
+        next_waypoint_index = vehicleIndex + i;
+        CartesianPosition waypoint = local_waypoints_[next_waypoint_index];
+
+        // if the waypoint is too far away from the vehicle, break
+        if (std::sqrt(std::pow(vehicle_position.x - waypoint.x, 2) + std::pow(vehicle_position.y - waypoint.y, 2)) > this->next_waypoint_distance_threshold_)
+        {
+          break;
+        }
+      }
+      return next_waypoint_index;
+    }
+
     void GlobalPlannerNode::onGnssReceived(const sensor_msgs::msg::NavSatFix::SharedPtr msg)
     {
-      // RCLCPP_DEBUG(get_logger(), "---------------------");
+      RCLCPP_DEBUG(get_logger(), "---------------------");
       // For example, you can extract the latitude, longitude, and altitude from the message
       GeodeticPosition p({msg->latitude, msg->longitude, msg->altitude});
-      // RCLCPP_DEBUG(get_logger(), "Received GNSS data: %.6f, %.6f, %.6f", p.latitude, p.longitude, p.altitude);
+      RCLCPP_DEBUG(get_logger(), "GNSS: %.6f, %.6f, %.6f", p.latitude, p.longitude, p.altitude);
 
       // convert to local coordinate
       CartesianPosition local_position;
       convert_gnss_to_local_cartesian(p, local_position);
-      // RCLCPP_DEBUG(get_logger(), "Converted to local coordinate: %.6f, %.6f, %.6f", local_position.x, local_position.y, local_position.z);
+      RCLCPP_DEBUG(get_logger(), "local_coord: %.6f, %.6f, %.6f", local_position.x, local_position.y, local_position.z);
 
-      if (this->last_waypoint_index == -1)
-      {
-        // this is the first iteration, find the vehicle's closest waypoint
-        this->last_waypoint_index = findClosestWaypoint(local_position);
-        return;
-      }
-      /**
-       * If it is not for locating where the vehicle is on the map
-       * 1. find the immediate index of the next waypoint that is next_waypoint_distance_threshold_ away from the vehicle
-       * 2. find the next index of the waypoint that is next_waypoint_distance_threshold_ away from step 1
-       * 3. find the angle between step 1 and step 2
-       * 4. assign the position of the waypoint in step 1 and angle difference computed from step 3 to next_waypoint_
-       */
-      // next iterations, find the waypoint that is next_waypoint_distance_threshold_ away from the vehicle
-      size_t next_waypoint_index = this->last_waypoint_index;
-      while (true)
-      {
-        double distance = roar::global_planning::calculateDistance(local_position.x,
-                                                                   local_position.y,
-                                                                   local_waypoints_[next_waypoint_index].x,
-                                                                   local_waypoints_[next_waypoint_index].y);
-        if (distance > this->next_waypoint_distance_threshold_)
-        {
-          break;
-        }
-        next_waypoint_index = (next_waypoint_index + 1) % local_waypoints_.size();
-      }
-      this->last_waypoint_index = next_waypoint_index;
+      // project the car to the waypoint path
+      size_t vehicle_position_on_waypoint_path = this->p_projectOntoWaypointPath(local_position);
+      RCLCPP_DEBUG(get_logger(), "vehicle_position_on_waypoint_path: %zu", vehicle_position_on_waypoint_path);
 
-      size_t next_next_waypoint_index = next_waypoint_index + 1;
-      // RCLCPP_DEBUG(get_logger(), "Next waypoint index: %d", next_waypoint_index);
+      // find the next waypoint that is next_waypoint_distance_threshold_ away from projected_waypoint
+      size_t next_waypoint_index = this->p_searchNextWaypoint(vehicle_position_on_waypoint_path);
+      RCLCPP_DEBUG(get_logger(), "next_waypoint_index: %zu", next_waypoint_index);
+      // print waypoint coordinate
+      RCLCPP_DEBUG(get_logger(), "next_waypoint_coord: %.6f, %.6f, %.6f", local_waypoints_[next_waypoint_index].x, local_waypoints_[next_waypoint_index].y, local_waypoints_[next_waypoint_index].z);
 
-      // find the next waypoint that is next_waypoint_distance_threshold_ away from last_waypoint_index
-      while (true)
-      {
-        double distance = roar::global_planning::calculateDistance(local_waypoints_[next_waypoint_index].x,
-                                                                   local_waypoints_[next_waypoint_index].y,
-                                                                   local_waypoints_[next_next_waypoint_index].x,
-                                                                   local_waypoints_[next_next_waypoint_index].y);
-        if (distance > this->next_waypoint_distance_threshold_)
-        {
-          break;
-        }
-        next_next_waypoint_index = (next_next_waypoint_index + 1) % local_waypoints_.size();
-      }
-      // RCLCPP_DEBUG(get_logger(), "Next next waypoint index: %d", next_next_waypoint_index);
+      this->publish_marker(local_waypoints_[next_waypoint_index]);
+    }
 
-      CartesianPosition next_waypoint = local_waypoints_[next_waypoint_index];
-      CartesianPosition next_next_waypoint = local_waypoints_[next_next_waypoint_index];
-
-      // find the angular difference between next_waypoint and next_next_waypoint
-      double angle = std::atan2(next_next_waypoint.y - next_waypoint.y, next_next_waypoint.x - next_waypoint.x);
-      // RCLCPP_DEBUG(get_logger(), "Angle: %.6f", angle);
-      // construct next_waypoint_
-      this->next_waypoint_ = std::make_shared<geometry_msgs::msg::Pose>();
-      this->next_waypoint_->position.x = float(next_waypoint.x);
-      this->next_waypoint_->position.y = float(next_waypoint.y);
-      this->next_waypoint_->position.z = float(next_waypoint.z);
-      this->next_waypoint_->orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), angle));
+    void GlobalPlannerNode::publish_marker(CartesianPosition position)
+    {
+      // publish vehicle current position for debug purpose
+      visualization_msgs::msg::Marker vehicle_curr_position;
+      vehicle_curr_position.header.frame_id = "map";
+      vehicle_curr_position.header.stamp = this->now();
+      vehicle_curr_position.ns = "vehicle_curr_position";
+      vehicle_curr_position.id = 0;
+      vehicle_curr_position.type = visualization_msgs::msg::Marker::SPHERE;
+      vehicle_curr_position.action = visualization_msgs::msg::Marker::ADD;
+      vehicle_curr_position.pose.position.x = position.x;
+      vehicle_curr_position.pose.position.y = position.y;
+      vehicle_curr_position.pose.position.z = position.z;
+      vehicle_curr_position.pose.orientation.x = 0.0;
+      vehicle_curr_position.pose.orientation.y = 0.0;
+      vehicle_curr_position.pose.orientation.z = 0.0;
+      vehicle_curr_position.pose.orientation.w = 1.0;
+      vehicle_curr_position.scale.x = 2.0;
+      vehicle_curr_position.scale.y = 2.0;
+      vehicle_curr_position.scale.z = 2.0;
+      vehicle_curr_position.color.a = 1.0; // Don't forget to set the alpha!
+      vehicle_curr_position.color.r = 0.0;
+      vehicle_curr_position.color.g = 0.0;
+      vehicle_curr_position.color.b = 1.0;
+      vehicle_curr_position.lifetime = rclcpp::Duration::from_seconds(0.1);
+      this->vehicle_curr_position_publisher_->publish(vehicle_curr_position);
     }
 
     void GlobalPlannerNode::convert_gnss_to_local_cartesian(GeodeticPosition inputGeoPosition, CartesianPosition &outputCartesianPosition)
@@ -193,9 +228,6 @@ namespace roar
     {
       // publish global path
       this->p_publish_global_path();
-
-      // publish next waypoint in map coordinate
-      this->p_publish_next_waypoint();
     }
 
     void GlobalPlannerNode::parse_datum()
@@ -290,34 +322,38 @@ namespace roar
     }
 
     // Function to find the closest waypoint to the vehicle's current position
-    size_t GlobalPlannerNode::findClosestWaypoint(const CartesianPosition &vehicle_position)
+    size_t GlobalPlannerNode::findNextWaypoint(const CartesianPosition &vehicle_position)
     {
+      size_t num_search_threshold = local_waypoints_.size() / 10;
       size_t closest_waypoint_index = 0;
       double min_distance = std::numeric_limits<double>::max();
 
-      for (size_t i = 0; i < local_waypoints_.size(); ++i)
+      // only search the waypoints that is num_search_threshold ahead
+      for (size_t i = 0; i < num_search_threshold; ++i)
       {
-        const CartesianPosition &waypoint = local_waypoints_[i];
-        double distance = calculateDistance(vehicle_position.x, vehicle_position.y, waypoint.x, waypoint.y);
-
+        size_t index = (i + closest_waypoint_index) % local_waypoints_.size();
+        const CartesianPosition &waypoint = local_waypoints_[index];
+        double distance = std::sqrt(std::pow(vehicle_position.x - waypoint.x, 2) +
+                                    std::pow(vehicle_position.y - waypoint.y, 2));
         if (distance < min_distance)
         {
           min_distance = distance;
-          closest_waypoint_index = i;
+          closest_waypoint_index = index;
         }
       }
-
       return closest_waypoint_index;
     }
+
     void GlobalPlannerNode::p_publish_global_path()
     {
       if (this->global_path_publisher_ == nullptr)
       {
         return;
       }
-      // RCLCPP_DEBUG(get_logger(), "Publishing global path.");
       // Create a nav_msgs::msg::Path to represent the global path
       nav_msgs::msg::Path global_path_msg;
+      global_path_msg.header.stamp = this->now();                                     // Set the timestamp to the current time
+      global_path_msg.header.frame_id = this->get_parameter("map_frame").as_string(); // Set the frame ID to "map"
 
       // Clear the existing waypoints in the global path
       global_path_msg.poses.clear();
@@ -328,18 +364,45 @@ namespace roar
         geometry_msgs::msg::PoseStamped pose_stamped;
         pose_stamped.pose.position.x = local_waypoint.x;
         pose_stamped.pose.position.y = local_waypoint.y;
-        pose_stamped.pose.position.z = local_waypoint.z;
+        pose_stamped.pose.position.z = 0;
         pose_stamped.pose.orientation.w = 1.0; // Assuming no orientation information
 
         global_path_msg.poses.push_back(pose_stamped);
       }
-
       // Set the header for the global path
       global_path_msg.header.frame_id = this->get_parameter("map_frame").as_string(); // Set the frame ID to "map"
       global_path_msg.header.stamp = this->now();                                     // Set the timestamp to the current time
 
       // Publish the global path
       global_path_publisher_->publish(global_path_msg);
+
+      // print global path header
+      // RCLCPP_INFO(this->get_logger(), "Global path header: frame_id=%s, stamp=%f",
+      //             global_path_msg.header.frame_id.c_str(), global_path_msg.header.stamp.sec + global_path_msg.header.stamp.nanosec * 1e-9);
+
+      // publish visualization
+
+      visualization_msgs::msg::Marker markers;
+      markers.type = visualization_msgs::msg::Marker::POINTS;
+      markers.color.g = 0.8;
+      markers.color.a = 0.8;
+      markers.scale.x = 0.2;
+      markers.scale.y = 0.2;
+      markers.scale.z = 0.2;
+      markers.header = global_path_msg.header;
+      markers.id = 0;
+      markers.ns = "global_path";
+
+      for (const auto &poseStamed : global_path_msg.poses)
+      {
+        geometry_msgs::msg::Point p;
+        p.x = poseStamed.pose.position.x;
+        p.y = poseStamed.pose.position.y;
+        p.z = 0.0;
+
+        markers.points.push_back(p);
+      }
+      global_path_visualization_publisher_->publish(markers);
     }
     void GlobalPlannerNode::p_publish_next_waypoint()
     {

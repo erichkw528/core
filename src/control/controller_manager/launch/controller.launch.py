@@ -26,6 +26,7 @@ def generate_launch_description():
                     launch.substitutions.LaunchConfiguration("params_file"),
                     ],
         emulate_tty=True,
+        output="screen",
         remappings=[
             ("/controller/vehicle_control", "/roar/vehicle/control"),
         ]

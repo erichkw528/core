@@ -32,7 +32,7 @@ def generate_launch_description():
         remappings=[
             ("/global_path","/roar/global_planning/global_path"),
             ("/next_waypoint","/roar/global_planning/next_waypoint"),
-            ("/next_waypoint_visualization","/roar/global_planning/next_waypoint_visualization"),
+            ("/global_path_visualization","/roar/global_planning/next_waypoint_visualization"),
             ("/roar/gnss","/roar/gnss"),
         ]
     )
