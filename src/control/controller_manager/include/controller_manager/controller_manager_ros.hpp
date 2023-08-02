@@ -60,6 +60,8 @@ namespace controller
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
 
         bool is_safety_on = false;
+        roar_msgs::msg::VehicleControl neutralControlMsg;
+
         rclcpp::Service<roar_msgs::srv::ToggleControlSafetySwitch>::SharedPtr control_safety_switch_;
         void toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
                                   std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Response> response);

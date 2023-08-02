@@ -147,6 +147,11 @@ namespace controller
         {
             this->p_execute(active_goal_);
         }
+
+        if (this->is_safety_on == false)
+        {
+            this->vehicle_control_publisher_->publish(neutralControlMsg);
+        }
     }
 
     void ControllerManagerNode::p_execute(
