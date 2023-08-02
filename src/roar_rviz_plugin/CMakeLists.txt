@@ -32,6 +32,7 @@ find_package(rviz_rendering REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(roar_msgs REQUIRED)
 
 set(roar_rviz_plugins_headers_to_moc
   include/roar_rviz_plugin/roar_panel.hpp
@@ -64,6 +65,7 @@ set(dependencies
   rviz_rendering
   std_msgs
   tf2_geometry_msgs
+  roar_msgs
 )
 
 ament_target_dependencies(${library_name}
