@@ -21,7 +21,6 @@ find_package(trajectory_scorer REQUIRED)
 find_package(trajectory_picker REQUIRED)
 find_package(planning_interfaces REQUIRED)
 find_package(control_interfaces REQUIRED)
-find_package(a_star REQUIRED)
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -61,7 +60,6 @@ ament_target_dependencies(local_planner_manager_node
   trajectory_picker
   planning_interfaces
   control_interfaces
-  a_star
   eigen3_cmake_module
   smac_planner
 )

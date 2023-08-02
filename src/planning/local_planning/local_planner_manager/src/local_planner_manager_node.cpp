@@ -1,6 +1,5 @@
 #include "local_planner_manager/local_planner_manager_node.hpp"
 #include "trajectory_generator/dummy_trajectory_generator.hpp"
-#include <a_star/a_star.hpp>
 
 namespace local_planning
 {
