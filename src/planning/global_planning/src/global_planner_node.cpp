@@ -137,20 +137,21 @@ namespace roar
       return min_index;
     }
 
-    size_t GlobalPlannerNode::p_searchNextWaypoint(const size_t vehicleIndex)
+    size_t GlobalPlannerNode::p_searchNextWaypoint(const size_t startIndex)
     {
       // given the current vehicleIndex on the local_waypoint_
       // find the next waypoint that is min_distance away from the vehicle
       // return the index of the next waypoint
-      size_t next_waypoint_index = vehicleIndex;
-      CartesianPosition vehicle_position = local_waypoints_[vehicleIndex];
+      size_t next_waypoint_index = startIndex;
+      CartesianPosition vehicle_position = local_waypoints_[startIndex];
 
       for (size_t i = 0; i < local_waypoints_.size() / 10; i++)
       {
-        next_waypoint_index = vehicleIndex + i;
+        next_waypoint_index = startIndex + i;
         CartesianPosition waypoint = local_waypoints_[next_waypoint_index];
 
         // if the waypoint is too far away from the vehicle, break
+
         if (std::sqrt(std::pow(vehicle_position.x - waypoint.x, 2) + std::pow(vehicle_position.y - waypoint.y, 2)) > this->next_waypoint_distance_threshold_)
         {
           break;
@@ -167,46 +168,76 @@ namespace roar
       RCLCPP_DEBUG(get_logger(), "GNSS: %.6f, %.6f, %.6f", p.latitude, p.longitude, p.altitude);
 
       // convert to local coordinate
-      CartesianPosition local_position;
-      convert_gnss_to_local_cartesian(p, local_position);
-      RCLCPP_DEBUG(get_logger(), "vehicle_coord: %.6f, %.6f, %.6f", local_position.x, local_position.y, local_position.z);
+      CartesianPosition vehicle_local_position;
+      convert_gnss_to_local_cartesian(p, vehicle_local_position);
+      RCLCPP_DEBUG(get_logger(), "vehicle_coord: %.6f, %.6f, %.6f", vehicle_local_position.x, vehicle_local_position.y, vehicle_local_position.z);
 
-      // project the car to the waypoint path
-      size_t vehicle_position_on_waypoint_path = this->p_projectOntoWaypointPath(local_position);
-      RCLCPP_DEBUG(get_logger(), "vehicle_position_on_waypoint_path: %zu", vehicle_position_on_waypoint_path);
+      // if this is the first iteration, find the waypoint that is
+      //  1. toward the start
+      //  2. at least min_dist away from vehicle
+      if (this->is_first_iteration_)
+      {
+        RCLCPP_DEBUG(get_logger(), "first iteration");
 
-      // find the next waypoint that is next_waypoint_distance_threshold_ away from projected_waypoint
-      size_t next_waypoint_index = this->p_searchNextWaypoint(vehicle_position_on_waypoint_path);
-      CartesianPosition next_waypoint = local_waypoints_[next_waypoint_index];
-      RCLCPP_DEBUG(get_logger(), "waypoint index: %zu", next_waypoint_index);
-      RCLCPP_DEBUG(get_logger(), "waypoint coord: %.6f, %.6f, %.6f", local_waypoints_[next_waypoint_index].x, local_waypoints_[next_waypoint_index].y, local_waypoints_[next_waypoint_index].z);
+        this->is_first_iteration_ = false;
+        waypoint_index = this->p_findWaypointOnStart(vehicle_local_position);
+        return;
+      }
+
+      // if curr_waypoint is already min_dist away from vehicle
+      //    don't do anything
+      // else
+      //    find the next waypoint that is min_dist away from vehicle
+
+      CartesianPosition curr_waypoint = local_waypoints_[waypoint_index];
+      float dist = std::sqrt(std::pow(vehicle_local_position.x - curr_waypoint.x, 2) + std::pow(vehicle_local_position.y - curr_waypoint.y, 2));
+      RCLCPP_DEBUG(get_logger(), "curr_dist: %.6f | threshold: %.6f", dist, this->next_waypoint_distance_threshold_);
+
+      if (dist >= this->next_waypoint_distance_threshold_)
+      {
+        RCLCPP_DEBUG(get_logger(), "vehicle is already min_dist away from curr_waypoint");
+      }
+      else
+      {
+        RCLCPP_DEBUG(get_logger(), "vehicle is not min_dist away from curr_waypoint");
+        // otherwise, we need to update the waypoint index
+        waypoint_index = this->p_searchNextWaypoint(waypoint_index);
+      }
+
+      // publish next waypoint
+      this->publishNextWaypoint();
+    }
+
+    void GlobalPlannerNode::publishNextWaypoint()
+    {
+      CartesianPosition curr_waypoint = local_waypoints_[waypoint_index];
+
+      RCLCPP_DEBUG(get_logger(), "waypoint index: %zu", waypoint_index);
+      RCLCPP_DEBUG(get_logger(), "waypoint coord: %.6f, %.6f, %.6f", curr_waypoint.x, curr_waypoint.y, curr_waypoint.z);
 
       // find next next waypoint
-      size_t next_next_waypoint_index = this->p_searchNextWaypoint(next_waypoint_index);
+      size_t next_next_waypoint_index = this->p_searchNextWaypoint(waypoint_index);
       RCLCPP_DEBUG(get_logger(), "next_next_waypoint_index: %zu", next_next_waypoint_index);
 
       // find angle between two waypoints
-      float angle = std::atan2(local_waypoints_[next_next_waypoint_index].y - local_waypoints_[next_waypoint_index].y, local_waypoints_[next_next_waypoint_index].x - local_waypoints_[next_waypoint_index].x);
+      float angle = std::atan2(local_waypoints_[next_next_waypoint_index].y - curr_waypoint.y,
+                               local_waypoints_[next_next_waypoint_index].x - curr_waypoint.x);
       RCLCPP_DEBUG(get_logger(), "angle: %f", angle);
 
-      // publish next waypoint
-      this->next_waypoint_ = std::make_shared<geometry_msgs::msg::Pose>();
-      geometry_msgs::msg::PoseStamped next_waypoint_msg;
-      next_waypoint_msg.header.frame_id = "map";
-      next_waypoint_msg.header.stamp = this->now();
-      next_waypoint_msg.pose = *this->next_waypoint_;
-      next_waypoint_msg.pose.position.x = float(next_waypoint.x);
-      next_waypoint_msg.pose.position.y = float(next_waypoint.y);
-      next_waypoint_msg.pose.position.z = float(next_waypoint.z);
-      next_waypoint_msg.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), angle));
-      this->next_waypoint_publisher_->publish(next_waypoint_msg);
+      geometry_msgs::msg::PoseStamped msg;
+      msg.header.frame_id = "map";
+      msg.header.stamp = this->now();
+      msg.pose.position.x = float(curr_waypoint.x);
+      msg.pose.position.y = float(curr_waypoint.y);
+      msg.pose.position.z = float(curr_waypoint.z);
+      msg.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), angle));
+      this->next_waypoint_publisher_->publish(msg);
     }
-
     void GlobalPlannerNode::publish_marker(CartesianPosition position)
     {
       // publish vehicle current position for debug purpose
       visualization_msgs::msg::Marker vehicle_curr_position;
-      vehicle_curr_position.header.frame_id = "map";
+      vehicle_curr_position.header.frame_id = this->get_parameter("map_frame").as_string();
       vehicle_curr_position.header.stamp = this->now();
       vehicle_curr_position.ns = "vehicle_curr_position";
       vehicle_curr_position.id = 0;
@@ -240,7 +271,23 @@ namespace roar
                    outputCartesianPosition.y,
                    outputCartesianPosition.z);
     }
-
+    size_t
+    GlobalPlannerNode::p_findWaypointOnStart(const CartesianPosition position)
+    {
+      size_t index = 0;
+      // find the waypoint that is closest to the vehicle
+      float min_dist = std::numeric_limits<float>::max();
+      for (size_t i = 0; i < local_waypoints_.size() && i < 100; i++)
+      {
+        float dist = std::sqrt(std::pow(position.x - local_waypoints_[i].x, 2) + std::pow(position.y - local_waypoints_[i].y, 2));
+        if (dist < min_dist)
+        {
+          min_dist = dist;
+          index = i;
+        }
+      }
+      return index;
+    }
     void
     GlobalPlannerNode::timer_callback()
     {

@@ -78,13 +78,16 @@ namespace roar
             std::vector<GeodeticPosition> gnss_waypoints_;
             std::vector<CartesianPosition> local_waypoints_;
             float next_waypoint_distance_threshold_ = 5.0;
-            int last_waypoint_index = -1;
-            std::shared_ptr<geometry_msgs::msg::Pose> next_waypoint_;
+            size_t waypoint_index = 0;
 
             void publish_marker(CartesianPosition position);
-
+            void publishNextWaypoint();
             size_t p_projectOntoWaypointPath(const CartesianPosition position);
             size_t p_searchNextWaypoint(const size_t vehicleIndex);
+            size_t p_findWaypointOnStart(const CartesianPosition position);
+
+        private:
+            bool is_first_iteration_ = true;
         };
 
     } // namespace global_planning
