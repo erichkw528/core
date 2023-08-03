@@ -175,14 +175,14 @@ namespace roar
       // if this is the first iteration, find the waypoint that is
       //  1. toward the start
       //  2. at least min_dist away from vehicle
-      if (this->is_first_iteration_)
-      {
-        RCLCPP_DEBUG(get_logger(), "first iteration");
+      // if (this->is_first_iteration_)
+      // {
+      //   RCLCPP_DEBUG(get_logger(), "first iteration");
 
-        this->is_first_iteration_ = false;
-        waypoint_index = this->p_findWaypointOnStart(vehicle_local_position);
-        return;
-      }
+      //   this->is_first_iteration_ = false;
+      waypoint_index = this->p_findWaypointOnStart(vehicle_local_position);
+      //   return;
+      // }
 
       // if curr_waypoint is already min_dist away from vehicle
       //    don't do anything
@@ -277,7 +277,7 @@ namespace roar
       size_t index = 0;
       // find the waypoint that is closest to the vehicle
       float min_dist = std::numeric_limits<float>::max();
-      for (size_t i = 0; i < local_waypoints_.size() && i < 100; i++)
+      for (size_t i = 0; i < local_waypoints_.size(); i++)
       {
         float dist = std::sqrt(std::pow(position.x - local_waypoints_[i].x, 2) + std::pow(position.y - local_waypoints_[i].y, 2));
         if (dist < min_dist)
