@@ -58,7 +58,9 @@ namespace roar
       this->global_path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("global_path", 10);
       this->global_path_visualization_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>("global_path_visualization", 10);
       this->vehicle_curr_position_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>("vehicle_curr_position", 10);
-      this->nav_sat_fix_subscriber_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("/roar/gnss", 10,
+      auto qos = rclcpp::QoS(rclcpp::KeepLast(10));
+      qos.best_effort();
+      this->nav_sat_fix_subscriber_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("/roar/gnss", qos,
                                                                                              std::bind(&GlobalPlannerNode::onGnssReceived, this, std::placeholders::_1));
       // read in waypoints in gnss format
       std::string gnss_file_path = this->get_parameter("gnss_file_path").as_string();
