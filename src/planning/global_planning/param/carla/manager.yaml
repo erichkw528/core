@@ -1,0 +1,12 @@
+global_planner_manager:
+  ros__parameters:
+    debug: true
+    planner_name: "RacePlanner"
+    planner_frequency: 0.1
+
+
+lifecycle_manager_global_planning:
+  ros__parameters:
+    autostart: true
+    use_sim_time: true
+    node_names: ["/global_planner_manager"]
