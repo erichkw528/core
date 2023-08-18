@@ -5,8 +5,10 @@ namespace ROAR
 {
     namespace GlobalPlanning
     {
-        RacePlanner::RacePlanner(nav2_util::LifecycleNode *node) : GlobalPlannerInterface(node)
+        RacePlanner::RacePlanner(nav2_util::LifecycleNode *node) : GlobalPlannerInterface(node, "RacePlanner")
         {
+            this->m_node_->declare_parameter("waypoint_path", "waypoints.txt");
+            RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("waypoint_path").as_string());
         }
         RacePlanner::~RacePlanner()
         {
@@ -18,7 +20,7 @@ namespace ROAR
 
         void RacePlanner::step()
         {
-            RCLCPP_DEBUG(rclcpp::get_logger("RacePlanner"), "RacePlanner Stepped");
+            RCLCPP_DEBUG(m_logger_, "RacePlanner Stepped");
         }
 
     }

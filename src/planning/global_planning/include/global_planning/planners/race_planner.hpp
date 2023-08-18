@@ -11,6 +11,8 @@ namespace ROAR
             ~RacePlanner();
             void initialize();
             void step();
+
+        private:
         };
     }
 }
