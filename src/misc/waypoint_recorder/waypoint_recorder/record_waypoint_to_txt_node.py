@@ -6,14 +6,15 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
 from pathlib import Path
+from nav_msgs.msg import Odometry
 
 class ROARWaypointToTxtNode(Node):
     def __init__(self):
         super().__init__("roar_waypoint_to_txt_node")
         self.declare_parameter("recording_path", "./data")
-        sub = self.create_subscription(NavSatFix, 
-                                       "/roar/gnss", 
-                                       self.on_waypoint_received, 
+        sub = self.create_subscription(Odometry, 
+                                       "/roar/odometry", 
+                                       self.odom_received, 
                                        10)
 
         self.recording_dir = Path(self.get_parameter("recording_path").get_parameter_value().string_value)
@@ -21,15 +22,12 @@ class ROARWaypointToTxtNode(Node):
         self.recording_dir.mkdir(exist_ok=True, parents=True)
         self.recording_path = self.recording_dir / "waypoint.txt"
         self.recording_file = self.recording_path.open("w")
-        self.recording_file.write("timestamp,latitude,longitude,altitude,covariance1,covariance2,covariance3,covariance4,covariance5,covariance6,covariance7,covariance8,covariance9\n")
+        self.recording_file.write("timestamp,frame_id,child_frame_id,x,y,z,qx,qy,qz,qw,vx,vy,vz,rx,ry,rz\n")
         
         self.get_logger().info(f"ROARWaypointToTxtNode has started. Listening topic: {sub.topic}")
 
-    def on_waypoint_received(self, msg:NavSatFix):
-        cov = msg.position_covariance.tolist()
-        cov_string = ",".join([str(x) for x in cov])
-
-        msg = f"{msg.header.stamp.sec}.{msg.header.stamp.nanosec},{msg.latitude},{msg.longitude},{msg.altitude},{cov_string}\n"
+    def odom_received(self, msg:Odometry):
+        msg = f"{msg.header.stamp.sec}.{msg.header.stamp.nanosec},{msg.header.frame_id},{msg.child_frame_id},{msg.pose.pose.position.x},{msg.pose.pose.position.y},{msg.pose.pose.position.z},{msg.pose.pose.orientation.x},{msg.pose.pose.orientation.y},{msg.pose.pose.orientation.z},{msg.pose.pose.orientation.w},{msg.twist.twist.linear.x},{msg.twist.twist.linear.y},{msg.twist.twist.linear.z},{msg.twist.twist.angular.x},{msg.twist.twist.angular.y},{msg.twist.twist.angular.z}\n"
         self.recording_file.write(msg)
 
     def destroy_node(self):

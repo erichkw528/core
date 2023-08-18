@@ -17,7 +17,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument("should_record_to_txt", default_value="True"))
     ld.add_action(DeclareLaunchArgument("should_show_mapviz", default_value="False"))
     ld.add_action(LogInfo(msg=["Recording path: ", LaunchConfiguration("recording_path")]))
-    record_node = ExecuteProcess(cmd=['ros2', 'bag', 'record', '-o', LaunchConfiguration("recording_path"), '/roar/gnss'], 
+    record_node = ExecuteProcess(cmd=['ros2', 'bag', 'record', '-o', LaunchConfiguration("recording_path"), '/roar/odometry'], 
                    output='screen', 
                    emulate_tty=True)
     ld.add_action(record_node)
@@ -35,7 +35,7 @@ def generate_launch_description():
     )
 
     delayed_nodes = TimerAction(period=1.0, actions=[waypoint_txt_node, 
-                                                     LogInfo(msg=["gnss to txt node launched"])])
+                                                     LogInfo(msg=["odom to txt node launched"])])
     ld.add_action(delayed_nodes)
 
     return ld 

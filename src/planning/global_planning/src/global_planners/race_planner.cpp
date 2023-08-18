@@ -16,6 +16,7 @@ namespace ROAR
 
         void RacePlanner::initialize()
         {
+            // read in waypoints from waypoints.txt
         }
 
         void RacePlanner::step()
