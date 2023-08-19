@@ -2,11 +2,25 @@
 #define GLOBAL_PLANNER_INTERFACE_HPP
 #include <rclcpp/rclcpp.hpp>
 #include "nav2_util/lifecycle_node.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
 namespace ROAR
 {
     namespace GlobalPlanning
     {
+        struct StepInput
+        {
+            nav_msgs::msg::Odometry::SharedPtr odom;
+        };
+
+        struct StepResult
+        {
+            nav_msgs::msg::Path::SharedPtr global_path;
+            geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint_pose_stamped;
+        };
+
         class GlobalPlannerInterface
         {
         public:
@@ -16,7 +30,7 @@ namespace ROAR
             virtual ~GlobalPlannerInterface() = default;
 
             virtual void initialize() = 0;
-            virtual void step() = 0;
+            virtual StepResult step(const StepInput input) = 0;
 
         protected:
             nav2_util::LifecycleNode *m_node_{};

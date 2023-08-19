@@ -42,6 +42,20 @@ namespace ROAR
         {
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now configured.");
             this->planner->initialize();
+
+            // subscribers
+            current_pose_subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>(
+                "/roar/odometry",
+                rclcpp::QoS(rclcpp::KeepLast(1)),
+                [&](const nav_msgs::msg::Odometry::SharedPtr msg)
+                {
+                    this->current_odom = msg;
+                });
+
+            // publishers
+            this->global_path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("global_path", 10);
+            this->next_waypoint_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("next_waypoint", 10);
+
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
@@ -50,22 +64,24 @@ namespace ROAR
             this->timer = this->create_wall_timer(
                 std::chrono::milliseconds((int)(this->get_parameter("planner_frequency").as_double() * 1000)),
                 std::bind(&GlobalPlannerManager::step, this));
+
+            this->global_path_publisher_->on_activate();
+            this->next_waypoint_publisher_->on_activate();
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now active.");
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
         nav2_util::CallbackReturn GlobalPlannerManager::on_deactivate(const rclcpp_lifecycle::State &state)
         {
+            this->next_waypoint_publisher_->on_deactivate();
+            this->global_path_publisher_->on_deactivate();
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now inactive.");
-            // Custom deactivation logic goes here
-
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
         nav2_util::CallbackReturn GlobalPlannerManager::on_cleanup(const rclcpp_lifecycle::State &state)
         {
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now cleaned up.");
-            // Custom cleanup logic goes here
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
@@ -83,8 +99,26 @@ namespace ROAR
                 RCLCPP_ERROR(get_logger(), "Planner is not initialized");
                 return;
             }
+            if (this->current_odom == nullptr)
+            {
+                RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
+                return;
+            }
+            StepInput input;
+            input.odom = this->current_odom;
+            StepResult result = this->planner->step(input);
 
-            this->planner->step();
+            // publish next waypoint
+            if (result.next_waypoint_pose_stamped != nullptr)
+            {
+                this->next_waypoint_publisher_->publish(*result.next_waypoint_pose_stamped);
+            }
+
+            // publish global path
+            if (result.global_path != nullptr)
+            {
+                this->global_path_publisher_->publish(*result.global_path);
+            }
         }
 
     } // namespace global_planning

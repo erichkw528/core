@@ -45,6 +45,16 @@ namespace ROAR
             GlobalPlannerInterface *planner{};
             rclcpp::TimerBase::SharedPtr timer{};
             void step();
+
+            // odom subscriber
+            rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr current_pose_subscriber_;
+            nav_msgs::msg::Odometry::SharedPtr current_odom;
+
+            // publishers
+            std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> next_waypoint_publisher_;
+            std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_publisher_;
+            std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>> global_path_visualization_publisher_;
+            std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>> vehicle_curr_position_publisher_;
         };
     } // namespace global_planning
 } // namespace roar
