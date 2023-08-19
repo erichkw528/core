@@ -82,7 +82,7 @@ namespace ROAR
                 }
             }
             RCLCPP_DEBUG_STREAM(m_logger_, "next waypoint index: " << next_waypoint_index << ", next_waypoint_dist: " << next_waypoint_dist);
-            return next_waypoint_dist;
+            return next_waypoint_index;
         }
 
         void RacePlanner::read_waypoints(const std::string &file_path)
