@@ -20,7 +20,6 @@ set(dependencies
   GeographicLib
 )
 
-ament_auto_add_executable(global_planner_node src/global_planner_node.cpp)
 ament_auto_add_executable(global_planner_manager 
   src/global_planner_manager.cpp 
   src/global_planners/race_planner.cpp
@@ -30,7 +29,6 @@ ament_auto_add_executable(global_planner_manager
 # target_include_directories(global_planner_node PUBLIC
 #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 #   $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(global_planner_node ${dependencies})
 ament_target_dependencies(global_planner_manager ${dependencies})
 
 # ament_auto_add_library(${PROJECT_NAME} SHARED
@@ -39,8 +37,6 @@ ament_target_dependencies(global_planner_manager ${dependencies})
 # )
 
 
-install(TARGETS global_planner_node
-  DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY include DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY param DESTINATION share/${PROJECT_NAME})
