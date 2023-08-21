@@ -11,7 +11,7 @@ namespace ROAR
         {
             this->m_node_->declare_parameter("waypoint_path", "waypoints.txt");
             this->m_node_->declare_parameter("map_frame", "map");
-            this->m_node_->declare_parameter("min_dist", 10.0);
+            this->m_node_->declare_parameter("cross_track_error_config", "cte_config.txt");
 
             RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("waypoint_path").as_string());
         }
@@ -23,6 +23,7 @@ namespace ROAR
         {
             // read in waypoints from waypoints.txt
             this->read_waypoints(this->m_node_->get_parameter("waypoint_path").as_string());
+            this->read_cte_config(this->m_node_->get_parameter("cross_track_error_config").as_string());
         }
 
         StepResult RacePlanner::step(const StepInput input)
@@ -48,6 +49,56 @@ namespace ROAR
 
             return result;
         }
+
+        void RacePlanner::read_cte_config(const std::string &file_path)
+        {
+            std::ifstream infile(file_path);
+
+            if (!infile.is_open())
+            {
+                RCLCPP_ERROR(m_logger_, "Failed to open config file: %s", file_path.c_str());
+                return;
+            }
+
+            // Skip the first line with column names
+            std::string line;
+            std::getline(infile, line);
+
+            while (std::getline(infile, line))
+            {
+                std::istringstream iss(line);
+                std::string cte_str, lookahead_str;
+
+                // Extract each value from the comma-separated line
+                if (!(std::getline(iss, cte_str, ',') &&
+                      std::getline(iss, lookahead_str, ',')))
+                {
+                    RCLCPP_WARN(m_logger_, "Invalid config format: %s", line.c_str());
+                    continue;
+                }
+
+                try
+                {
+                    // Convert the string values to floats
+                    double cte = std::stod(cte_str);
+                    double lookahead = std::stod(lookahead_str);
+                    cte_config.push_back({cte, lookahead});
+                }
+                catch (const std::exception &ex)
+                {
+                    RCLCPP_ERROR(m_logger_, "Error parsing CTE config: %s", ex.what());
+                }
+            }
+            // print cte config
+            RCLCPP_INFO_STREAM(m_logger_, "CTE config: ");
+            for (const auto &config : cte_config)
+            {
+                RCLCPP_INFO_STREAM(m_logger_, "CTE:" << config[0] << ", "
+                                                     << " lookahead: " << config[1]);
+            }
+            infile.close();
+        }
+
         size_t RacePlanner::findNextWaypoint(const nav_msgs::msg::Odometry::SharedPtr odom)
         {
             // find the closest waypoint to the current position
@@ -66,8 +117,12 @@ namespace ROAR
             }
             RCLCPP_DEBUG_STREAM(m_logger_, "closest waypoint index: " << closest_waypoint_index << ", distance: " << min_distance);
 
+            // given the min_distance, find the best cross track error to use
+            std::pair<double, double> cte_and_lookahead = calculateCTEAndLookahead(cte_config, min_distance);
+            RCLCPP_DEBUG_STREAM(m_logger_, "cte: " << cte_and_lookahead.first << ", lookahead: " << cte_and_lookahead.second);
+
             // find the next waypoint, including looping back to the beginning
-            double next_waypoint_dist = this->m_node_->get_parameter("min_dist").as_double();
+            double next_waypoint_dist = cte_and_lookahead.second;
             size_t next_waypoint_index = closest_waypoint_index;
             for (size_t i = 0; i < waypoints_.size(); i++)
             {
