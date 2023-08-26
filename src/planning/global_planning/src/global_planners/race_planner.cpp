@@ -12,7 +12,8 @@ namespace ROAR
             this->m_node_->declare_parameter("waypoint_path", "waypoints.txt");
             this->m_node_->declare_parameter("map_frame", "map");
             this->m_node_->declare_parameter("cross_track_error_config", "cte_config.txt");
-
+            this->m_node_->declare_parameter("min_dist",5.0);
+            RCLCPP_INFO_STREAM(m_logger_, "cross_track_error_config: " << this->m_node_->get_parameter("cross_track_error_config").as_string());
             RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("waypoint_path").as_string());
         }
         RacePlanner::~RacePlanner()
@@ -118,11 +119,12 @@ namespace ROAR
             RCLCPP_DEBUG_STREAM(m_logger_, "closest waypoint index: " << closest_waypoint_index << ", distance: " << min_distance);
 
             // given the min_distance, find the best cross track error to use
-            std::pair<double, double> cte_and_lookahead = calculateCTEAndLookahead(cte_config, min_distance);
-            RCLCPP_DEBUG_STREAM(m_logger_, "cte: " << cte_and_lookahead.first << ", lookahead: " << cte_and_lookahead.second);
+            // std::pair<double, double> cte_and_lookahead = calculateCTEAndLookahead(cte_config, min_distance);
+            // RCLCPP_DEBUG_STREAM(m_logger_, "cte: " << cte_and_lookahead.first << ", lookahead: " << cte_and_lookahead.second);
 
             // find the next waypoint, including looping back to the beginning
-            double next_waypoint_dist = cte_and_lookahead.second;
+            // double next_waypoint_dist = cte_and_lookahead.second;
+            double next_waypoint_dist = float(this->m_node_->get_parameter("min_dist").as_double());
             size_t next_waypoint_index = closest_waypoint_index;
             for (size_t i = 0; i < waypoints_.size(); i++)
             {

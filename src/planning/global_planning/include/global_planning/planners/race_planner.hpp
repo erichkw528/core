@@ -23,14 +23,12 @@ namespace ROAR
 
                 for (const auto &config : cte_config)
                 {
-                    double lookahead = config[0];
-                    double desiredCTE = config[1];
-                    double difference = std::abs(currentCTE - desiredCTE);
-
-                    if (difference < smallestDifference)
+                    double desiredCTE = config[0];
+                    double lookahead = config[1];
+                    if (std::abs(currentCTE) < std::abs(desiredCTE))
                     {
-                        smallestDifference = difference;
                         bestLookahead = lookahead;
+                        break;
                     }
                 }
 
@@ -47,7 +45,7 @@ namespace ROAR
 
             // cte -> lookahead distance
             std::vector<std::vector<double>> cte_config = {
-                {0.5, 5.0}};
+                {0.5,5.0}};
         };
     }
 }
