@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(mapping)
+project(roar_mapping)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
