@@ -79,17 +79,3 @@ ament_auto_package(INSTALL_TO_SHARE
   param
   launch
 )
-
-# ORIGINAL
-# ament_auto_find_build_dependencies()
-
-# ament_auto_add_executable(global_planner_manager 
-#   src/behavior_planner_manager.cpp 
-# )
-# ament_target_dependencies(global_planner_manager ${dependencies})
-
-# install(DIRECTORY include DESTINATION share/${PROJECT_NAME})
-# install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
-# install(DIRECTORY param DESTINATION share/${PROJECT_NAME})
-
-# ament_auto_package()
