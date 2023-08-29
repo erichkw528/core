@@ -18,15 +18,78 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
-ament_auto_find_build_dependencies()
 
-ament_auto_add_executable(global_planner_manager 
-  src/behavior_planner_manager.cpp 
+ament_auto_find_build_dependencies(REQUIRED
+  ${${PROJECT_NAME}_BUILD_DEPENDS}
+  ${${PROJECT_NAME}_BUILDTOOL_DEPENDS}
 )
-ament_target_dependencies(global_planner_manager ${dependencies})
 
-install(DIRECTORY include DESTINATION share/${PROJECT_NAME})
-install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
-install(DIRECTORY param DESTINATION share/${PROJECT_NAME})
+set(${PROJECT_NAME}_BASE_HEADER
+  include/${PROJECT_NAME}/base/base_lifecycle_node.hpp
+  include/${PROJECT_NAME}/base/base_bt_lifecycle_node.hpp
+)
 
-ament_auto_package()
+set(${PROJECT_NAME}_BASE_SRC
+    src/base/base_lifecycle_node.cpp
+    src/base/base_bt_lifecycle_node.cpp
+)
+set(${PROJECT_NAME}_COMMON_HEADER
+  include/${PROJECT_NAME}/common/utils.hpp
+)
+
+set(${PROJECT_NAME}_COMMON_SRC
+  src/common/utils.cpp
+)
+
+set(DEFAULT_BT_HEADER
+  include/${PROJECT_NAME}/default_behavior_planner.hpp
+)
+set(DEFAULT_BT_SRC
+  src/default_behavior_planner.cpp
+)
+
+ament_auto_add_library(${PROJECT_NAME}_COMMON SHARED
+    ${${PROJECT_NAME}_COMMON_HEADER}
+    ${${PROJECT_NAME}_COMMON_SRC}
+)
+
+ament_auto_add_library(${PROJECT_NAME}_BASE SHARED
+    ${${PROJECT_NAME}_BASE_HEADER}
+    ${${PROJECT_NAME}_BASE_SRC}
+)
+target_link_libraries(${PROJECT_NAME}_BASE  
+  ${PROJECT_NAME}_COMMON
+)
+
+ament_auto_add_library(DEFAULT_BT SHARED
+  ${DEFAULT_BT_HEADER}
+  ${DEFAULT_BT_SRC}
+)
+target_link_libraries(DEFAULT_BT
+  ${PROJECT_NAME}_COMMON
+  ${PROJECT_NAME}_BASE
+)
+
+rclcpp_components_register_node(DEFAULT_BT
+  PLUGIN "race::planning::behavior_planning::impl::DefaultBehaviorPlanner"
+  EXECUTABLE default_behavior_planner_exe
+)
+
+ament_auto_package(INSTALL_TO_SHARE
+  param
+  launch
+)
+
+# ORIGINAL
+# ament_auto_find_build_dependencies()
+
+# ament_auto_add_executable(global_planner_manager 
+#   src/behavior_planner_manager.cpp 
+# )
+# ament_target_dependencies(global_planner_manager ${dependencies})
+
+# install(DIRECTORY include DESTINATION share/${PROJECT_NAME})
+# install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
+# install(DIRECTORY param DESTINATION share/${PROJECT_NAME})
+
+# ament_auto_package()
