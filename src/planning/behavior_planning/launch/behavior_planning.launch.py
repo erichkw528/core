@@ -13,6 +13,7 @@ def generate_launch_description():
     node = Node(package='behavior_planning',
                 executable='default_behavior_planner_exe',
                 name='behavior_planning_node',
+                namespace="roar",
                 output='screen',
                 emulate_tty=True,
     )

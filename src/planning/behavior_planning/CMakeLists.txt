@@ -71,7 +71,7 @@ target_link_libraries(DEFAULT_BT
 )
 
 rclcpp_components_register_node(DEFAULT_BT
-  PLUGIN "race::planning::behavior_planning::impl::DefaultBehaviorPlanner"
+  PLUGIN "roar::planning::behavior_planning::impl::DefaultBehaviorPlanner"
   EXECUTABLE default_behavior_planner_exe
 )
 
