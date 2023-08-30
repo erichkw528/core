@@ -136,10 +136,10 @@ namespace controller
         diag_status_msg->name = std::string(this->get_namespace()) + "/" +
                                 std::string(this->get_name());
 
-        if (this->is_safety_on == false)
+        if (this->is_auto_control == false)
         {
             diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
-            diag_status_msg->message = "rejecting goal - safety switch is off";
+            diag_status_msg->message = "rejecting goal - Auto is off";
             diag_array_msg->status.push_back(*diag_status_msg);
             diagnostic_pub_->publish(std::move(diag_array_msg));
 
@@ -181,14 +181,15 @@ namespace controller
      */
     void ControllerManagerNode::execution_callback()
     {
+        if (this->is_auto_control == false)
+        {
+            this->vehicle_control_publisher_->publish(neutralControlMsg);
+            return;
+        }
+
         if (this->active_goal_ != nullptr)
         {
             this->p_execute(active_goal_);
-        }
-
-        if (this->is_safety_on == false)
-        {
-            this->vehicle_control_publisher_->publish(neutralControlMsg);
         }
     }
 
@@ -196,6 +197,12 @@ namespace controller
         const std::shared_ptr<GoalHandleControlAction> goal_handle)
     {
         RCLCPP_DEBUG(get_logger(), "------ controller manager ------");
+        auto diag_array_msg = std::make_unique<diagnostic_msgs::msg::DiagnosticArray>();
+        diag_array_msg->header.stamp = this->now();
+        diagnostic_msgs::msg::DiagnosticStatus::SharedPtr diag_status_msg = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+        diag_status_msg->name = "ControllerManager Execution";
+        diag_array_msg->status.push_back(*diag_status_msg);
+
         std::lock_guard<std::mutex> lock(active_goal_mutex_);
         // get path from goal
         nav_msgs::msg::Path path = goal_handle->get_goal()->path;
@@ -204,6 +211,9 @@ namespace controller
         nav_msgs::msg::Path egoCentricPath = this->p_transformToEgoCentric(path);
         if (egoCentricPath.poses.size() == 0)
         {
+            diag_status_msg->message = "rejecting goal - path is empty or failed to transform to target frame";
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+            diagnostic_pub_->publish(std::move(diag_array_msg));
             RCLCPP_ERROR(get_logger(), "rejecting goal - path is empty or failed to transform to target frame");
             auto result = std::make_shared<ControlAction::Result>();
             result->status = control_interfaces::action::Control::Result::FAILED;
@@ -217,7 +227,10 @@ namespace controller
         RCLCPP_DEBUG(get_logger(), "found next waypoint at index %d", nextWaypointIndex);
         if (nextWaypointIndex > egoCentricPath.poses.size() - 1)
         {
-            RCLCPP_ERROR(get_logger(), "rejecting goal - unable to find steering angle");
+            diag_status_msg->message = "rejecting goal - unable to find next waypoint";
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+            diagnostic_pub_->publish(std::move(diag_array_msg));
+            RCLCPP_ERROR(get_logger(), "rejecting goal - unable to find next waypoint");
             auto result = std::make_shared<ControlAction::Result>();
             result->status = control_interfaces::action::Control::Result::FAILED;
             goal_handle->succeed(result);
@@ -226,17 +239,33 @@ namespace controller
         }
 
         // construct control msg
-        roar_msgs::msg::VehicleControl controlMsg;
+        roar_msgs::msg::VehicleControl::SharedPtr controlMsg;
 
-        // find the steering needed to reach that position
-        double steeringAngle = this->p_findSteeringAngle(egoCentricPath, nextWaypointIndex);
-        controlMsg.steering_angle = float(steeringAngle);
+        // find all controls by running through a list of plugins
+        bool output_good = std::all_of(
+            m_plugins_.begin(), m_plugins_.end(), [controlMsg, this](roar::control::ControllerPlugin::SharedPtr &p)
+            {
+                try {
+                    return p->compute(controlMsg);
+                    }
+                catch (const std::exception &e) {
+                    RCLCPP_ERROR(get_logger(), "plugin %s failed to step: %s", p->get_plugin_name(), e.what());
+                    return false;
+                } });
 
-        // assign target_speed
-        controlMsg.target_speed = float(this->get_parameter("target_speed").as_double());
+        // if all output are good
+        if (!output_good)
+        {
+            RCLCPP_ERROR(get_logger(), "rejecting goal - plugin failed to step");
+            auto result = std::make_shared<ControlAction::Result>();
+            result->status = control_interfaces::action::Control::Result::FAILED;
+            goal_handle->succeed(result);
+            active_goal_ = nullptr; // release lock
+            return;
+        }
 
         // publish control
-        this->vehicle_control_publisher_->publish(controlMsg);
+        this->vehicle_control_publisher_->publish(*controlMsg);
 
         auto result = std::make_shared<ControlAction::Result>();
         result->status = control_interfaces::action::Control::Result::NORMAL;
@@ -320,9 +349,9 @@ namespace controller
     void ControllerManagerNode::toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
                                                      std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Response> response)
     {
-        this->is_safety_on = request->is_safety_on;
-        response->status = this->is_safety_on;
+        this->is_auto_control = request->is_safety_on;
+        response->status = this->is_auto_control;
 
-        RCLCPP_INFO(this->get_logger(), "Safety switch is %s", this->is_safety_on ? "ON" : "OFF");
+        RCLCPP_INFO(this->get_logger(), "Auto switch is %s", this->is_auto_control ? "ON" : "OFF");
     }
 } // namespace controller

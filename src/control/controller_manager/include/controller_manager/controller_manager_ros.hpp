@@ -65,7 +65,7 @@ namespace controller
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
 
-        bool is_safety_on = false;
+        bool is_auto_control = false;
         roar_msgs::msg::VehicleControl neutralControlMsg;
 
         rclcpp::Service<roar_msgs::srv::ToggleControlSafetySwitch>::SharedPtr control_safety_switch_;
