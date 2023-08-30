@@ -13,7 +13,12 @@
 #include "roar_msgs/srv/toggle_control_safety_switch.hpp"
 #include "controller_manager/controller_interface.hpp"
 #include <tf2_ros/transform_listener.h>
-
+#include "diagnostic_msgs/msg/diagnostic_array.hpp"
+#include "diagnostic_msgs/msg/diagnostic_status.hpp"
+#include "diagnostic_msgs/msg/key_value.hpp"
+#include "controller_manager/controller_plugin_interface.hpp"
+#include "rcl_interfaces/msg/set_parameters_result.hpp"
+#include <pluginlib/class_loader.hpp>
 namespace controller
 {
     enum Algorithms
@@ -58,6 +63,7 @@ namespace controller
          * control publisher
          */
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
+        std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
 
         bool is_safety_on = false;
         roar_msgs::msg::VehicleControl neutralControlMsg;
@@ -72,6 +78,11 @@ namespace controller
 
         std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
         std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+
+        // plugins
+        typedef std::vector<roar::control::ControllerPlugin::SharedPtr> PluginList;
+        pluginlib::ClassLoader<roar::control::ControllerPlugin> m_plugin_loader_;
+        PluginList m_plugins_;
     };
 } // controller
 

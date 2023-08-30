@@ -7,7 +7,8 @@
 namespace controller
 {
     ControllerManagerNode::ControllerManagerNode()
-        : LifecycleNode("manager", "controller", true)
+        : LifecycleNode("manager", "controller", true), m_plugin_loader_("controller_manager", "roar::control")
+
     {
         this->declare_parameter("debug", false);
         this->declare_parameter("loop_rate", 10.0);
@@ -15,6 +16,19 @@ namespace controller
         this->declare_parameter("base_link_frame", "base_link");
         this->declare_parameter("map_frame", "map");
         this->declare_parameter("min_distance", 5.0);
+        // initialize plugins
+        const auto plugin_names = declare_parameter("plugins", std::vector<std::string>{});
+        for (const auto &plugin_name : plugin_names)
+        {
+            roar::control::ControllerPlugin::SharedPtr new_plugin = m_plugin_loader_.createSharedInstance(plugin_name);
+            m_plugins_.push_back(new_plugin);
+        }
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { p->initialize(this); });
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { p->configure(); });
 
         if (this->get_parameter("debug").as_bool())
         {
@@ -45,6 +59,7 @@ namespace controller
     {
         RCLCPP_DEBUG(get_logger(), "on_configure");
 
+        // action server
         this->action_server_ = rclcpp_action::create_server<ControlAction>(
             this,
             std::string(this->get_namespace()) + "/" +
@@ -59,16 +74,23 @@ namespace controller
             std::chrono::milliseconds(50),
             std::bind(&ControllerManagerNode::execution_callback, this));
 
+        // safety switch
         this->control_safety_switch_ = this->create_service<roar_msgs::srv::ToggleControlSafetySwitch>(std::string(this->get_namespace()) + "/" +
                                                                                                            std::string(this->get_name()) + "/safety_toggle",
                                                                                                        std::bind(&ControllerManagerNode::toggle_safety_switch, this, std::placeholders::_1, std::placeholders::_2));
+        // diagnostic
+        diagnostic_pub_ = this->create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
+            "/diagnostics", 10);
+        // tf buffer
         tf_buffer_ =
             std::make_unique<tf2_ros::Buffer>(this->get_clock());
         tf_listener_ =
             std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-
+        // output publisher
         this->vehicle_control_publisher_ = this->create_publisher<roar_msgs::msg::VehicleControl>("vehicle_control", 10);
-        ;
+
+        // plugins
+
         RCLCPP_DEBUG(get_logger(), "configured");
 
         return nav2_util::CallbackReturn::SUCCESS;
@@ -108,19 +130,35 @@ namespace controller
         const rclcpp_action::GoalUUID &uuid,
         std::shared_ptr<const ControlAction::Goal> goal)
     {
+        auto diag_array_msg = std::make_unique<diagnostic_msgs::msg::DiagnosticArray>();
+        diag_array_msg->header.stamp = this->now();
+        diagnostic_msgs::msg::DiagnosticStatus::SharedPtr diag_status_msg = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+        diag_status_msg->name = std::string(this->get_namespace()) + "/" +
+                                std::string(this->get_name());
+
         if (this->is_safety_on == false)
         {
-            RCLCPP_WARN(get_logger(), "rejecting goal - safety switch is off");
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "rejecting goal - safety switch is off";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diagnostic_pub_->publish(std::move(diag_array_msg));
+
             return rclcpp_action::GoalResponse::REJECT;
         }
         if (this->active_goal_ != nullptr)
         {
-            RCLCPP_WARN(get_logger(), "rejecting goal - goal already in progress");
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "rejecting goal - goal already in progress";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diagnostic_pub_->publish(std::move(diag_array_msg));
             return rclcpp_action::GoalResponse::REJECT;
         }
         if (goal->path.poses.size() == 0)
         {
-            RCLCPP_WARN(get_logger(), "rejecting goal - path is empty");
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "rejecting goal - path is empty";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diagnostic_pub_->publish(std::move(diag_array_msg));
             return rclcpp_action::GoalResponse::REJECT;
         }
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;

@@ -12,4 +12,4 @@ lifecycle_manager_controller:
   ros__parameters:
     autostart: true
     use_sim_time: true
-    node_names: ["/controller/manager"]
+    node_names: ["/roar/controller_manager"]
