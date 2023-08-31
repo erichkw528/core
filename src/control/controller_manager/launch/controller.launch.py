@@ -29,7 +29,7 @@ def generate_launch_description():
         emulate_tty=True,
         output="screen",
         remappings=[
-            ("/controller/vehicle_control", "/roar/vehicle/control"),
+            ("/roar/vehicle_control", "/roar/vehicle/control"),
         ]
     )
 

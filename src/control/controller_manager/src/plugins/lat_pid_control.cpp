@@ -6,7 +6,7 @@
 #include "nav2_util/lifecycle_node.hpp"
 #include "roar_msgs/msg/vehicle_control.hpp"
 #include "controller_manager/controller_state.hpp"
-
+using namespace roar::control;
 namespace roar
 {
     namespace control
@@ -25,7 +25,7 @@ namespace roar
                 node_ = node;
             }
 
-            bool configure()
+            bool configure(const ControllerManagerConfig::SharedPtr config)
             {
                 return true;
             }

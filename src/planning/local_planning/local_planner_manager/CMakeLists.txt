@@ -27,6 +27,7 @@ find_package(Eigen3 REQUIRED)
 find_package(ompl REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(smac_planner REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
@@ -62,6 +63,7 @@ ament_target_dependencies(local_planner_manager_node
   control_interfaces
   eigen3_cmake_module
   smac_planner
+  diagnostic_msgs
 )
 target_link_libraries(local_planner_manager_node ${CERES_LIBRARIES} ${OMPL_LIBRARIES} ${OpenMP_LIBRARIES} OpenMP::OpenMP_CXX)
 

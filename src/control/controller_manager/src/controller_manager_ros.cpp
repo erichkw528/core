@@ -7,40 +7,49 @@
 namespace controller
 {
     ControllerManagerNode::ControllerManagerNode()
-        : LifecycleNode("manager", "controller", true), m_plugin_loader_("controller_manager", "roar::control")
+        : LifecycleNode("manager", "controller", true), m_plugin_loader_("controller_manager", "roar::control::ControllerPlugin")
 
     {
-        this->declare_parameter("debug", false);
-        this->declare_parameter("loop_rate", 10.0);
-        this->declare_parameter("target_speed", 5.0);
-        this->declare_parameter("base_link_frame", "base_link");
-        this->declare_parameter("map_frame", "map");
-        this->declare_parameter("min_distance", 5.0);
-        // initialize plugins
-        const auto plugin_names = declare_parameter("plugins", std::vector<std::string>{});
-        for (const auto &plugin_name : plugin_names)
-        {
-            roar::control::ControllerPlugin::SharedPtr new_plugin = m_plugin_loader_.createSharedInstance(plugin_name);
-            m_plugins_.push_back(new_plugin);
-        }
-        std::for_each(
-            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
-            { p->initialize(this); });
-        std::for_each(
-            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
-            { p->configure(); });
+        m_config_ = std::make_shared<ControllerManagerConfig>(
+            ControllerManagerConfig{
+                declare_parameter<bool>("manager.debug", false),
+                declare_parameter<double>("manager.loop_rate", 10.0),
+                declare_parameter<double>("planner.target_speed", 5.0),
+                declare_parameter<double>("planner.max_speed", 10.0),
+                declare_parameter<std::string>("base_link_frame", "base_link"),
+                declare_parameter<std::string>("map_frame", "map"),
+                declare_parameter<double>("min_distance", 5.0)});
 
-        if (this->get_parameter("debug").as_bool())
+        if (m_config_->debug)
         {
             bool _ = rcutils_logging_set_logger_level(get_logger().get_name(),
                                                       RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
             _ = rcutils_logging_set_logger_level("controller.manager.rclcpp_action",
                                                  RCUTILS_LOG_SEVERITY_FATAL); // enable or disable debug
         }
+        // initialize plugins
+        const auto plugin_names = declare_parameter("plugins", std::vector<std::string>{});
+        RCLCPP_INFO_STREAM(this->get_logger(), "plugin_names: " << plugin_names.size() << " plugins");
+        for (const auto &plugin_name : plugin_names)
+        {
+            roar::control::ControllerPlugin::SharedPtr new_plugin = m_plugin_loader_.createSharedInstance(plugin_name);
+            m_plugins_.push_back(new_plugin);
+            RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << plugin_name << " loaded");
+        }
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { 
+                p->initialize(this);
+                RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " initialized"); });
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { 
+                p->configure(m_config_);
+                RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " configured"); });
 
         RCLCPP_INFO(this->get_logger(),
                     "ControllerManagerNode initialized with Debug Mode = [%s]",
-                    this->get_parameter("debug").as_bool() ? "YES" : "NO");
+                    m_config_->debug ? "YES" : "NO");
     }
 
     ControllerManagerNode ::~ControllerManagerNode()
@@ -71,7 +80,7 @@ namespace controller
             std::bind(&ControllerManagerNode::handle_accepted, this,
                       std::placeholders::_1));
         this->execution_timer = this->create_wall_timer(
-            std::chrono::milliseconds(50),
+            std::chrono::milliseconds(int(this->m_config_->loop_rate_millis)),
             std::bind(&ControllerManagerNode::execution_callback, this));
 
         // safety switch
@@ -100,6 +109,7 @@ namespace controller
     {
         RCLCPP_DEBUG(get_logger(), "on_activate");
         this->vehicle_control_publisher_->on_activate();
+        this->diagnostic_pub_->on_activate();
         RCLCPP_DEBUG(get_logger(), "activated");
         return nav2_util::CallbackReturn::SUCCESS;
     }
@@ -108,6 +118,7 @@ namespace controller
     {
         RCLCPP_DEBUG(get_logger(), "on_deactivate");
         this->vehicle_control_publisher_->on_deactivate();
+        this->diagnostic_pub_->on_deactivate();
         return nav2_util::CallbackReturn::SUCCESS;
     }
     nav2_util::CallbackReturn
@@ -224,7 +235,7 @@ namespace controller
 
         // find the next waypoint that is min_executable_dist away
         int nextWaypointIndex = this->p_findNextWaypoint(egoCentricPath);
-        RCLCPP_DEBUG(get_logger(), "found next waypoint at index %d", nextWaypointIndex);
+        RCLCPP_DEBUG_STREAM(get_logger(), "next waypoint index [" << nextWaypointIndex << "] of path length [" << egoCentricPath.poses.size() << "]");
         if (nextWaypointIndex > egoCentricPath.poses.size() - 1)
         {
             diag_status_msg->message = "rejecting goal - unable to find next waypoint";
@@ -239,7 +250,9 @@ namespace controller
         }
 
         // construct control msg
-        roar_msgs::msg::VehicleControl::SharedPtr controlMsg;
+        roar_msgs::msg::VehicleControl::SharedPtr controlMsg = std::make_shared<roar_msgs::msg::VehicleControl>();
+        controlMsg->header.stamp = this->now();
+        controlMsg->header.frame_id = m_config_->base_link_frame;
 
         // find all controls by running through a list of plugins
         bool output_good = std::all_of(
@@ -253,7 +266,7 @@ namespace controller
                     return false;
                 } });
 
-        // if all output are good
+        // if any output is no good
         if (!output_good)
         {
             RCLCPP_ERROR(get_logger(), "rejecting goal - plugin failed to step");
@@ -307,19 +320,11 @@ namespace controller
                 RCLCPP_WARN(this->get_logger(), "Failed to transform pose: %s", ex.what());
             }
         }
-
-        RCLCPP_DEBUG(get_logger(), "transformed path size: %d", transformed_path.poses.size());
-        // print every x, y of every pose in the path
-        for (auto &pose : transformed_path.poses)
-        {
-            RCLCPP_DEBUG(get_logger(), "x: %f, y: %f", pose.pose.position.x, pose.pose.position.y); // TODO: figure out why this is wrong here
-        }
-
         return transformed_path;
     }
     int ControllerManagerNode::p_findNextWaypoint(nav_msgs::msg::Path path)
     {
-        float min_dist = this->get_parameter("min_distance").as_double();
+        float min_dist = m_config_->min_distance;
         int next_waypoint = 0;
         for (int i = 0; i < path.poses.size(); i++)
         {

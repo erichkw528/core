@@ -19,12 +19,15 @@
 #include "controller_manager/controller_plugin_interface.hpp"
 #include "rcl_interfaces/msg/set_parameters_result.hpp"
 #include <pluginlib/class_loader.hpp>
+using namespace roar::control;
+
 namespace controller
 {
     enum Algorithms
     {
         PID,
     };
+
     class ControllerManagerNode : public nav2_util::LifecycleNode
     {
         using ControlAction = control_interfaces::action::Control;
@@ -65,7 +68,7 @@ namespace controller
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
 
-        bool is_auto_control = false;
+        bool is_auto_control = true;
         roar_msgs::msg::VehicleControl neutralControlMsg;
 
         rclcpp::Service<roar_msgs::srv::ToggleControlSafetySwitch>::SharedPtr control_safety_switch_;
@@ -83,6 +86,8 @@ namespace controller
         typedef std::vector<roar::control::ControllerPlugin::SharedPtr> PluginList;
         pluginlib::ClassLoader<roar::control::ControllerPlugin> m_plugin_loader_;
         PluginList m_plugins_;
+
+        roar::control::ControllerManagerConfig::SharedPtr m_config_;
     };
 } // controller
 

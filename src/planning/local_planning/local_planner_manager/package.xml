@@ -27,6 +27,7 @@
   <depend>trajectory_picker </depend>
   <depend>planning_interfaces </depend>
   <depend>control_interfaces </depend>
+  <depend>diagnostic_msgs</depend>
 
   <depend>libceres-dev</depend>
   <depend>eigen3_cmake_module</depend>

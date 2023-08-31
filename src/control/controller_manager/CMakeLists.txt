@@ -16,6 +16,8 @@ include_directories(
 set(${PROJECT_NAME}_SRC
   src/controller_manager_node.cpp
   src/controller_manager_ros.cpp
+  src/pid_controller.cpp
+
 )
 
 set(${PROJECT_NAME}_PLUGIN_SRC

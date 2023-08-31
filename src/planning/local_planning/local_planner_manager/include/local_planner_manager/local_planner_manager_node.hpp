@@ -14,7 +14,9 @@
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <trajectory_generator/trajectory_generator_ros.hpp>
 #include <trajectory_picker/trajectory_picker_ros.hpp>
-
+#include "diagnostic_msgs/msg/diagnostic_array.hpp"
+#include "diagnostic_msgs/msg/diagnostic_status.hpp"
+#include "diagnostic_msgs/msg/key_value.hpp"
 namespace local_planning
 {
     class LocalPlannerManagerNode : public nav2_util::LifecycleNode
@@ -132,6 +134,9 @@ namespace local_planning
             const GoalHandleControlAction::WrappedResult &result);
         void control_send_goal(const nav_msgs::msg::Path::SharedPtr path,
                                float target_spd);
+
+        // diagnostic
+        std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
     };
 } // namespace local_planning
 #endif

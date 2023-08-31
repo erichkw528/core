@@ -14,7 +14,7 @@ namespace local_planning
       auto ret = rcutils_logging_set_logger_level(get_logger().get_name(),
                                                   RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
     }
-    this->declare_parameter("controller_route", "/controller/manager");
+    this->declare_parameter("controller_route", "/roar/controller_manager");
     this->controllerServerRoute = this->get_parameter("controller_route").as_string();
 
     RCLCPP_INFO(this->get_logger(), "LocalPlannerManagerNode initialized with Debug Mode = [%s]",
@@ -62,6 +62,10 @@ namespace local_planning
 
     this->control_action_client_ = rclcpp_action::create_client<ControlAction>(this, this->controllerServerRoute);
 
+    // diagnostic server
+    diagnostic_pub_ = this->create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
+        "/diagnostics", 10);
+
     return nav2_util::CallbackReturn::SUCCESS;
   }
   nav2_util::CallbackReturn LocalPlannerManagerNode::on_activate(const rclcpp_lifecycle::State &state)
@@ -81,6 +85,7 @@ namespace local_planning
         std::string(this->get_namespace()) + "/trajectory/picker" + "/best_trajectory", 10,
         std::bind(&LocalPlannerManagerNode::on_best_trajectory_publication_received, this, std::placeholders::_1));
     this->possible_trajectory_publisher_->on_activate();
+    this->diagnostic_pub_->on_activate();
 
     return nav2_util::CallbackReturn::SUCCESS;
   }
@@ -90,6 +95,7 @@ namespace local_planning
     execute_timer->cancel();
     trajectory_generator_node_->deactivate();
     trajectory_picker_node_->deactivate();
+    diagnostic_pub_->on_deactivate();
     return nav2_util::CallbackReturn::SUCCESS;
   }
   nav2_util::CallbackReturn LocalPlannerManagerNode::on_cleanup(const rclcpp_lifecycle::State &state)
@@ -301,13 +307,25 @@ namespace local_planning
       std::shared_future<GoalHandleControlAction::SharedPtr> future)
   {
     auto goal_handle = future.get();
+    auto diag_array_msg = std::make_unique<diagnostic_msgs::msg::DiagnosticArray>();
+    diag_array_msg->header.stamp = this->now();
+    diagnostic_msgs::msg::DiagnosticStatus::SharedPtr diag_status_msg = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+    diag_status_msg->name = std::string(this->get_namespace()) + "/" +
+                            std::string(this->get_name());
+
     if (!goal_handle)
     {
-      RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server");
+      diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+      diag_status_msg->message = "Goal was rejected by server";
+      diag_array_msg->status.push_back(*diag_status_msg);
+      diagnostic_pub_->publish(std::move(diag_array_msg));
     }
     else
     {
-      RCLCPP_DEBUG(this->get_logger(), "Goal accepted by server, waiting for result");
+      diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+      diag_status_msg->message = "Goal accepted by server, waiting for result";
+      diag_array_msg->status.push_back(*diag_status_msg);
+      diagnostic_pub_->publish(std::move(diag_array_msg));
     }
   }
   void LocalPlannerManagerNode::control_action_feedback_callback(
