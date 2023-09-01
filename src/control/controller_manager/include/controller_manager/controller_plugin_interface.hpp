@@ -20,7 +20,7 @@ namespace roar
             virtual ~ControllerPlugin() = default;
             virtual void initialize(nav2_util::LifecycleNode *node) { node_ = node; }
             virtual bool configure(const ControllerManagerConfig::SharedPtr config) { return true; }
-            virtual bool update(const ControllerState *state) { return true; }
+            virtual bool update(const ControllerManagerState::SharedPtr state) { return true; }
             virtual bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg) = 0;
             virtual const char *get_plugin_name()
             {

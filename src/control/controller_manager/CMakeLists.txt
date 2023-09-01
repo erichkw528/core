@@ -23,6 +23,7 @@ set(${PROJECT_NAME}_SRC
 set(${PROJECT_NAME}_PLUGIN_SRC
   src/plugins/lon_pid_control.cpp
   src/plugins/lat_pid_control.cpp
+  src/plugins/dummy_lon_controller.cpp
 )
 
 # Create this project as an executable.

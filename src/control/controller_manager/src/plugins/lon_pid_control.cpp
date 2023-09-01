@@ -58,10 +58,10 @@ namespace roar
                 lon_state().throttle_pid = PidController("throttle", config_.throttle_pid_param);
                 return true;
             }
-            bool update(const ControllerState *state)
+            bool update(const ControllerManagerState::SharedPtr state)
             {
                 // update PID State from ControllerState
-                lon_state().current_speed = state->current_speed;
+                // lon_state().current_speed = state->current_speed;
 
                 // compute the throttle cmd
                 static auto this_pid_time = node().now();
@@ -73,6 +73,7 @@ namespace roar
                 // update the state
                 lon_state().throttle_error = speed_error;
                 lon_state().speed_output = speed_output;
+                lon_state().last_pid_time = this_pid_time;
                 return true;
             }
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)

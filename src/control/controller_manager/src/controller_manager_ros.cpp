@@ -47,6 +47,9 @@ namespace controller
                 p->configure(m_config_);
                 RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " configured"); });
 
+        // initialize state
+        m_controller_state_ = std::make_shared<ControllerManagerState>(ControllerManagerState());
+
         RCLCPP_INFO(this->get_logger(),
                     "ControllerManagerNode initialized with Debug Mode = [%s]",
                     m_config_->debug ? "YES" : "NO");
@@ -97,8 +100,6 @@ namespace controller
             std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
         // output publisher
         this->vehicle_control_publisher_ = this->create_publisher<roar_msgs::msg::VehicleControl>("vehicle_control", 10);
-
-        // plugins
 
         RCLCPP_DEBUG(get_logger(), "configured");
 
@@ -194,6 +195,21 @@ namespace controller
     {
         if (this->is_auto_control == false)
         {
+            auto diag_array_msg = std::make_unique<diagnostic_msgs::msg::DiagnosticArray>();
+            diag_array_msg->header.stamp = this->now();
+            diagnostic_msgs::msg::DiagnosticStatus::SharedPtr diag_status_msg = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+            diag_status_msg->name = "ControllerManager Execution";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "Auto is off";
+            diagnostic_pub_->publish(std::move(diag_array_msg));
+
+            roar_msgs::msg::VehicleControl neutralControlMsg;
+            neutralControlMsg.header.stamp = this->now();
+            neutralControlMsg.header.frame_id = m_config_->base_link_frame;
+            neutralControlMsg.target_speed = 0.0;
+            neutralControlMsg.steering_angle = 0.0;
+
             this->vehicle_control_publisher_->publish(neutralControlMsg);
             return;
         }
@@ -202,6 +218,13 @@ namespace controller
         {
             this->p_execute(active_goal_);
         }
+    }
+
+    void ControllerManagerNode::on_update()
+    {
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { p->update(m_controller_state_); });
     }
 
     void ControllerManagerNode::p_execute(
@@ -233,15 +256,32 @@ namespace controller
             return;
         }
 
-        // find the next waypoint that is min_executable_dist away
-        int nextWaypointIndex = this->p_findNextWaypoint(egoCentricPath);
-        RCLCPP_DEBUG_STREAM(get_logger(), "next waypoint index [" << nextWaypointIndex << "] of path length [" << egoCentricPath.poses.size() << "]");
-        if (nextWaypointIndex > egoCentricPath.poses.size() - 1)
+        m_controller_state_->path_ego_centric = egoCentricPath;
+
+        /**
+         * All updates are parsed, now update controllers
+         */
+        bool all_update_good = std::all_of(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            {
+                try {
+                    RCLCPP_INFO_STREAM(this->get_logger(), "updating plugin: " << p->get_plugin_name());
+                    bool status = p->update(m_controller_state_);
+                    if (status == false)
+                    {
+                        RCLCPP_ERROR(get_logger(), "plugin %s failed to update", p->get_plugin_name());
+                    }
+                    
+                    return status;
+                }
+                catch (const std::exception &e) {
+                    RCLCPP_ERROR(get_logger(), "plugin %s failed to update: %s", p->get_plugin_name(), e.what());
+                    return false;
+                } });
+
+        if (!all_update_good)
         {
-            diag_status_msg->message = "rejecting goal - unable to find next waypoint";
-            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-            diagnostic_pub_->publish(std::move(diag_array_msg));
-            RCLCPP_ERROR(get_logger(), "rejecting goal - unable to find next waypoint");
+            RCLCPP_ERROR(get_logger(), "rejecting goal - plugin failed to update");
             auto result = std::make_shared<ControlAction::Result>();
             result->status = control_interfaces::action::Control::Result::FAILED;
             goal_handle->succeed(result);
@@ -249,6 +289,7 @@ namespace controller
             return;
         }
 
+        // all controllers are updated, now compute
         // construct control msg
         roar_msgs::msg::VehicleControl::SharedPtr controlMsg = std::make_shared<roar_msgs::msg::VehicleControl>();
         controlMsg->header.stamp = this->now();
@@ -259,10 +300,16 @@ namespace controller
             m_plugins_.begin(), m_plugins_.end(), [controlMsg, this](roar::control::ControllerPlugin::SharedPtr &p)
             {
                 try {
-                    return p->compute(controlMsg);
+                    bool status = p->compute(controlMsg);
+                    if (status == false)
+                    {
+                        RCLCPP_ERROR(get_logger(), "plugin %s failed to compute", p->get_plugin_name());
+                    }
+
+                    return status;
                     }
                 catch (const std::exception &e) {
-                    RCLCPP_ERROR(get_logger(), "plugin %s failed to step: %s", p->get_plugin_name(), e.what());
+                    RCLCPP_ERROR(get_logger(), "plugin %s failed to compute: %s", p->get_plugin_name(), e.what());
                     return false;
                 } });
 
@@ -321,34 +368,6 @@ namespace controller
             }
         }
         return transformed_path;
-    }
-    int ControllerManagerNode::p_findNextWaypoint(nav_msgs::msg::Path path)
-    {
-        float min_dist = m_config_->min_distance;
-        int next_waypoint = 0;
-        for (int i = 0; i < path.poses.size(); i++)
-        {
-            float dist = sqrt(pow(path.poses[i].pose.position.x, 2) + pow(path.poses[i].pose.position.y, 2));
-            if (dist > min_dist)
-            {
-                next_waypoint = i;
-                break;
-            }
-        }
-        return next_waypoint;
-    }
-    double ControllerManagerNode::p_findSteeringAngle(nav_msgs::msg::Path path, int next_waypoint)
-    {
-        double steering_angle = 0.0;
-        if (next_waypoint <= path.poses.size() - 1)
-        {
-            steering_angle = -1 * atan2(path.poses[next_waypoint].pose.position.y, path.poses[next_waypoint].pose.position.x);
-
-            // rad to deg
-            steering_angle = steering_angle * 180 / M_PI;
-        }
-        RCLCPP_DEBUG(get_logger(), "steering angle: %f", steering_angle);
-        return steering_angle;
     }
 
     void ControllerManagerNode::toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,

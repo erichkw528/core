@@ -49,6 +49,7 @@ namespace controller
         void p_execute(const std::shared_ptr<GoalHandleControlAction> goal_handle);
         int num_execution = 0;
         bool canExecute(std::shared_ptr<const ControlAction::Goal> goal);
+        void on_update();
         rclcpp::TimerBase::SharedPtr execution_timer;
         void execution_callback();
 
@@ -68,16 +69,13 @@ namespace controller
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
 
-        bool is_auto_control = true;
-        roar_msgs::msg::VehicleControl neutralControlMsg;
+        bool is_auto_control = false;
 
         rclcpp::Service<roar_msgs::srv::ToggleControlSafetySwitch>::SharedPtr control_safety_switch_;
         void toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
                                   std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Response> response);
 
         nav_msgs::msg::Path p_transformToEgoCentric(nav_msgs::msg::Path path);
-        int p_findNextWaypoint(nav_msgs::msg::Path path);
-        double p_findSteeringAngle(nav_msgs::msg::Path path, int next_waypoint);
 
         std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
         std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -88,6 +86,9 @@ namespace controller
         PluginList m_plugins_;
 
         roar::control::ControllerManagerConfig::SharedPtr m_config_;
+
+    private:
+        ControllerManagerState::SharedPtr m_controller_state_;
     };
 } // controller
 

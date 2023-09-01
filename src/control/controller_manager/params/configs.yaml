@@ -17,7 +17,8 @@
 
       plugins:
         - "roar::control::LatPIDControllerPlugin"
-        - "roar::control::LongPIDControllerPlugin"
+        - "roar::control::DummyLonControllerPlugin"
+        
 lifecycle_manager_controller:
   ros__parameters:
     autostart: true
