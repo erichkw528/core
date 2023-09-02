@@ -14,7 +14,7 @@ namespace roar_rviz_plugin
         node = rclcpp::Node::make_shared("ROARPanel");
 
         client =
-            node->create_client<roar_msgs::srv::ToggleControlSafetySwitch>("/controller/manager/safety_toggle");
+            node->create_client<roar_msgs::srv::ToggleControlSafetySwitch>("/roar/controller_manager/safety_toggle");
         this->setupUI();
     }
 
