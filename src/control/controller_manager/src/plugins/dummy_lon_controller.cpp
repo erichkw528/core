@@ -11,6 +11,11 @@ namespace roar
 {
     namespace control
     {
+        struct LonConfig
+        {
+            double target_speed;
+        };
+
         class DummyLonControllerPlugin : public ControllerPlugin
         {
             typedef std::shared_ptr<DummyLonControllerPlugin> SharedPtr;
@@ -23,11 +28,12 @@ namespace roar
             void initialize(nav2_util::LifecycleNode *node) override
             {
                 ControllerPlugin::initialize(node); // Call the base class's initialize function
+                config_ = LonConfig();
             }
 
             bool configure(const ControllerManagerConfig::SharedPtr config) override
             {
-                target_speed = config->target_speed;
+                config_.target_speed = config->target_speed;
                 return true;
             }
             bool update(const ControllerManagerState::SharedPtr state) override
@@ -36,12 +42,12 @@ namespace roar
             }
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
             {
-                controlMsg->target_speed = target_speed; // target speed in m/s
+                controlMsg->target_speed = config_.target_speed; // target speed in m/s
                 return true;
             }
 
         private:
-            double target_speed = 2.0;
+            LonConfig config_;
         };
     } // namespace control
 } // roar

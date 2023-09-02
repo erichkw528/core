@@ -14,7 +14,7 @@ namespace controller
             ControllerManagerConfig{
                 declare_parameter<bool>("manager.debug", false),
                 declare_parameter<double>("manager.loop_rate", 10.0),
-                declare_parameter<double>("planner.target_speed", 5.0),
+                declare_parameter<double>("planner.target_speed", 10.0),
                 declare_parameter<double>("planner.max_speed", 10.0),
                 declare_parameter<std::string>("base_link_frame", "base_link"),
                 declare_parameter<std::string>("map_frame", "map"),
@@ -265,7 +265,6 @@ namespace controller
             m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
             {
                 try {
-                    RCLCPP_INFO_STREAM(this->get_logger(), "updating plugin: " << p->get_plugin_name());
                     bool status = p->update(m_controller_state_);
                     if (status == false)
                     {

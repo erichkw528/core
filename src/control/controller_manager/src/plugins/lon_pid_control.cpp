@@ -43,13 +43,13 @@ namespace roar
                 ControllerPlugin::initialize(node); // Call the base class's initialize function
                 config_ = LonConfig{
                     PidCoefficients{
-                        this->node().declare_parameter<double>("lon_control.speed_pid.kp", 1.0),
-                        this->node().declare_parameter<double>("lon_control.speed_pid.ki", 0.1),
-                        this->node().declare_parameter<double>("lon_control.speed_pid.kd", 0.1),
-                        this->node().declare_parameter<double>("lon_control.speed_pid.min_cmd", 0.0),
-                        this->node().declare_parameter<double>("lon_control.speed_pid.max_cmd", 20.0),
-                        this->node().declare_parameter<double>("lon_control.speed_pid.min_i", -10.0),
-                        this->node().declare_parameter<double>("lon_control.speed_pid.max_i", 10.0),
+                        this->node().declare_parameter<double>("lon_control.pid.kp", 1.0),
+                        this->node().declare_parameter<double>("lon_control.pid.ki", 0.1),
+                        this->node().declare_parameter<double>("lon_control.pid.kd", 0.1),
+                        this->node().declare_parameter<double>("lon_control.pid.min_cmd", 0.0),
+                        this->node().declare_parameter<double>("lon_control.pid.max_cmd", 20.0),
+                        this->node().declare_parameter<double>("lon_control.pid.min_i", -10.0),
+                        this->node().declare_parameter<double>("lon_control.pid.max_i", 10.0),
                     }};
             }
 
@@ -60,6 +60,9 @@ namespace roar
             }
             bool update(const ControllerManagerState::SharedPtr state)
             {
+                /**
+                 * WARNING: this file is not completed. DO NOT USE IT.
+                 */
                 // update PID State from ControllerState
                 // lon_state().current_speed = state->current_speed;
 
