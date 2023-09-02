@@ -7,26 +7,52 @@
 namespace controller
 {
     ControllerManagerNode::ControllerManagerNode()
-        : LifecycleNode("manager", "controller", true)
-    {
-        this->declare_parameter("debug", false);
-        this->declare_parameter("loop_rate", 10.0);
-        this->declare_parameter("target_speed", 5.0);
-        this->declare_parameter("base_link_frame", "base_link");
-        this->declare_parameter("map_frame", "map");
-        this->declare_parameter("min_distance", 5.0);
+        : LifecycleNode("manager", "controller", true), m_plugin_loader_("controller_manager", "roar::control::ControllerPlugin")
 
-        if (this->get_parameter("debug").as_bool())
+    {
+        m_config_ = std::make_shared<ControllerManagerConfig>(
+            ControllerManagerConfig{
+                declare_parameter<bool>("manager.debug", false),
+                declare_parameter<double>("manager.loop_rate", 10.0),
+                declare_parameter<double>("planner.target_speed", 10.0),
+                declare_parameter<double>("planner.max_speed", 10.0),
+                declare_parameter<std::string>("base_link_frame", "base_link"),
+                declare_parameter<std::string>("map_frame", "map"),
+                declare_parameter<double>("min_distance", 5.0)});
+
+        if (m_config_->debug)
         {
             bool _ = rcutils_logging_set_logger_level(get_logger().get_name(),
                                                       RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
             _ = rcutils_logging_set_logger_level("controller.manager.rclcpp_action",
                                                  RCUTILS_LOG_SEVERITY_FATAL); // enable or disable debug
         }
+        // initialize plugins
+        const auto plugin_names = declare_parameter("plugins", std::vector<std::string>{});
+        RCLCPP_INFO_STREAM(this->get_logger(), "plugin_names: " << plugin_names.size() << " plugins");
+        for (const auto &plugin_name : plugin_names)
+        {
+            roar::control::ControllerPlugin::SharedPtr new_plugin = m_plugin_loader_.createSharedInstance(plugin_name);
+            m_plugins_.push_back(new_plugin);
+            RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << plugin_name << " loaded");
+        }
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { 
+                p->initialize(this);
+                RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " initialized"); });
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { 
+                p->configure(m_config_);
+                RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " configured"); });
+
+        // initialize state
+        m_controller_state_ = std::make_shared<ControllerManagerState>(ControllerManagerState());
 
         RCLCPP_INFO(this->get_logger(),
                     "ControllerManagerNode initialized with Debug Mode = [%s]",
-                    this->get_parameter("debug").as_bool() ? "YES" : "NO");
+                    m_config_->debug ? "YES" : "NO");
     }
 
     ControllerManagerNode ::~ControllerManagerNode()
@@ -45,6 +71,7 @@ namespace controller
     {
         RCLCPP_DEBUG(get_logger(), "on_configure");
 
+        // action server
         this->action_server_ = rclcpp_action::create_server<ControlAction>(
             this,
             std::string(this->get_namespace()) + "/" +
@@ -56,19 +83,24 @@ namespace controller
             std::bind(&ControllerManagerNode::handle_accepted, this,
                       std::placeholders::_1));
         this->execution_timer = this->create_wall_timer(
-            std::chrono::milliseconds(50),
+            std::chrono::milliseconds(int(this->m_config_->loop_rate_millis)),
             std::bind(&ControllerManagerNode::execution_callback, this));
 
+        // safety switch
         this->control_safety_switch_ = this->create_service<roar_msgs::srv::ToggleControlSafetySwitch>(std::string(this->get_namespace()) + "/" +
                                                                                                            std::string(this->get_name()) + "/safety_toggle",
                                                                                                        std::bind(&ControllerManagerNode::toggle_safety_switch, this, std::placeholders::_1, std::placeholders::_2));
+        // diagnostic
+        diagnostic_pub_ = this->create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
+            "/diagnostics", 10);
+        // tf buffer
         tf_buffer_ =
             std::make_unique<tf2_ros::Buffer>(this->get_clock());
         tf_listener_ =
             std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-
+        // output publisher
         this->vehicle_control_publisher_ = this->create_publisher<roar_msgs::msg::VehicleControl>("vehicle_control", 10);
-        ;
+
         RCLCPP_DEBUG(get_logger(), "configured");
 
         return nav2_util::CallbackReturn::SUCCESS;
@@ -78,6 +110,7 @@ namespace controller
     {
         RCLCPP_DEBUG(get_logger(), "on_activate");
         this->vehicle_control_publisher_->on_activate();
+        this->diagnostic_pub_->on_activate();
         RCLCPP_DEBUG(get_logger(), "activated");
         return nav2_util::CallbackReturn::SUCCESS;
     }
@@ -86,6 +119,7 @@ namespace controller
     {
         RCLCPP_DEBUG(get_logger(), "on_deactivate");
         this->vehicle_control_publisher_->on_deactivate();
+        this->diagnostic_pub_->on_deactivate();
         return nav2_util::CallbackReturn::SUCCESS;
     }
     nav2_util::CallbackReturn
@@ -108,19 +142,35 @@ namespace controller
         const rclcpp_action::GoalUUID &uuid,
         std::shared_ptr<const ControlAction::Goal> goal)
     {
-        if (this->is_safety_on == false)
+        auto diag_array_msg = std::make_unique<diagnostic_msgs::msg::DiagnosticArray>();
+        diag_array_msg->header.stamp = this->now();
+        diagnostic_msgs::msg::DiagnosticStatus::SharedPtr diag_status_msg = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+        diag_status_msg->name = std::string(this->get_namespace()) + "/" +
+                                std::string(this->get_name());
+
+        if (this->is_auto_control == false)
         {
-            RCLCPP_WARN(get_logger(), "rejecting goal - safety switch is off");
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "rejecting goal - Auto is off";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diagnostic_pub_->publish(std::move(diag_array_msg));
+
             return rclcpp_action::GoalResponse::REJECT;
         }
         if (this->active_goal_ != nullptr)
         {
-            RCLCPP_WARN(get_logger(), "rejecting goal - goal already in progress");
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "rejecting goal - goal already in progress";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diagnostic_pub_->publish(std::move(diag_array_msg));
             return rclcpp_action::GoalResponse::REJECT;
         }
         if (goal->path.poses.size() == 0)
         {
-            RCLCPP_WARN(get_logger(), "rejecting goal - path is empty");
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "rejecting goal - path is empty";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diagnostic_pub_->publish(std::move(diag_array_msg));
             return rclcpp_action::GoalResponse::REJECT;
         }
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
@@ -143,21 +193,50 @@ namespace controller
      */
     void ControllerManagerNode::execution_callback()
     {
+        if (this->is_auto_control == false)
+        {
+            auto diag_array_msg = std::make_unique<diagnostic_msgs::msg::DiagnosticArray>();
+            diag_array_msg->header.stamp = this->now();
+            diagnostic_msgs::msg::DiagnosticStatus::SharedPtr diag_status_msg = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+            diag_status_msg->name = "ControllerManager Execution";
+            diag_array_msg->status.push_back(*diag_status_msg);
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            diag_status_msg->message = "Auto is off";
+            diagnostic_pub_->publish(std::move(diag_array_msg));
+
+            roar_msgs::msg::VehicleControl neutralControlMsg;
+            neutralControlMsg.header.stamp = this->now();
+            neutralControlMsg.header.frame_id = m_config_->base_link_frame;
+            neutralControlMsg.target_speed = 0.0;
+            neutralControlMsg.steering_angle = 0.0;
+
+            this->vehicle_control_publisher_->publish(neutralControlMsg);
+            return;
+        }
+
         if (this->active_goal_ != nullptr)
         {
             this->p_execute(active_goal_);
         }
+    }
 
-        if (this->is_safety_on == false)
-        {
-            this->vehicle_control_publisher_->publish(neutralControlMsg);
-        }
+    void ControllerManagerNode::on_update()
+    {
+        std::for_each(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            { p->update(m_controller_state_); });
     }
 
     void ControllerManagerNode::p_execute(
         const std::shared_ptr<GoalHandleControlAction> goal_handle)
     {
         RCLCPP_DEBUG(get_logger(), "------ controller manager ------");
+        auto diag_array_msg = std::make_unique<diagnostic_msgs::msg::DiagnosticArray>();
+        diag_array_msg->header.stamp = this->now();
+        diagnostic_msgs::msg::DiagnosticStatus::SharedPtr diag_status_msg = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+        diag_status_msg->name = "ControllerManager Execution";
+        diag_array_msg->status.push_back(*diag_status_msg);
+
         std::lock_guard<std::mutex> lock(active_goal_mutex_);
         // get path from goal
         nav_msgs::msg::Path path = goal_handle->get_goal()->path;
@@ -166,6 +245,9 @@ namespace controller
         nav_msgs::msg::Path egoCentricPath = this->p_transformToEgoCentric(path);
         if (egoCentricPath.poses.size() == 0)
         {
+            diag_status_msg->message = "rejecting goal - path is empty or failed to transform to target frame";
+            diag_status_msg->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+            diagnostic_pub_->publish(std::move(diag_array_msg));
             RCLCPP_ERROR(get_logger(), "rejecting goal - path is empty or failed to transform to target frame");
             auto result = std::make_shared<ControlAction::Result>();
             result->status = control_interfaces::action::Control::Result::FAILED;
@@ -174,12 +256,31 @@ namespace controller
             return;
         }
 
-        // find the next waypoint that is min_executable_dist away
-        int nextWaypointIndex = this->p_findNextWaypoint(egoCentricPath);
-        RCLCPP_DEBUG(get_logger(), "found next waypoint at index %d", nextWaypointIndex);
-        if (nextWaypointIndex > egoCentricPath.poses.size() - 1)
+        m_controller_state_->path_ego_centric = egoCentricPath;
+
+        /**
+         * All updates are parsed, now update controllers
+         */
+        bool all_update_good = std::all_of(
+            m_plugins_.begin(), m_plugins_.end(), [this](roar::control::ControllerPlugin::SharedPtr &p)
+            {
+                try {
+                    bool status = p->update(m_controller_state_);
+                    if (status == false)
+                    {
+                        RCLCPP_ERROR(get_logger(), "plugin %s failed to update", p->get_plugin_name());
+                    }
+                    
+                    return status;
+                }
+                catch (const std::exception &e) {
+                    RCLCPP_ERROR(get_logger(), "plugin %s failed to update: %s", p->get_plugin_name(), e.what());
+                    return false;
+                } });
+
+        if (!all_update_good)
         {
-            RCLCPP_ERROR(get_logger(), "rejecting goal - unable to find steering angle");
+            RCLCPP_ERROR(get_logger(), "rejecting goal - plugin failed to update");
             auto result = std::make_shared<ControlAction::Result>();
             result->status = control_interfaces::action::Control::Result::FAILED;
             goal_handle->succeed(result);
@@ -187,18 +288,43 @@ namespace controller
             return;
         }
 
+        // all controllers are updated, now compute
         // construct control msg
-        roar_msgs::msg::VehicleControl controlMsg;
+        roar_msgs::msg::VehicleControl::SharedPtr controlMsg = std::make_shared<roar_msgs::msg::VehicleControl>();
+        controlMsg->header.stamp = this->now();
+        controlMsg->header.frame_id = m_config_->base_link_frame;
 
-        // find the steering needed to reach that position
-        double steeringAngle = this->p_findSteeringAngle(egoCentricPath, nextWaypointIndex);
-        controlMsg.steering_angle = float(steeringAngle);
+        // find all controls by running through a list of plugins
+        bool output_good = std::all_of(
+            m_plugins_.begin(), m_plugins_.end(), [controlMsg, this](roar::control::ControllerPlugin::SharedPtr &p)
+            {
+                try {
+                    bool status = p->compute(controlMsg);
+                    if (status == false)
+                    {
+                        RCLCPP_ERROR(get_logger(), "plugin %s failed to compute", p->get_plugin_name());
+                    }
 
-        // assign target_speed
-        controlMsg.target_speed = float(this->get_parameter("target_speed").as_double());
+                    return status;
+                    }
+                catch (const std::exception &e) {
+                    RCLCPP_ERROR(get_logger(), "plugin %s failed to compute: %s", p->get_plugin_name(), e.what());
+                    return false;
+                } });
+
+        // if any output is no good
+        if (!output_good)
+        {
+            RCLCPP_ERROR(get_logger(), "rejecting goal - plugin failed to step");
+            auto result = std::make_shared<ControlAction::Result>();
+            result->status = control_interfaces::action::Control::Result::FAILED;
+            goal_handle->succeed(result);
+            active_goal_ = nullptr; // release lock
+            return;
+        }
 
         // publish control
-        this->vehicle_control_publisher_->publish(controlMsg);
+        this->vehicle_control_publisher_->publish(*controlMsg);
 
         auto result = std::make_shared<ControlAction::Result>();
         result->status = control_interfaces::action::Control::Result::NORMAL;
@@ -240,51 +366,15 @@ namespace controller
                 RCLCPP_WARN(this->get_logger(), "Failed to transform pose: %s", ex.what());
             }
         }
-
-        RCLCPP_DEBUG(get_logger(), "transformed path size: %d", transformed_path.poses.size());
-        // print every x, y of every pose in the path
-        for (auto &pose : transformed_path.poses)
-        {
-            RCLCPP_DEBUG(get_logger(), "x: %f, y: %f", pose.pose.position.x, pose.pose.position.y); // TODO: figure out why this is wrong here
-        }
-
         return transformed_path;
-    }
-    int ControllerManagerNode::p_findNextWaypoint(nav_msgs::msg::Path path)
-    {
-        float min_dist = this->get_parameter("min_distance").as_double();
-        int next_waypoint = 0;
-        for (int i = 0; i < path.poses.size(); i++)
-        {
-            float dist = sqrt(pow(path.poses[i].pose.position.x, 2) + pow(path.poses[i].pose.position.y, 2));
-            if (dist > min_dist)
-            {
-                next_waypoint = i;
-                break;
-            }
-        }
-        return next_waypoint;
-    }
-    double ControllerManagerNode::p_findSteeringAngle(nav_msgs::msg::Path path, int next_waypoint)
-    {
-        double steering_angle = 0.0;
-        if (next_waypoint <= path.poses.size() - 1)
-        {
-            steering_angle = -1 * atan2(path.poses[next_waypoint].pose.position.y, path.poses[next_waypoint].pose.position.x);
-
-            // rad to deg
-            steering_angle = steering_angle * 180 / M_PI;
-        }
-        RCLCPP_DEBUG(get_logger(), "steering angle: %f", steering_angle);
-        return steering_angle;
     }
 
     void ControllerManagerNode::toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
                                                      std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Response> response)
     {
-        this->is_safety_on = request->is_safety_on;
-        response->status = this->is_safety_on;
+        this->is_auto_control = request->is_safety_on;
+        response->status = this->is_auto_control;
 
-        RCLCPP_INFO(this->get_logger(), "Safety switch is %s", this->is_safety_on ? "ON" : "OFF");
+        RCLCPP_INFO(this->get_logger(), "Auto switch is %s", this->is_auto_control ? "ON" : "OFF");
     }
 } // namespace controller

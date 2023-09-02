@@ -19,16 +19,17 @@ def generate_launch_description():
     ld.add_action(launch.actions.DeclareLaunchArgument(name="params_file",
                                                     default_value=config_file.as_posix()))
     controller_manager = Node(
-        name="manager",
-        executable="controller_manager",
+        name="controller_manager",
+        executable="controller_manager_node",
         package="controller_manager",
+        namespace="roar",
         parameters=[
                     launch.substitutions.LaunchConfiguration("params_file"),
                     ],
         emulate_tty=True,
         output="screen",
         remappings=[
-            ("/controller/vehicle_control", "/roar/vehicle/control"),
+            ("/roar/vehicle_control", "/roar/vehicle/control"),
         ]
     )
 
