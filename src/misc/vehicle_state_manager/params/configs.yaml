@@ -1,7 +1,7 @@
 /roar/vehicle_state_manager:
     ros__parameters:
       use_sim_time: true
-lifecycle_manager_controller:
+lifecycle_manager_state_manager:
   ros__parameters:
     autostart: true
     use_sim_time: true
