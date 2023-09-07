@@ -209,6 +209,7 @@ namespace controller
             neutralControlMsg.header.frame_id = m_config_->base_link_frame;
             neutralControlMsg.target_speed = 0.0;
             neutralControlMsg.steering_angle = 0.0;
+            neutralControlMsg.is_auto = false;
 
             this->vehicle_control_publisher_->publish(neutralControlMsg);
             return;
@@ -322,7 +323,7 @@ namespace controller
             active_goal_ = nullptr; // release lock
             return;
         }
-
+        controlMsg->is_auto = true;
         // publish control
         this->vehicle_control_publisher_->publish(*controlMsg);
 

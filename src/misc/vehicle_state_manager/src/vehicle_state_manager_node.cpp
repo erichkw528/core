@@ -30,8 +30,8 @@ nav2_util::CallbackReturn VehicleStateManagerNode::on_configure(const rclcpp_lif
     imu_subscriber_ = this->create_subscription<sensor_msgs::msg::Imu>(
         "/roar/imu", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::imu_callback, this, std::placeholders::_1));
 
-    speedometer_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-        "/roar/speedometer", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::speedometer_callback, this, std::placeholders::_1));
+    vehicle_status_sub_ = this->create_subscription<roar_msgs::msg::VehicleStatus>(
+        "/roar/speedometer", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_status_callback, this, std::placeholders::_1));
 
     vehicle_control_sub_ = this->create_subscription<roar_msgs::msg::VehicleControl>(
         "/roar/vehicle_control", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_control_callback, this, std::placeholders::_1));
@@ -74,9 +74,9 @@ void VehicleStateManagerNode::imu_callback(const sensor_msgs::msg::Imu::SharedPt
     vehicle_state->imu = *msg;
 }
 
-void VehicleStateManagerNode::speedometer_callback(const std_msgs::msg::Float32::SharedPtr msg)
+void VehicleStateManagerNode::vehicle_status_callback(const roar_msgs::msg::VehicleStatus::SharedPtr msg)
 {
-    vehicle_state->speedometer = *msg;
+    vehicle_state->vehicle_status = *msg;
 }
 
 void VehicleStateManagerNode::vehicle_control_callback(const roar_msgs::msg::VehicleControl::SharedPtr msg)

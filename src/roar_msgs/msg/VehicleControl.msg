@@ -12,3 +12,5 @@ float32 brake
 
 # reverse 0 or 1
 bool reverse
+
+bool is_auto

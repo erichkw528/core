@@ -4,6 +4,8 @@
 #include "nav2_util/lifecycle_node.hpp"
 #include "roar_msgs/msg/vehicle_state.hpp"
 #include "roar_msgs/msg/vehicle_control.h"
+#include "roar_msgs/msg/vehicle_status.hpp"
+
 namespace roar
 {
     class VehicleStateManagerNode : public nav2_util::LifecycleNode
@@ -28,8 +30,8 @@ namespace roar
         rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
         void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg);
 
-        rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr speedometer_sub_;
-        void speedometer_callback(const std_msgs::msg::Float32::SharedPtr msg);
+        rclcpp::Subscription<roar_msgs::msg::VehicleStatus>::SharedPtr vehicle_status_sub_;
+        void vehicle_status_callback(const roar_msgs::msg::VehicleStatus::SharedPtr msg);
 
         rclcpp::Subscription<roar_msgs::msg::VehicleControl>::SharedPtr vehicle_control_sub_;
         void vehicle_control_callback(const roar_msgs::msg::VehicleControl::SharedPtr msg);

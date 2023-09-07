@@ -3,7 +3,8 @@ std_msgs/Header header
 # raw sensor data
 nav_msgs/Odometry odometry
 sensor_msgs/Imu imu
-std_msgs/Float32 speedometer
+
+VehicleStatus vehicle_status
 
 # global planner
 nav_msgs/Path global_path 
