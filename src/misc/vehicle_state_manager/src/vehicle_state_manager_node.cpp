@@ -31,7 +31,7 @@ nav2_util::CallbackReturn VehicleStateManagerNode::on_configure(const rclcpp_lif
         "/roar/imu", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::imu_callback, this, std::placeholders::_1));
 
     vehicle_status_sub_ = this->create_subscription<roar_msgs::msg::VehicleStatus>(
-        "/roar/speedometer", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_status_callback, this, std::placeholders::_1));
+        "/roar/vehicle/status", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_status_callback, this, std::placeholders::_1));
 
     vehicle_control_sub_ = this->create_subscription<roar_msgs::msg::VehicleControl>(
         "/roar/vehicle_control", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_control_callback, this, std::placeholders::_1));
