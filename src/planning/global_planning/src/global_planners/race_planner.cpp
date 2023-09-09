@@ -118,20 +118,14 @@ namespace ROAR
             }
             RCLCPP_DEBUG_STREAM(m_logger_, "closest waypoint index: " << closest_waypoint_index << ", distance: " << min_distance);
 
-            // given the min_distance, find the best cross track error to use
-            // std::pair<double, double> cte_and_lookahead = calculateCTEAndLookahead(cte_config, min_distance);
-            // RCLCPP_DEBUG_STREAM(m_logger_, "cte: " << cte_and_lookahead.first << ", lookahead: " << cte_and_lookahead.second);
-
-            // find the next waypoint, including looping back to the beginning
-            // double next_waypoint_dist = cte_and_lookahead.second;
             double next_waypoint_dist = float(this->m_node_->get_parameter("min_dist").as_double());
             size_t next_waypoint_index = closest_waypoint_index;
             for (size_t i = 0; i < waypoints_.size(); i++)
             {
                 size_t next_index = (closest_waypoint_index + i) % waypoints_.size();
                 double distance = std::sqrt(std::pow(odom->pose.pose.position.x - waypoints_[next_index].pose.pose.position.x, 2) +
-                                            std::pow(odom->pose.pose.position.y - waypoints_[next_index].pose.pose.position.y, 2) +
-                                            std::pow(odom->pose.pose.position.z - waypoints_[next_index].pose.pose.position.z, 2));
+                                            std::pow(odom->pose.pose.position.y - waypoints_[next_index].pose.pose.position.y, 2));                
+                // RCLCPP_DEBUG_STREAM(m_logger_, "next_index: " << next_index << " distance: " << distance);
                 if (distance > next_waypoint_dist)
                 {
                     next_waypoint_index = next_index;
