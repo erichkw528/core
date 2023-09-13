@@ -19,28 +19,45 @@ namespace ROAR
         StepResult NavPlanner::step(const StepInput input)
         {
             StepResult stepResult;
-            stepResult.status = false;
-            return stepResult;
-        }
+            if (didGoalPoseUpdated && didReceiveGoalPose() && checkGlobalMap() && checkGoalWithinGlobalMap() && checkVehicleStatus())
+            {
+                NavPlannerGlobalPathFinderInputs planning_inputs;
+                NavPlannerGlobalPathFinderOutput planning_outputs = planTrajectory(planning_inputs);
+                if (planning_outputs.status)
+                {
+                    m_global_path = planning_outputs.global_path;
+                    stepResult.global_path = planning_outputs.global_path;
+                    stepResult.status = true;
+                }
+                else
+                {
+                    RCLCPP_ERROR(m_logger_, "Failed to plan trajectory");
+                    stepResult.status = false;
+                    return stepResult;
+                }
+            }
+            didGoalPoseUpdated = false; // indicate that this goal pose is processed
 
-        bool NavPlanner::checkGlobalMap()
-        {
-            return true;
+            return stepResult;
         }
 
         bool NavPlanner::checkGoalWithinGlobalMap()
         {
-            return true;
+            return false;
         }
 
-        bool NavPlanner::checkVehicleStatus()
+        NavPlannerGlobalPathFinderOutput NavPlanner::planTrajectory(const NavPlannerGlobalPathFinderInputs &inputs)
         {
-            return true;
+            NavPlannerGlobalPathFinderOutput outputs;
+            outputs.status = false;
+            return outputs;
+        }
+        NavPlannerNextWaypointFinderOutputs NavPlanner::findNextWaypoint(const NavPlannerNextWaypointFinderInputs &inputs)
+        {
+            NavPlannerNextWaypointFinderOutputs outputs;
+            outputs.status = false;
+            return outputs;
         }
 
-        bool NavPlanner::planTrajectory()
-        {
-            return true;
-        }
     }
 }
