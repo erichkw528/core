@@ -32,6 +32,27 @@ namespace ROAR
             virtual ~GlobalPlannerInterface() = default;
 
             virtual void initialize() = 0;
+            bool on_configure()
+            {
+                return true;
+            }
+            bool on_activate()
+            {
+                return true;
+            }
+            bool on_deactivate()
+            {
+                return true;
+            }
+            bool on_cleanup()
+            {
+                return true;
+            }
+            bool on_shutdown()
+            {
+                return true;
+            }
+
             virtual StepResult step(const StepInput input) = 0;
 
         protected:

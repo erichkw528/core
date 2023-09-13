@@ -41,6 +41,7 @@ namespace ROAR
         nav2_util::CallbackReturn GlobalPlannerManager::on_configure(const rclcpp_lifecycle::State &state)
         {
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now configured.");
+
             this->planner->initialize();
 
             // subscribers
@@ -55,19 +56,28 @@ namespace ROAR
             // publishers
             this->global_path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("global_path", 10);
             this->next_waypoint_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("next_waypoint", 10);
-
+            if (!this->planner->on_configure())
+            {
+                return nav2_util::CallbackReturn::FAILURE;
+            }
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
         nav2_util::CallbackReturn GlobalPlannerManager::on_activate(const rclcpp_lifecycle::State &state)
         {
+            RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now activating.");
             this->timer = this->create_wall_timer(
                 std::chrono::milliseconds((int)(this->get_parameter("planner_frequency").as_double() * 1000)),
                 std::bind(&GlobalPlannerManager::step, this));
 
             this->global_path_publisher_->on_activate();
             this->next_waypoint_publisher_->on_activate();
-            RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now active.");
+
+            if (!this->planner->on_activate())
+            {
+                return nav2_util::CallbackReturn::FAILURE;
+            }
+
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
@@ -76,19 +86,35 @@ namespace ROAR
             this->next_waypoint_publisher_->on_deactivate();
             this->global_path_publisher_->on_deactivate();
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now inactive.");
+            if (!this->planner->on_deactivate())
+            {
+                return nav2_util::CallbackReturn::FAILURE;
+            }
+
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
         nav2_util::CallbackReturn GlobalPlannerManager::on_cleanup(const rclcpp_lifecycle::State &state)
         {
+
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now cleaned up.");
+            if (!this->planner->on_cleanup())
+            {
+                return nav2_util::CallbackReturn::FAILURE;
+            }
+
             return nav2_util::CallbackReturn::SUCCESS;
         }
 
         nav2_util::CallbackReturn GlobalPlannerManager::on_shutdown(const rclcpp_lifecycle::State &state)
         {
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now shutting down.");
-            // Custom shutdown logic goes here
+            if (!this->planner->on_shutdown())
+            {
+                RCLCPP_ERROR(get_logger(), "Failed to shutdown planner");
+                return nav2_util::CallbackReturn::FAILURE;
+            }
+
             return nav2_util::CallbackReturn::SUCCESS;
         }
 

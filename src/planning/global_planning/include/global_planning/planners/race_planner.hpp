@@ -37,15 +37,10 @@ namespace ROAR
 
         private:
             void read_waypoints(const std::string &file_path);
-            void read_cte_config(const std::string &file_path);
 
             std::vector<nav_msgs::msg::Odometry>
                 waypoints_;
             nav_msgs::msg::Path::SharedPtr global_path_msg = nullptr;
-
-            // cte -> lookahead distance
-            std::vector<std::vector<double>> cte_config = {
-                {0.5,5.0}};
         };
     }
 }
