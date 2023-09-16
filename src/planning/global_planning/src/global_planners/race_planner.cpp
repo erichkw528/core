@@ -12,7 +12,6 @@ namespace ROAR
             this->m_node_->declare_parameter("waypoint_path", "waypoints.txt");
             this->m_node_->declare_parameter("map_frame", "map");
             this->m_node_->declare_parameter("min_dist", 5.0);
-            RCLCPP_INFO_STREAM(m_logger_, "cross_track_error_config: " << this->m_node_->get_parameter("cross_track_error_config").as_string());
             RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("waypoint_path").as_string());
         }
         RacePlanner::~RacePlanner()

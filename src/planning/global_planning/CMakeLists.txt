@@ -18,6 +18,8 @@ set(dependencies
   nav_msgs
   tf2_ros
   GeographicLib
+  planning_interfaces
+  nav_msgs
 )
 
 ament_auto_add_executable(global_planner_manager 

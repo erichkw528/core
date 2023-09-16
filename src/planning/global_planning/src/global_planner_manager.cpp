@@ -7,6 +7,7 @@
 #include <cmath> // For sqrt and atan2 functions
 #include "global_planning/global_planner_interface.hpp"
 #include "global_planning/planners/race_planner.hpp"
+#include "global_planning/planners/parking_planner.hpp"
 
 namespace ROAR
 {
@@ -30,6 +31,11 @@ namespace ROAR
             {
                 this->planner = new RacePlanner(this);
             }
+            else if (planner_name == "ParkingPlanner")
+            {
+                this->planner = new ParkingPlanner(this);
+            }
+
             RCLCPP_INFO_STREAM(get_logger(), "Global Planner Manager has been initialized. Debug: " << this->get_parameter("debug").as_bool() << " Using Planner: " << planner_name);
         }
 
@@ -127,7 +133,7 @@ namespace ROAR
             }
             if (this->current_odom == nullptr)
             {
-                RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
+                // RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
                 return;
             }
             StepInput input;

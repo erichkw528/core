@@ -5,6 +5,9 @@
 #include "diagnostic_msgs/msg/diagnostic_status.hpp"
 #include "diagnostic_msgs/msg/diagnostic_array.hpp"
 #include "diagnostic_msgs/msg/key_value.hpp"
+#include "nav2_msgs/srv/load_map.hpp"
+#include "planning_interfaces/srv/load_map.hpp"
+#include "nav_msgs/msg/occupancy_grid.hpp"
 
 namespace ROAR
 {
@@ -35,11 +38,11 @@ namespace ROAR
 
     namespace GlobalPlanning
     {
-        class NavPlanner : public GlobalPlannerInterface
+        class ParkingPlanner : public GlobalPlannerInterface
         {
         public:
-            NavPlanner(nav2_util::LifecycleNode *node);
-            ~NavPlanner();
+            ParkingPlanner(nav2_util::LifecycleNode *node);
+            ~ParkingPlanner();
             void initialize();
             StepResult step(const StepInput input);
 
@@ -49,7 +52,7 @@ namespace ROAR
                 return m_global_map == nullptr ? false : true;
             }
             bool checkGoalWithinGlobalMap();
-
+            bool on_configure();
             bool checkVehicleStatus()
             {
                 return m_odom == nullptr ? false : true;
@@ -67,6 +70,7 @@ namespace ROAR
             rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr m_goal_pose_subscriber;
             void onReceiveGoalPose(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
             {
+                RCLCPP_INFO(m_logger_, "Received goal pose");
                 m_goal_pose_stamped = msg;
                 didGoalPoseUpdated = true;
             }
@@ -74,6 +78,7 @@ namespace ROAR
             rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr m_global_map_subscriber;
             void onReceiveGlobalMap(const nav_msgs::msg::OccupancyGrid::SharedPtr msg)
             {
+                RCLCPP_INFO(m_logger_, "Received global map");
                 m_global_map = msg;
             }
 

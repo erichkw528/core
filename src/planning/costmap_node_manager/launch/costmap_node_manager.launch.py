@@ -4,6 +4,7 @@ from ament_index_python.packages import get_package_share_directory
 import launch_ros
 from pathlib import Path
 from launch_ros.actions import Node
+from launch.actions import LogInfo
 
 
 def generate_launch_description():
@@ -45,7 +46,8 @@ def generate_launch_description():
             ),
             costmap_manager,
             pointcloud_to_laser,
-            lifecycle_manager
+            lifecycle_manager,
+            LogInfo(msg=["Costmap launched"])
         ]
     )
     return ld

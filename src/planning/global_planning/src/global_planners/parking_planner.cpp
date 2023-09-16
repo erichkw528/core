@@ -1,24 +1,37 @@
 #include "global_planning/global_planner_interface.hpp"
 #include "global_planning/planners/parking_planner.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace ROAR
 {
     namespace GlobalPlanning
     {
-        NavPlanner::NavPlanner(nav2_util::LifecycleNode *node) : GlobalPlannerInterface(node, "NavPlanner")
+        ParkingPlanner::ParkingPlanner(nav2_util::LifecycleNode *node) : GlobalPlannerInterface(node, "parking_planner")
         {
+            RCLCPP_INFO(m_logger_, "ParkingPlanner is initialized");
         }
-        NavPlanner::~NavPlanner()
+        ParkingPlanner::~ParkingPlanner()
         {
         }
 
-        void NavPlanner::initialize()
+        void ParkingPlanner::initialize()
         {
             this->m_node_->declare_parameter("map_frame", "map");
             this->m_node_->declare_parameter("base_link_frame", "base_link");
+            RCLCPP_INFO(m_logger_, "ParkingPlanner is initialized");
         }
 
-        StepResult NavPlanner::step(const StepInput input)
+        bool ParkingPlanner::on_configure()
+        {
+            m_global_map_subscriber = this->m_node_->create_subscription<nav_msgs::msg::OccupancyGrid>(
+                "/roar/map", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
+                std::bind(&ParkingPlanner::onReceiveGlobalMap, this, std::placeholders::_1));
+            
+            RCLCPP_INFO(m_logger_, "ParkingPlanner is configured");
+            return true;
+        }
+
+        StepResult ParkingPlanner::step(const StepInput input)
         {
             StepResult stepResult;
             if (didGoalPoseUpdated && didReceiveGoalPose() && checkGlobalMap() && checkGoalWithinGlobalMap() && checkVehicleStatus())
@@ -57,18 +70,18 @@ namespace ROAR
             return stepResult;
         }
 
-        bool NavPlanner::checkGoalWithinGlobalMap()
+        bool ParkingPlanner::checkGoalWithinGlobalMap()
         {
             return false;
         }
 
-        NavPlannerGlobalPathFinderOutput NavPlanner::planTrajectory(const NavPlannerGlobalPathFinderInputs &inputs)
+        NavPlannerGlobalPathFinderOutput ParkingPlanner::planTrajectory(const NavPlannerGlobalPathFinderInputs &inputs)
         {
             NavPlannerGlobalPathFinderOutput outputs;
             outputs.status = false;
             return outputs;
         }
-        NavPlannerNextWaypointFinderOutputs NavPlanner::findNextWaypoint(const NavPlannerNextWaypointFinderInputs &inputs)
+        NavPlannerNextWaypointFinderOutputs ParkingPlanner::findNextWaypoint(const NavPlannerNextWaypointFinderInputs &inputs)
         {
             NavPlannerNextWaypointFinderOutputs outputs;
 

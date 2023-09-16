@@ -32,23 +32,23 @@ namespace ROAR
             virtual ~GlobalPlannerInterface() = default;
 
             virtual void initialize() = 0;
-            bool on_configure()
+            virtual bool on_configure()
             {
                 return true;
             }
-            bool on_activate()
+            virtual bool on_activate()
             {
                 return true;
             }
-            bool on_deactivate()
+            virtual bool on_deactivate()
             {
                 return true;
             }
-            bool on_cleanup()
+            virtual bool on_cleanup()
             {
                 return true;
             }
-            bool on_shutdown()
+            virtual bool on_shutdown()
             {
                 return true;
             }

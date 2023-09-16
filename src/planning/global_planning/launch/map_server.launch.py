@@ -19,29 +19,26 @@ def generate_launch_description():
     declare_slam_params_file_cmd = DeclareLaunchArgument(
         'slam_params_file',
         default_value=os.path.join(get_package_share_directory("roar_mapping"),
-                                   'config', 'mapper_params_online_async.yaml'),
+                                   'config', 'map_server_config.yaml'),
         description='Full path to the ROS2 parameters file to use for the slam_toolbox node')
 
-    start_sync_slam_toolbox_node = Node(
+    map_server = Node(
         parameters=[
           slam_params_file,
           {'use_sim_time': use_sim_time}
         ],
-        package='slam_toolbox',
-        executable='async_slam_toolbox_node',
-        name='slam_toolbox',
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
         output='screen',
-        remappings=[
-            ('/scan', '/roar/front/scan')
-        ]
         )
 
     ld = LaunchDescription()
 
     ld.add_action(declare_use_sim_time_argument)
     ld.add_action(declare_slam_params_file_cmd)
-    ld.add_action(start_sync_slam_toolbox_node)
-    ld.add_action(LogInfo(msg=["Mapping launched"]))
+    ld.add_action(map_server)
+    ld.add_action(LogInfo(msg=["map server"]))
     
 
     return ld

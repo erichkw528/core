@@ -8,11 +8,13 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from ament_index_python.packages import get_package_share_directory
 from pathlib import Path
-
+from launch.conditions import IfCondition 
+from launch.conditions import UnlessCondition
 
 def generate_launch_description():
     ld = launch.LaunchDescription()
     base_path = Path(get_package_share_directory("controller_manager"))
+    manual_control = LaunchConfiguration('manual_control', default="False")  
 
     config_file = base_path / "params" / "configs.yaml"
     assert config_file.exists()
@@ -30,7 +32,8 @@ def generate_launch_description():
         output="screen",
         remappings=[
             ("/roar/vehicle_control", "/roar/vehicle/control"),
-        ]
+        ],
+        condition=UnlessCondition(manual_control),
     )
 
     lifecycle_manager = Node(
