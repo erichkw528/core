@@ -25,6 +25,7 @@ namespace ROAR
             {
                 auto ret = rcutils_logging_set_logger_level(get_logger().get_name(), RCUTILS_LOG_SEVERITY_DEBUG); // enable or disable debug
                 auto _ = rcutils_logging_set_logger_level(planner_name.c_str(), RCUTILS_LOG_SEVERITY_DEBUG);      // enable or disable debug
+                _ = rcutils_logging_set_logger_level("rclcpp", RCUTILS_LOG_SEVERITY_DEBUG);
             }
 
             if (planner_name == "RacePlanner")
@@ -133,7 +134,7 @@ namespace ROAR
             }
             if (this->current_odom == nullptr)
             {
-                // RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
+                RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
                 return;
             }
             StepInput input;

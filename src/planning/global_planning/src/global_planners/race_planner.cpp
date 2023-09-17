@@ -9,9 +9,9 @@ namespace ROAR
     {
         RacePlanner::RacePlanner(nav2_util::LifecycleNode *node) : GlobalPlannerInterface(node, "RacePlanner")
         {
-            this->m_node_->declare_parameter("waypoint_path", "waypoints.txt");
+            this->m_node_->declare_parameter("RacePlanner.waypoint_path", "waypoints.txt");
             this->m_node_->declare_parameter("map_frame", "map");
-            this->m_node_->declare_parameter("min_dist", 5.0);
+            this->m_node_->declare_parameter("RacePlanner.min_dist", 5.0);
             RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("waypoint_path").as_string());
         }
         RacePlanner::~RacePlanner()

@@ -53,9 +53,10 @@ namespace ROAR
             }
             bool checkGoalWithinGlobalMap();
             bool on_configure();
-            bool checkVehicleStatus()
+            bool on_activate();
+            bool checkVehicleStatus(const StepInput &input)
             {
-                return m_odom == nullptr ? false : true;
+                return input.odom == nullptr ? false : true;
             }
 
             NavPlannerGlobalPathFinderOutput planTrajectory(const NavPlannerGlobalPathFinderInputs &inputs);
@@ -82,13 +83,8 @@ namespace ROAR
                 m_global_map = msg;
             }
 
-            rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr m_odom_subscriber;
-            void onReceiveOdom(const nav_msgs::msg::Odometry::SharedPtr msg)
-            {
-                m_odom = msg;
-            }
-
         private:
+            float path_step = 1.0;
             nav_msgs::msg::Path::SharedPtr m_global_path;
             geometry_msgs::msg::PoseStamped::SharedPtr m_next_waypoint_pose_stamped;
 
@@ -98,6 +94,39 @@ namespace ROAR
             nav_msgs::msg::OccupancyGrid::SharedPtr m_global_map;
 
             nav_msgs::msg::Odometry::SharedPtr m_odom;
+
+            void p_debugGlobalTrajectoryInputs(const NavPlannerGlobalPathFinderInputs &inputs)
+            {
+                // print global map info
+                RCLCPP_DEBUG_STREAM(m_logger_, "\nGlobal Map Info:"
+                                                   << "\n   frame: " << inputs.global_map->header.frame_id
+                                                   << "\n   width: " << m_global_map->info.width
+                                                   << "\n   height: " << m_global_map->info.height
+                                                   << "\n   resolution: " << m_global_map->info.resolution
+                                                   << "\n   origin: " << m_global_map->info.origin.position.x << ", " << m_global_map->info.origin.position.y);
+                // print vehicle odom info
+                RCLCPP_DEBUG_STREAM(m_logger_, "\nVehicle Odom:"
+                                                   << "\n   frame: " << inputs.odom->header.frame_id
+                                                   << "\n   position: " << inputs.odom->pose.pose.position.x << ", " << inputs.odom->pose.pose.position.y
+                                                   << "\n   orientation: " << inputs.odom->pose.pose.orientation.x << ", " << inputs.odom->pose.pose.orientation.y << ", " << inputs.odom->pose.pose.orientation.z << ", " << inputs.odom->pose.pose.orientation.w);
+
+                // print goal pose info
+                RCLCPP_DEBUG_STREAM(m_logger_, "\nGoal Pose:"
+                                                   << "\n   frame: " << inputs.goal_pose->header.frame_id
+                                                   << "\n   position: " << m_goal_pose_stamped->pose.position.x << ", " << m_goal_pose_stamped->pose.position.y
+                                                   << "\n   orientation: " << m_goal_pose_stamped->pose.orientation.x << ", " << m_goal_pose_stamped->pose.orientation.y << ", " << m_goal_pose_stamped->pose.orientation.z << ", " << m_goal_pose_stamped->pose.orientation.w);
+            }
+            void p_debugPath(roar::global_planning::NavFn *navfn)
+            {
+                float *pathX = navfn->getPathX();
+                float *pathY = navfn->getPathY();
+                int pathLen = navfn->getPathLen();
+                RCLCPP_DEBUG_STREAM(m_logger_, "Path: ");
+                for (int i = 0; i < pathLen; i++)
+                {
+                    RCLCPP_DEBUG_STREAM(m_logger_, pathX[i] << ", " << pathY[i]);
+                }
+            }
         };
     }
 } // namespace ROAR
