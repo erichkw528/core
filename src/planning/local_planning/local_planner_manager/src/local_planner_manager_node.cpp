@@ -32,9 +32,6 @@ namespace local_planning
   {
     RCLCPP_DEBUG(this->get_logger(), "on_configure");
 
-    this->next_waypoint_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
-        "/next_waypoint", rclcpp::SystemDefaultsQoS(),
-        std::bind(&LocalPlannerManagerNode::onLatestWaypointReceived, this, std::placeholders::_1));
     this->odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
         "/carla/ego_vehicle/odometry", rclcpp::SystemDefaultsQoS(),
         std::bind(&LocalPlannerManagerNode::onLatestOdomReceived, this, std::placeholders::_1));
@@ -101,7 +98,6 @@ namespace local_planning
   nav2_util::CallbackReturn LocalPlannerManagerNode::on_cleanup(const rclcpp_lifecycle::State &state)
   {
     RCLCPP_DEBUG(this->get_logger(), "on_cleanup");
-    this->next_waypoint_sub_ = nullptr;
     this->odom_sub_ = nullptr;
     trajectory_generator_node_->cleanup();
     trajectory_picker_node_->cleanup();
@@ -115,22 +111,6 @@ namespace local_planning
     trajectory_picker_node_->shutdown();
     return nav2_util::CallbackReturn::SUCCESS;
   }
-
-  void LocalPlannerManagerNode::onLatestWaypointReceived(geometry_msgs::msg::PoseStamped::SharedPtr msg)
-  {
-    std::lock_guard<std::mutex> lock(waypoint_mutex);
-    this->latest_waypoint_ = msg;
-  }
-  void LocalPlannerManagerNode::onLatestOdomReceived(nav_msgs::msg::Odometry::SharedPtr msg)
-  {
-    std::lock_guard<std::mutex> lock(odom_mutex_);
-    this->latest_odom = msg;
-  }
-  void LocalPlannerManagerNode::onLatestFootprintReceived(geometry_msgs::msg::PolygonStamped::SharedPtr msg)
-  {
-    std::lock_guard<std::mutex> lock(footprint_mutex);
-    this->latest_footprint_ = msg;
-  }
   void LocalPlannerManagerNode::execute()
   {
     this->p_execute();
@@ -138,22 +118,26 @@ namespace local_planning
 
   void LocalPlannerManagerNode::p_execute()
   {
-    // std::lock_guard<std::mutex> odom_lock(odom_mutex_);
-    // std::lock_guard<std::mutex> waypoint_lock(waypoint_mutex);
     RCLCPP_DEBUG(this->get_logger(), "-----LocalPlannerManagerNode-----");
     if (this->canExecute()) // only one request at a time
     {
       num_execution += 1;
       num_generator_execution += 1;
-      // latest_costmap_ = this->p_GetLatestCostmap(); // add back
-      // if (latest_costmap_ != nullptr)
-      // {
-      //   this->send_trajectory_generator_action(latest_costmap_, this->latest_odom, this->latest_waypoint_,
-      //                                          this->latest_footprint_);
-      // }
+      geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint = this->findNextWaypoint();
 
-      this->send_trajectory_generator_action(latest_costmap_, this->latest_odom, this->latest_waypoint_,
-                                             this->latest_footprint_);
+      if (next_waypoint == nullptr)
+      {
+        RCLCPP_ERROR(this->get_logger(), "next_waypoint is null, not executing...");
+        return;
+      }
+
+      // construct goal
+      planning_interfaces::action::TrajectoryGeneration_Goal goal_msg = TrajectoryGeneration::Goal();
+      goal_msg.costmap = *this->latest_costmap_;
+      goal_msg.odom = *this->latest_odom;
+      goal_msg.footprint = *this->latest_footprint_;
+      goal_msg.next_waypoint = *next_waypoint;
+      goal_msg.global_path = *this->global_plan_;
     }
   }
 
@@ -367,20 +351,15 @@ namespace local_planning
   }
   bool LocalPlannerManagerNode::didReceiveAllMessages()
   {
-    // if (this->latest_odom == nullptr)
-    // {
-    //   RCLCPP_DEBUG(this->get_logger(), "odom not received, not executing...");
-    // }
-    if (this->latest_waypoint_ == nullptr)
+    if (this->latest_odom == nullptr)
     {
-      RCLCPP_DEBUG(this->get_logger(), "latest_waypoint_ not received, not executing...");
+      RCLCPP_DEBUG(this->get_logger(), "odom not received, not executing...");
     }
-    // if (this->latest_footprint_ == nullptr)
-    // {
-    //   RCLCPP_DEBUG(this->get_logger(), "latest_footprint_ not received, not executing...");
-    // }
-    // return this->latest_odom != nullptr && this->latest_waypoint_ != nullptr && this->latest_footprint_ != nullptr;
-    return this->latest_waypoint_ != nullptr;
+    if (this->latest_footprint_ == nullptr)
+    {
+      RCLCPP_DEBUG(this->get_logger(), "latest_footprint_ not received, not executing...");
+    }
+    return this->latest_odom != nullptr && this->latest_footprint_ != nullptr;
   }
   void LocalPlannerManagerNode::p_PrintCostMapInfo(const nav2_msgs::msg::Costmap::SharedPtr msg)
   {
@@ -400,6 +379,18 @@ namespace local_planning
     RCLCPP_INFO(this->get_logger(), "      y: %f", map_metadata.origin.orientation.y);
     RCLCPP_INFO(this->get_logger(), "      z: %f", map_metadata.origin.orientation.z);
     RCLCPP_INFO(this->get_logger(), "      w: %f", map_metadata.origin.orientation.w);
+  }
+
+  geometry_msgs::msg::PoseStamped::SharedPtr LocalPlannerManagerNode::findNextWaypoint()
+  {
+    if (this->global_plan_ == nullptr || this->latest_odom == nullptr)
+    {
+      return nullptr;
+    }
+
+    geometry_msgs::msg::PoseStamped::SharedPtr closest_waypoint = std::make_shared<geometry_msgs::msg::PoseStamped>();
+    // find closest waypoint
+    return closest_waypoint;
   }
 
 } // namespace local_planning
