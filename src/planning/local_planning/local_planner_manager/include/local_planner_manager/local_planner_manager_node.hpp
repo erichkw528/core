@@ -148,7 +148,7 @@ namespace local_planning
             std::lock_guard<std::mutex> lock(global_plan_mutex_);
             global_plan_ = msg;
         }
-        geometry_msgs::msg::PoseStamped::SharedPtr findNextWaypoint();
+        geometry_msgs::msg::PoseStamped::SharedPtr findNextWaypoint(const float next_waypoint_min_dist);
     };
 } // namespace local_planning
 #endif

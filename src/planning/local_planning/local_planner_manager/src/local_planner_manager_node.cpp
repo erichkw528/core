@@ -6,7 +6,7 @@ namespace local_planning
   LocalPlannerManagerNode::LocalPlannerManagerNode() : LifecycleNode("manager", "local_planner", true)
   {
     this->declare_parameter("manager_rate", 0.5);
-
+    this->declare_parameter("min_dist", 5.0);
     this->declare_parameter("debug", false);
 
     if (this->get_parameter("debug").as_bool())
@@ -123,7 +123,7 @@ namespace local_planning
     {
       num_execution += 1;
       num_generator_execution += 1;
-      geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint = this->findNextWaypoint();
+      geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint = this->findNextWaypoint(float(this->get_parameter("min_dist").as_double()));
 
       if (next_waypoint == nullptr)
       {
@@ -381,16 +381,50 @@ namespace local_planning
     RCLCPP_INFO(this->get_logger(), "      w: %f", map_metadata.origin.orientation.w);
   }
 
-  geometry_msgs::msg::PoseStamped::SharedPtr LocalPlannerManagerNode::findNextWaypoint()
+  geometry_msgs::msg::PoseStamped::SharedPtr LocalPlannerManagerNode::findNextWaypoint(const float next_waypoint_min_dist)
   {
     if (this->global_plan_ == nullptr || this->latest_odom == nullptr)
     {
       return nullptr;
     }
 
-    geometry_msgs::msg::PoseStamped::SharedPtr closest_waypoint = std::make_shared<geometry_msgs::msg::PoseStamped>();
     // find closest waypoint
-    return closest_waypoint;
+    // find the closest waypoint to the current position
+    double min_distance = std::numeric_limits<double>::max();
+    size_t closest_waypoint_index = 0;
+    for (size_t i = 0; i < global_plan_->poses.size(); i++)
+    {
+      double distance = std::sqrt(std::pow(this->latest_odom->pose.pose.position.x - global_plan_->poses[i].pose.position.x, 2) +
+                                  std::pow(this->latest_odom->pose.pose.position.y - global_plan_->poses[i].pose.position.y, 2) +
+                                  std::pow(this->latest_odom->pose.pose.position.z - global_plan_->poses[i].pose.position.z, 2));
+      if (distance < min_distance)
+      {
+        min_distance = distance;
+        closest_waypoint_index = i;
+      }
+    }
+    RCLCPP_DEBUG_STREAM(this->get_logger(), "closest waypoint index: " << closest_waypoint_index << ", distance: " << min_distance);
+
+    // find the next waypoint, including looping back to the beginning
+    // double next_waypoint_dist = cte_and_lookahead.second;
+    double next_waypoint_dist = next_waypoint_min_dist;
+    size_t next_waypoint_index = closest_waypoint_index;
+    for (size_t i = 0; i < global_plan_->poses.size(); i++)
+    {
+      size_t next_index = (closest_waypoint_index + i) % global_plan_->poses.size();
+      double distance = std::sqrt(std::pow(this->latest_odom->pose.pose.position.x - global_plan_->poses[next_index].pose.position.x, 2) +
+                                  std::pow(this->latest_odom->pose.pose.position.y - global_plan_->poses[next_index].pose.position.y, 2) +
+                                  std::pow(this->latest_odom->pose.pose.position.z - global_plan_->poses[next_index].pose.position.z, 2));
+      if (distance > next_waypoint_dist)
+      {
+        next_waypoint_index = next_index;
+        break;
+      }
+    }
+    RCLCPP_DEBUG_STREAM(this->get_logger(), "next waypoint index: " << next_waypoint_index << ", next_waypoint_dist: " << next_waypoint_dist);
+    geometry_msgs::msg::PoseStamped closest_waypoint = this->global_plan_->poses[next_waypoint_index];
+
+    return std::make_shared<geometry_msgs::msg::PoseStamped>(closest_waypoint);
   }
 
 } // namespace local_planning
