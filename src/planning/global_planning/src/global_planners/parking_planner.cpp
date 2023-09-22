@@ -77,6 +77,16 @@ namespace ROAR
                 }
             }
             didGoalPoseUpdated = false; // indicate that this goal pose is processed
+
+            if (m_global_path == nullptr)
+            {
+                // TODO: emit diagnoise msg
+                stepResult.status = false;
+                return stepResult;
+            }
+
+            stepResult.status = true;
+            stepResult.global_path = m_global_path;
             return stepResult;
         }
 

@@ -33,12 +33,16 @@ namespace local_planning
     RCLCPP_DEBUG(this->get_logger(), "on_configure");
 
     this->odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-        "/carla/ego_vehicle/odometry", rclcpp::SystemDefaultsQoS(),
+        "/odometry", rclcpp::SystemDefaultsQoS(),
         std::bind(&LocalPlannerManagerNode::onLatestOdomReceived, this, std::placeholders::_1));
 
     this->footprint_sub_ = this->create_subscription<geometry_msgs::msg::PolygonStamped>(
         "/footprint", rclcpp::SystemDefaultsQoS(),
         std::bind(&LocalPlannerManagerNode::onLatestFootprintReceived, this, std::placeholders::_1));
+
+    this->global_plan_sub_ = this->create_subscription<nav_msgs::msg::Path>(
+        "/global_path", rclcpp::SystemDefaultsQoS(),
+        std::bind(&LocalPlannerManagerNode::onLatestGlobalPlanReceived, this, std::placeholders::_1));
 
     trajectory_generator_node_ = std::make_shared<local_planning::TrajectoryGeneratorROS>(
         "generator", std::string{get_namespace()}, "trajectory", this->get_parameter("debug").as_bool());
@@ -121,23 +125,36 @@ namespace local_planning
     RCLCPP_DEBUG(this->get_logger(), "-----LocalPlannerManagerNode-----");
     if (this->canExecute()) // only one request at a time
     {
-      num_execution += 1;
-      num_generator_execution += 1;
       geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint = this->findNextWaypoint(float(this->get_parameter("min_dist").as_double()));
-
       if (next_waypoint == nullptr)
       {
         RCLCPP_ERROR(this->get_logger(), "next_waypoint is null, not executing...");
         return;
       }
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "next waypoint: x:" << next_waypoint->pose.position.x << " y: " << next_waypoint->pose.position.y << " z: " << next_waypoint->pose.position.z);
 
       // construct goal
       planning_interfaces::action::TrajectoryGeneration_Goal goal_msg = TrajectoryGeneration::Goal();
-      goal_msg.costmap = *this->latest_costmap_;
+      // goal_msg.costmap = *this->latest_costmap_;
       goal_msg.odom = *this->latest_odom;
       goal_msg.footprint = *this->latest_footprint_;
       goal_msg.next_waypoint = *next_waypoint;
       goal_msg.global_path = *this->global_plan_;
+      RCLCPP_DEBUG(get_logger(), "goal constructed");
+
+      // send goal
+      auto send_goal_options = rclcpp_action::Client<TrajectoryGeneration>::SendGoalOptions();
+      send_goal_options.goal_response_callback =
+          std::bind(&LocalPlannerManagerNode::trajectory_generator_goal_response_callback, this, std::placeholders::_1);
+      send_goal_options.feedback_callback =
+          std::bind(&LocalPlannerManagerNode::trajectory_generator_feedback_callback, this, std::placeholders::_1, std::placeholders::_2);
+      send_goal_options.result_callback =
+          std::bind(&LocalPlannerManagerNode::trajectory_generator_result_callback, this, std::placeholders::_1);
+      this->trajectory_generator_client->async_send_goal(goal_msg, send_goal_options);
+      RCLCPP_DEBUG(get_logger(), "goal sent");
+
+      num_execution += 1;
+      num_generator_execution += 1;
     }
   }
 
@@ -186,16 +203,6 @@ namespace local_planning
     goal_msg.next_waypoint = *next_waypoint;
     // goal_msg.odom = *odom;
     // goal_msg.footprint = *footprint;
-
-    auto send_goal_options = rclcpp_action::Client<TrajectoryGeneration>::SendGoalOptions();
-    send_goal_options.goal_response_callback =
-        std::bind(&LocalPlannerManagerNode::trajectory_generator_goal_response_callback, this, _1);
-    send_goal_options.feedback_callback =
-        std::bind(&LocalPlannerManagerNode::trajectory_generator_feedback_callback, this, _1, _2);
-    send_goal_options.result_callback =
-        std::bind(&LocalPlannerManagerNode::trajectory_generator_result_callback, this, _1);
-    this->trajectory_generator_client->async_send_goal(goal_msg, send_goal_options);
-    RCLCPP_DEBUG(get_logger(), "goal sent");
   }
 
   void LocalPlannerManagerNode::trajectory_generator_goal_response_callback(
@@ -343,11 +350,20 @@ namespace local_planning
    */
   bool LocalPlannerManagerNode::canExecute()
   {
-    if (this->didReceiveAllMessages() && num_generator_execution < 1)
+    if (this->didReceiveAllMessages() == false)
     {
-      return true;
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "not executing: "
+                                                  << "didReceiveAllMessages() == false");
+      return false;
     }
-    return false;
+
+    if (num_generator_execution >= 1)
+    {
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "not executing: "
+                                                  << "num_generator_execution >= 1");
+      return false;
+    }
+    return true;
   }
   bool LocalPlannerManagerNode::didReceiveAllMessages()
   {
@@ -383,10 +399,13 @@ namespace local_planning
 
   geometry_msgs::msg::PoseStamped::SharedPtr LocalPlannerManagerNode::findNextWaypoint(const float next_waypoint_min_dist)
   {
-    if (this->global_plan_ == nullptr || this->latest_odom == nullptr)
+    if (this->global_plan_ == nullptr)
     {
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "global_plan_ is null, not finding waypoint");
       return nullptr;
     }
+
+    RCLCPP_DEBUG(this->get_logger(), "finding waypoint");
 
     // find closest waypoint
     // find the closest waypoint to the current position
@@ -422,9 +441,9 @@ namespace local_planning
       }
     }
     RCLCPP_DEBUG_STREAM(this->get_logger(), "next waypoint index: " << next_waypoint_index << ", next_waypoint_dist: " << next_waypoint_dist);
-    geometry_msgs::msg::PoseStamped closest_waypoint = this->global_plan_->poses[next_waypoint_index];
+    geometry_msgs::msg::PoseStamped next_waypoint = this->global_plan_->poses[next_waypoint_index];
 
-    return std::make_shared<geometry_msgs::msg::PoseStamped>(closest_waypoint);
+    return std::make_shared<geometry_msgs::msg::PoseStamped>(next_waypoint);
   }
 
 } // namespace local_planning

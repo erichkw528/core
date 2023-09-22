@@ -31,12 +31,7 @@ def generate_launch_description():
         namespace="roar",
         parameters=[launch.substitutions.LaunchConfiguration("params_file")],
         remappings=[
-            ("/global_path","/roar/global_planning/global_path"),
-            ("/next_waypoint","/roar/global_planning/next_waypoint"),
-            ("/global_path_visualization","/roar/global_planning/next_waypoint_visualization"),
-            ("/roar/gnss","/roar/gnss"),
-
-            ("load_map_service", "/roar/global_planning/load_map_service"),
+            ("/roar/global_path","/roar/global_planning/global_path")
         ]
     )
     ld.add_action(global_planner_manager)

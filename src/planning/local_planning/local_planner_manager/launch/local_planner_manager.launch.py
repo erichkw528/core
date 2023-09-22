@@ -22,15 +22,16 @@ def generate_launch_description():
                                                        default_value=config_file.as_posix()))
     
     local_planner_manager_node = Node(
-        name="local_planner_manager",
+        name="local_planner_manager_node",
         executable="local_planner_manager_node",
         package="local_planner_manager",
         parameters=[launch.substitutions.LaunchConfiguration("params_file")],
+        namespace="roar",
         emulate_tty=True,
         remappings=[
-            ("/carla/ego_vehicle/odometry","/roar/odometry"),
-            ("/next_waypoint","/roar/global_planning/next_waypoint"),
-            ("/footprint","/local_costmap/published_footprint")
+            ("/odometry","/roar/odometry"),
+            ("/footprint","/local_costmap/published_footprint"),
+            ("/global_path", "/roar/global_planning/global_path")
         ]
     )
 
