@@ -18,7 +18,6 @@ namespace ROAR
         struct StepResult
         {
             nav_msgs::msg::Path::SharedPtr global_path;
-            geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint_pose_stamped;
 
             bool status = true;
         };

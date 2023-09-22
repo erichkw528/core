@@ -11,7 +11,6 @@ namespace ROAR
         {
             this->m_node_->declare_parameter("RacePlanner.waypoint_path", "waypoints.txt");
             this->m_node_->declare_parameter("map_frame", "map");
-            this->m_node_->declare_parameter("RacePlanner.min_dist", 5.0);
             RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("waypoint_path").as_string());
         }
         RacePlanner::~RacePlanner()
@@ -31,14 +30,6 @@ namespace ROAR
             StepResult result;
             nav_msgs::msg::Odometry::SharedPtr odom = input.odom;
 
-            // find the next waypoint
-            size_t next_waypoint_index = this->findNextWaypoint(odom);
-            // convert the next waypoint to a pose stamped
-            geometry_msgs::msg::PoseStamped next_waypoint;
-            next_waypoint.header = waypoints_[next_waypoint_index].header;
-            next_waypoint.pose = waypoints_[next_waypoint_index].pose.pose;
-            result.next_waypoint_pose_stamped = std::make_shared<geometry_msgs::msg::PoseStamped>(next_waypoint);
-
             // construct global path, if exist
             if (global_path_msg != nullptr)
             {
@@ -46,44 +37,6 @@ namespace ROAR
             }
 
             return result;
-        }
-
-        size_t RacePlanner::findNextWaypoint(const nav_msgs::msg::Odometry::SharedPtr odom)
-        {
-            // find the closest waypoint to the current position
-            double min_distance = std::numeric_limits<double>::max();
-            size_t closest_waypoint_index = 0;
-            for (size_t i = 0; i < waypoints_.size(); i++)
-            {
-                double distance = std::sqrt(std::pow(odom->pose.pose.position.x - waypoints_[i].pose.pose.position.x, 2) +
-                                            std::pow(odom->pose.pose.position.y - waypoints_[i].pose.pose.position.y, 2) +
-                                            std::pow(odom->pose.pose.position.z - waypoints_[i].pose.pose.position.z, 2));
-                if (distance < min_distance)
-                {
-                    min_distance = distance;
-                    closest_waypoint_index = i;
-                }
-            }
-            RCLCPP_DEBUG_STREAM(m_logger_, "closest waypoint index: " << closest_waypoint_index << ", distance: " << min_distance);
-
-            // find the next waypoint, including looping back to the beginning
-            // double next_waypoint_dist = cte_and_lookahead.second;
-            double next_waypoint_dist = float(this->m_node_->get_parameter("min_dist").as_double());
-            size_t next_waypoint_index = closest_waypoint_index;
-            for (size_t i = 0; i < waypoints_.size(); i++)
-            {
-                size_t next_index = (closest_waypoint_index + i) % waypoints_.size();
-                double distance = std::sqrt(std::pow(odom->pose.pose.position.x - waypoints_[next_index].pose.pose.position.x, 2) +
-                                            std::pow(odom->pose.pose.position.y - waypoints_[next_index].pose.pose.position.y, 2) +
-                                            std::pow(odom->pose.pose.position.z - waypoints_[next_index].pose.pose.position.z, 2));
-                if (distance > next_waypoint_dist)
-                {
-                    next_waypoint_index = next_index;
-                    break;
-                }
-            }
-            RCLCPP_DEBUG_STREAM(m_logger_, "next waypoint index: " << next_waypoint_index << ", next_waypoint_dist: " << next_waypoint_dist);
-            return next_waypoint_index;
         }
 
         void RacePlanner::read_waypoints(const std::string &file_path)

@@ -8,6 +8,7 @@
 #include "nav2_msgs/srv/load_map.hpp"
 #include "planning_interfaces/srv/load_map.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
+#include "global_planning/planners/navfn.hpp"
 
 namespace ROAR
 {
@@ -60,7 +61,6 @@ namespace ROAR
             }
 
             NavPlannerGlobalPathFinderOutput planTrajectory(const NavPlannerGlobalPathFinderInputs &inputs);
-            NavPlannerNextWaypointFinderOutputs findNextWaypoint(const NavPlannerNextWaypointFinderInputs &inputs);
 
             bool didReceiveGoalPose()
             {

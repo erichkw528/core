@@ -62,7 +62,6 @@ namespace ROAR
 
             // publishers
             this->global_path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("global_path", 10);
-            this->next_waypoint_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("next_waypoint", 10);
             if (!this->planner->on_configure())
             {
                 return nav2_util::CallbackReturn::FAILURE;
@@ -78,7 +77,6 @@ namespace ROAR
                 std::bind(&GlobalPlannerManager::step, this));
 
             this->global_path_publisher_->on_activate();
-            this->next_waypoint_publisher_->on_activate();
 
             if (!this->planner->on_activate())
             {
@@ -90,7 +88,6 @@ namespace ROAR
 
         nav2_util::CallbackReturn GlobalPlannerManager::on_deactivate(const rclcpp_lifecycle::State &state)
         {
-            this->next_waypoint_publisher_->on_deactivate();
             this->global_path_publisher_->on_deactivate();
             RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now inactive.");
             if (!this->planner->on_deactivate())
@@ -140,12 +137,6 @@ namespace ROAR
             StepInput input;
             input.odom = this->current_odom;
             StepResult result = this->planner->step(input);
-
-            // publish next waypoint
-            if (result.next_waypoint_pose_stamped != nullptr)
-            {
-                this->next_waypoint_publisher_->publish(*result.next_waypoint_pose_stamped);
-            }
 
             // publish global path
             if (result.global_path != nullptr)
