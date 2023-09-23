@@ -11,7 +11,7 @@ namespace ROAR
         {
             this->m_node_->declare_parameter("RacePlanner.waypoint_path", "waypoints.txt");
             this->m_node_->declare_parameter("map_frame", "map");
-            RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("waypoint_path").as_string());
+            RCLCPP_INFO_STREAM(m_logger_, "Waypoint_path: " << this->m_node_->get_parameter("RacePlanner.waypoint_path").as_string());
         }
         RacePlanner::~RacePlanner()
         {
@@ -20,7 +20,7 @@ namespace ROAR
         void RacePlanner::initialize()
         {
             // read in waypoints from waypoints.txt
-            this->read_waypoints(this->m_node_->get_parameter("waypoint_path").as_string());
+            this->read_waypoints(this->m_node_->get_parameter("RacePlanner.waypoint_path").as_string());
         }
 
         StepResult RacePlanner::step(const StepInput input)

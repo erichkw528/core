@@ -38,8 +38,7 @@ def generate_launch_description():
 
 
     map_server = Node(
-        parameters=[launch.substitutions.LaunchConfiguration("params_file")
-        ],
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
         package='nav2_map_server',
         executable='map_server',
         name='map_server',
@@ -47,4 +46,26 @@ def generate_launch_description():
         namespace='roar',
     )
     ld.add_action(map_server)
+
+
+    """ Lifecycle Manager """
+    lifecycle_manager_global_planning = Node(
+        package="nav2_lifecycle_manager",
+        executable="lifecycle_manager",
+        name="lifecycle_manager_global_planning",
+        output="screen",
+        namespace="roar",
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
+    )
+    ld.add_action(lifecycle_manager_global_planning)
+
+    lifecycle_manager_map_server = Node(
+        package="nav2_lifecycle_manager",
+        executable="lifecycle_manager",
+        name="lifecycle_manager_map_server",
+        output="screen",
+        namespace="roar",
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
+    )
+    ld.add_action(lifecycle_manager_map_server)
     return ld 

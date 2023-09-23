@@ -128,7 +128,7 @@ namespace local_planning
       geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint = this->findNextWaypoint(float(this->get_parameter("min_dist").as_double()));
       if (next_waypoint == nullptr)
       {
-        RCLCPP_ERROR(this->get_logger(), "next_waypoint is null, not executing...");
+        RCLCPP_DEBUG_STREAM(this->get_logger(), "next_waypoint is null, not executing...");
         return;
       }
       RCLCPP_DEBUG_STREAM(this->get_logger(), "next waypoint: x:" << next_waypoint->pose.position.x << " y: " << next_waypoint->pose.position.y << " z: " << next_waypoint->pose.position.z);

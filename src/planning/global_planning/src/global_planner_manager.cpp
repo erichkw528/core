@@ -134,6 +134,7 @@ namespace ROAR
                 RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
                 return;
             }
+            RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now stepping.");
             StepInput input;
             input.odom = this->current_odom;
             StepResult result = this->planner->step(input);
