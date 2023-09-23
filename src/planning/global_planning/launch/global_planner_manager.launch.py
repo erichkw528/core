@@ -28,22 +28,44 @@ def generate_launch_description():
         executable="global_planner_manager",
         name="global_planner_manager",
         output="screen",
+        namespace="roar",
         parameters=[launch.substitutions.LaunchConfiguration("params_file")],
         remappings=[
-            ("/global_path","/roar/global_planning/global_path"),
-            ("/next_waypoint","/roar/global_planning/next_waypoint"),
-            ("/global_path_visualization","/roar/global_planning/next_waypoint_visualization"),
-            ("/roar/gnss","/roar/gnss"),
+            ("/roar/global_path","/roar/global_planning/global_path")
         ]
     )
     ld.add_action(global_planner_manager)
 
-    lifecycle_manager = Node(
+
+    map_server = Node(
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
+        output='screen',
+        namespace='roar',
+    )
+    ld.add_action(map_server)
+
+
+    """ Lifecycle Manager """
+    lifecycle_manager_global_planning = Node(
         package="nav2_lifecycle_manager",
         executable="lifecycle_manager",
         name="lifecycle_manager_global_planning",
         output="screen",
+        namespace="roar",
         parameters=[launch.substitutions.LaunchConfiguration("params_file")],
     )
-    ld.add_action(lifecycle_manager)
+    ld.add_action(lifecycle_manager_global_planning)
+
+    lifecycle_manager_map_server = Node(
+        package="nav2_lifecycle_manager",
+        executable="lifecycle_manager",
+        name="lifecycle_manager_map_server",
+        output="screen",
+        namespace="roar",
+        parameters=[launch.substitutions.LaunchConfiguration("params_file")],
+    )
+    ld.add_action(lifecycle_manager_map_server)
     return ld 

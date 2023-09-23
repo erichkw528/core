@@ -60,26 +60,27 @@ namespace local_planning
         bool didReceiveAllMessages();
         bool canExecute();
 
-        /* Waypoint */
-        std::shared_ptr<geometry_msgs::msg::PoseStamped> latest_waypoint_;
-        rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::ConstSharedPtr
-            next_waypoint_sub_;
-        std::mutex waypoint_mutex;
-        void onLatestWaypointReceived(geometry_msgs::msg::PoseStamped::SharedPtr msg);
-
         /* footprint */
         std::shared_ptr<geometry_msgs::msg::PolygonStamped> latest_footprint_;
         rclcpp::Subscription<geometry_msgs::msg::PolygonStamped>::ConstSharedPtr
             footprint_sub_;
         std::mutex footprint_mutex;
         void onLatestFootprintReceived(
-            geometry_msgs::msg::PolygonStamped::SharedPtr msg);
+            geometry_msgs::msg::PolygonStamped::SharedPtr msg)
+        {
+            std::lock_guard<std::mutex> lock(footprint_mutex);
+            latest_footprint_ = msg;
+        }
 
         /* Odometry */
         std::shared_ptr<nav_msgs::msg::Odometry> latest_odom;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::ConstSharedPtr odom_sub_;
         std::mutex odom_mutex_;
-        void onLatestOdomReceived(nav_msgs::msg::Odometry::SharedPtr msg);
+        void onLatestOdomReceived(nav_msgs::msg::Odometry::SharedPtr msg)
+        {
+            std::lock_guard<std::mutex> lock(odom_mutex_);
+            latest_odom = msg;
+        }
 
         /* Costmap */
         std::shared_ptr<nav2_msgs::msg::Costmap> p_GetLatestCostmap();
@@ -137,6 +138,17 @@ namespace local_planning
 
         // diagnostic
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
+
+        // global plan
+        std::shared_ptr<nav_msgs::msg::Path> global_plan_;
+        rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr global_plan_sub_;
+        std::mutex global_plan_mutex_;
+        void onLatestGlobalPlanReceived(nav_msgs::msg::Path::SharedPtr msg)
+        {
+            std::lock_guard<std::mutex> lock(global_plan_mutex_);
+            global_plan_ = msg;
+        }
+        geometry_msgs::msg::PoseStamped::SharedPtr findNextWaypoint(const float next_waypoint_min_dist);
     };
 } // namespace local_planning
 #endif
