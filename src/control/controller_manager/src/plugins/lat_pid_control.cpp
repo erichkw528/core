@@ -78,6 +78,10 @@ namespace roar
 
                 // find the next waypoint
                 int next_waypoint = p_findNextWaypoint(*path_);
+                RCLCPP_DEBUG_STREAM(node().get_logger(), 
+                                    "path[next_waypoint] x =" << path_->poses[next_waypoint].pose.position.x 
+                                    << " y = " << path_->poses[next_waypoint].pose.position.y);
+
 
                 // find the steering error
                 double steering_error = p_calcAngularError(*path_, next_waypoint);
@@ -85,6 +89,7 @@ namespace roar
 
                 // compute the steering cmd using PID
                 auto this_pid_time = node().now();
+
                 // dt in seconds + nano seconds
                 const auto dt = this_pid_time - lat_state().last_pid_time;
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
@@ -131,7 +136,7 @@ namespace roar
                     // rad to deg
                     angular_error = angular_error * 180 / M_PI;
                 }
-                // RCLCPP_DEBUG_STREAM(node().get_logger(), "steering angle: " << angular_error);
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "angular_error: " << angular_error);
                 return angular_error;
             }
 
