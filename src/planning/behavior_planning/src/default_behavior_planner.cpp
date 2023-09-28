@@ -17,6 +17,7 @@ namespace roar
 
                 void DefaultBehaviorPlanner::Initialize()
                 {
+                    base::BehaviorPlannerBTLifeCycleNode::Initialize();
                     RCLCPP_INFO(get_logger(), "Initializing Default Behavior Planner");
                 }
 

@@ -26,6 +26,7 @@ namespace roar
                     virtual void PostRunTree();
                     BT::Blackboard::Ptr &GetBlackboard();
                     BT::Tree &GetBtTree();
+                    void RegisterTreeNodes();
 
                 private:
                     BT::BehaviorTreeFactory factory_;
@@ -34,6 +35,9 @@ namespace roar
 
                     std::unique_ptr<BT::PublisherZMQ> groot_monitor_;
                     std::unique_ptr<BT::FileLogger> groot_log_file_;
+
+                    template <typename T>
+                    void RegisterTreeNodeLogClock(const std::string &node_name);
                 };
             }
         } // namespace behavior_planning
