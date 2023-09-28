@@ -1,0 +1,21 @@
+[0.977s] Invoking command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/misc/waypoint_recorder': PYTHONPATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../../build/waypoint_recorder build --build-base /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build install --prefix /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder --record /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/install.log --single-version-externally-managed
+[1.260s] running egg_info
+[1.261s] writing ../../../build/waypoint_recorder/waypoint_recorder.egg-info/PKG-INFO
+[1.261s] writing dependency_links to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/dependency_links.txt
+[1.261s] writing entry points to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/entry_points.txt
+[1.261s] writing requirements to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/requires.txt
+[1.261s] writing top-level names to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/top_level.txt
+[1.288s] reading manifest file '../../../build/waypoint_recorder/waypoint_recorder.egg-info/SOURCES.txt'
+[1.289s] writing manifest file '../../../build/waypoint_recorder/waypoint_recorder.egg-info/SOURCES.txt'
+[1.289s] running build
+[1.290s] running build_py
+[1.291s] running install
+[1.291s] running install_lib
+[1.291s] running install_data
+[1.291s] running install_egg_info
+[1.293s] removing '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder-0.0.0-py3.8.egg-info' (and everything under it)
+[1.293s] Copying ../../../build/waypoint_recorder/waypoint_recorder.egg-info to /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder-0.0.0-py3.8.egg-info
+[1.295s] running install_scripts
+[1.305s] Installing record_waypoint_to_txt_node script to /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/waypoint_recorder
+[1.306s] writing list of installed files to '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/install.log'
+[1.325s] Invoked command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/misc/waypoint_recorder' returned '0': PYTHONPATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../../build/waypoint_recorder build --build-base /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build install --prefix /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder --record /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/install.log --single-version-externally-managed

@@ -1,0 +1,15 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from roar_msgs/srv/ToggleControlSafetySwitch.srv
+// generated code does not contain a copyright notice
+
+
+module roar_msgs {
+  module srv {
+    struct ToggleControlSafetySwitch_Request {
+      boolean is_safety_on;
+    };
+    struct ToggleControlSafetySwitch_Response {
+      boolean status;
+    };
+  };
+};

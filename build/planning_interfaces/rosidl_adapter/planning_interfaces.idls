@@ -1,0 +1,7 @@
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/planning_interfaces/rosidl_adapter/planning_interfaces:msg/Trajectories.idl
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/planning_interfaces/rosidl_adapter/planning_interfaces:msg/TrajectoryScore.idl
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/planning_interfaces/rosidl_adapter/planning_interfaces:msg/Trajectory.idl
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/planning_interfaces/rosidl_adapter/planning_interfaces:srv/TrajectoryScoring.idl
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/planning_interfaces/rosidl_adapter/planning_interfaces:srv/ResetTrajectoryPicker.idl
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/planning_interfaces/rosidl_adapter/planning_interfaces:srv/LoadMap.idl
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/planning_interfaces/rosidl_adapter/planning_interfaces:action/TrajectoryGeneration.idl

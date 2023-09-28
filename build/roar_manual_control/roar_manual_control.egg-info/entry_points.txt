@@ -1,0 +1,3 @@
+[console_scripts]
+roar_manual_controller_node = roar_manual_control.roar_manual_controller_node:main
+

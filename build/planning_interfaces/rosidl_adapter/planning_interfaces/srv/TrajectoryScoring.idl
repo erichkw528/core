@@ -1,0 +1,28 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from planning_interfaces/srv/TrajectoryScoring.srv
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/PoseStamped.idl"
+#include "nav2_msgs/msg/Costmap.idl"
+#include "nav_msgs/msg/Odometry.idl"
+#include "nav_msgs/msg/Path.idl"
+#include "planning_interfaces/msg/TrajectoryScore.idl"
+
+module planning_interfaces {
+  module srv {
+    @verbatim (language="comment", text=
+      " Trajectory scoring service")
+    struct TrajectoryScoring_Request {
+      nav_msgs::msg::Path trajectory;
+
+      nav2_msgs::msg::Costmap costmap;
+
+      nav_msgs::msg::Odometry odom;
+
+      geometry_msgs::msg::PoseStamped next_waypoint;
+    };
+    struct TrajectoryScoring_Response {
+      planning_interfaces::msg::TrajectoryScore score;
+    };
+  };
+};

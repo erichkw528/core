@@ -1,0 +1,100 @@
+-- The C compiler identification is GNU 9.4.0
+-- The CXX compiler identification is GNU 9.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 0.9.9 (/opt/ros/foxy/share/ament_cmake/cmake)
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.8.10", minimum required is "3") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Found ament_cmake_auto: 0.9.9 (/opt/ros/foxy/share/ament_cmake_auto/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Found rosidl_adapter: 1.2.1 (/opt/ros/foxy/share/rosidl_adapter/cmake)
+-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "1.1.1f")  
+-- Found FastRTPS: /opt/ros/foxy/include  
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found rmw_implementation_cmake: 1.0.3 (/opt/ros/foxy/share/rmw_implementation_cmake/cmake)
+-- Using RMW implementation 'rmw_fastrtps_cpp' as default
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE  
+-- Found eigen3_cmake_module: 0.1.1 (/opt/ros/foxy/share/eigen3_cmake_module/cmake)
+-- Found Eigen3: TRUE (found version "3.3.7") 
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning
+[35m[1mScanning dependencies of target default_behavior_planner_exe[0m
+[35m[1mScanning dependencies of target behavior_planning_COMMON[0m
+[ 11%] [32mBuilding CXX object CMakeFiles/behavior_planning_COMMON.dir/src/common/utils.cpp.o[0m
+[ 22%] [32mBuilding CXX object CMakeFiles/default_behavior_planner_exe.dir/rclcpp_components/node_main_default_behavior_planner_exe.cpp.o[0m
+[ 33%] [32m[1mLinking CXX shared library libbehavior_planning_COMMON.so[0m
+[ 33%] Built target behavior_planning_COMMON
+[35m[1mScanning dependencies of target behavior_planning_BASE[0m
+[ 44%] [32mBuilding CXX object CMakeFiles/behavior_planning_BASE.dir/src/base/base_lifecycle_node.cpp.o[0m
+[ 55%] [32mBuilding CXX object CMakeFiles/behavior_planning_BASE.dir/src/base/base_bt_lifecycle_node.cpp.o[0m
+[ 66%] [32m[1mLinking CXX executable default_behavior_planner_exe[0m
+[ 66%] Built target default_behavior_planner_exe
+[ 77%] [32m[1mLinking CXX shared library libbehavior_planning_BASE.so[0m
+[ 77%] Built target behavior_planning_BASE
+[35m[1mScanning dependencies of target DEFAULT_BT[0m
+[ 88%] [32mBuilding CXX object CMakeFiles/DEFAULT_BT.dir/src/default_behavior_planner.cpp.o[0m
+[100%] [32m[1mLinking CXX shared library libDEFAULT_BT.so[0m
+[100%] Built target DEFAULT_BT
+-- Install configuration: ""
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/behavior_planning/default_behavior_planner_exe
+-- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/behavior_planning/default_behavior_planner_exe" to ""
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/behavior_planner_manager.hpp
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/common
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/common/utils.hpp
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/default_behavior_planner.hpp
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/base
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/base/base_bt_lifecycle_node.hpp
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/base/base_lifecycle_node.hpp
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/library_path.sh
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/library_path.dsv
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_COMMON.so
+-- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_COMMON.so" to ""
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_BASE.so
+-- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_BASE.so" to ""
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libDEFAULT_BT.so
+-- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libDEFAULT_BT.so" to ""
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/param
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/param/.gitkeep
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/launch
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/launch/behavior_planning.launch.py
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/launch/.gitkeep
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/package_run_dependencies/behavior_planning
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/parent_prefix_path/behavior_planning
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/ament_prefix_path.sh
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/ament_prefix_path.dsv
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/path.sh
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/path.dsv
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.bash
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.sh
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.zsh
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.dsv
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/package.dsv
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/packages/behavior_planning
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/rclcpp_components/behavior_planning
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/ament_cmake_export_dependencies-extras.cmake
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/ament_cmake_export_libraries-extras.cmake
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/behavior_planningConfig.cmake
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/behavior_planningConfig-version.cmake
+-- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/package.xml

@@ -1,0 +1,9 @@
+{
+  "package_name": "roar_msgs",
+  "non_idl_tuples": [
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/roar_msgs:msg/VehicleControl.msg",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/roar_msgs:msg/VehicleState.msg",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/roar_msgs:srv/ToggleControlSafetySwitch.srv",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/roar_msgs:msg/VehicleStatus.msg"
+  ]
+}

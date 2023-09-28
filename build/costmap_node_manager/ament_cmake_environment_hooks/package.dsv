@@ -1,0 +1,4 @@
+source;share/costmap_node_manager/local_setup.bash
+source;share/costmap_node_manager/local_setup.dsv
+source;share/costmap_node_manager/local_setup.sh
+source;share/costmap_node_manager/local_setup.zsh

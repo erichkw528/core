@@ -1,0 +1,19 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from planning_interfaces/msg/Trajectory.msg
+// generated code does not contain a copyright notice
+
+#include "nav_msgs/msg/Path.idl"
+#include "planning_interfaces/msg/TrajectoryScore.idl"
+#include "std_msgs/msg/Header.idl"
+
+module planning_interfaces {
+  module msg {
+    struct Trajectory {
+      std_msgs::msg::Header header;
+
+      nav_msgs::msg::Path trajectory;
+
+      planning_interfaces::msg::TrajectoryScore score;
+    };
+  };
+};

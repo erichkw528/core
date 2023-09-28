@@ -1,0 +1,17 @@
+package.xml
+setup.cfg
+setup.py
+../../../build/waypoint_recorder/waypoint_recorder.egg-info/PKG-INFO
+../../../build/waypoint_recorder/waypoint_recorder.egg-info/SOURCES.txt
+../../../build/waypoint_recorder/waypoint_recorder.egg-info/dependency_links.txt
+../../../build/waypoint_recorder/waypoint_recorder.egg-info/entry_points.txt
+../../../build/waypoint_recorder/waypoint_recorder.egg-info/requires.txt
+../../../build/waypoint_recorder/waypoint_recorder.egg-info/top_level.txt
+../../../build/waypoint_recorder/waypoint_recorder.egg-info/zip-safe
+launch/waypoint_recorder.launch.py
+resource/waypoint_recorder
+test/test_copyright.py
+test/test_flake8.py
+test/test_pep257.py
+waypoint_recorder/__init__.py
+waypoint_recorder/record_waypoint_to_txt_node.py

@@ -1,0 +1,12 @@
+{
+  "package_name": "planning_interfaces",
+  "non_idl_tuples": [
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/interfaces:msg/Trajectories.msg",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/interfaces:msg/TrajectoryScore.msg",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/interfaces:msg/Trajectory.msg",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/interfaces:srv/TrajectoryScoring.srv",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/interfaces:srv/ResetTrajectoryPicker.srv",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/interfaces:srv/LoadMap.srv",
+    "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/interfaces:action/TrajectoryGeneration.action"
+  ]
+}

@@ -1,0 +1,21 @@
+[0.817s] Invoking command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/misc/roar_manual_control': AMENT_PREFIX_PATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs:${CMAKE_PREFIX_PATH} LD_LIBRARY_PATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_manual_control/lib/python3.8/site-packages:/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../../build/roar_manual_control build --build-base /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_manual_control/build install --prefix /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_manual_control --record /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_manual_control/install.log --single-version-externally-managed
+[1.054s] running egg_info
+[1.054s] writing ../../../build/roar_manual_control/roar_manual_control.egg-info/PKG-INFO
+[1.054s] writing dependency_links to ../../../build/roar_manual_control/roar_manual_control.egg-info/dependency_links.txt
+[1.054s] writing entry points to ../../../build/roar_manual_control/roar_manual_control.egg-info/entry_points.txt
+[1.055s] writing requirements to ../../../build/roar_manual_control/roar_manual_control.egg-info/requires.txt
+[1.055s] writing top-level names to ../../../build/roar_manual_control/roar_manual_control.egg-info/top_level.txt
+[1.081s] reading manifest file '../../../build/roar_manual_control/roar_manual_control.egg-info/SOURCES.txt'
+[1.082s] writing manifest file '../../../build/roar_manual_control/roar_manual_control.egg-info/SOURCES.txt'
+[1.082s] running build
+[1.082s] running build_py
+[1.082s] running install
+[1.083s] running install_lib
+[1.083s] running install_data
+[1.084s] running install_egg_info
+[1.085s] removing '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_manual_control/lib/python3.8/site-packages/roar_manual_control-0.0.0-py3.8.egg-info' (and everything under it)
+[1.085s] Copying ../../../build/roar_manual_control/roar_manual_control.egg-info to /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_manual_control/lib/python3.8/site-packages/roar_manual_control-0.0.0-py3.8.egg-info
+[1.086s] running install_scripts
+[1.097s] Installing roar_manual_controller_node script to /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_manual_control/lib/roar_manual_control
+[1.097s] writing list of installed files to '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_manual_control/install.log'
+[1.113s] Invoked command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/misc/roar_manual_control' returned '0': AMENT_PREFIX_PATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs:${CMAKE_PREFIX_PATH} LD_LIBRARY_PATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_manual_control/lib/python3.8/site-packages:/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../../build/roar_manual_control build --build-base /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_manual_control/build install --prefix /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_manual_control --record /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_manual_control/install.log --single-version-externally-managed

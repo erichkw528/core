@@ -1,0 +1,187 @@
+[0.059s] Invoking command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --build /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs -- -j16 -l16
+[0.115s] [  1%] Built target roar_msgs__cpp
+[0.121s] [ 12%] Built target roar_msgs__rosidl_generator_c
+[0.146s] [ 23%] Built target roar_msgs__rosidl_typesupport_cpp
+[0.151s] [ 34%] Built target roar_msgs__rosidl_typesupport_introspection_cpp
+[0.154s] [ 45%] Built target roar_msgs__rosidl_typesupport_fastrtps_cpp
+[0.159s] [ 56%] Built target roar_msgs__rosidl_typesupport_c
+[0.161s] [ 67%] Built target roar_msgs__rosidl_typesupport_introspection_c
+[0.184s] [ 78%] Built target roar_msgs__rosidl_typesupport_fastrtps_c
+[0.206s] [ 78%] Built target roar_msgs
+[0.227s] [ 80%] Built target roar_msgs__py
+[0.259s] [ 89%] Built target roar_msgs__python
+[0.284s] [ 92%] Built target roar_msgs__rosidl_typesupport_introspection_c__pyext
+[0.285s] [ 96%] Built target roar_msgs__rosidl_typesupport_c__pyext
+[0.288s] [100%] Built target roar_msgs__rosidl_typesupport_fastrtps_c__pyext
+[0.372s] Invoked command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --build /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs -- -j16 -l16
+[0.495s] Invoking command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --install /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs
+[0.508s] -- Install configuration: ""
+[0.509s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/ament_index/resource_index/rosidl_interfaces/roar_msgs
+[0.509s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs
+[0.509s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg
+[0.510s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/vehicle_state.h
+[0.510s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail
+[0.510s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__functions.h
+[0.511s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__functions.c
+[0.511s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__type_support.h
+[0.511s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__struct.h
+[0.511s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__functions.c
+[0.512s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__struct.h
+[0.512s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__functions.h
+[0.512s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__functions.c
+[0.512s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__functions.h
+[0.513s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__type_support.h
+[0.513s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__struct.h
+[0.513s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__type_support.h
+[0.514s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/vehicle_status.h
+[0.514s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/vehicle_control.h
+[0.516s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/rosidl_generator_c__visibility_control.h
+[0.516s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv
+[0.516s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail
+[0.516s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__type_support.h
+[0.517s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__struct.h
+[0.517s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__functions.h
+[0.517s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__functions.c
+[0.517s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/toggle_control_safety_switch.h
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/library_path.sh
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/library_path.dsv
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__rosidl_generator_c.so
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__rosidl_typesupport_fastrtps_c.h
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__rosidl_typesupport_fastrtps_c.h
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__rosidl_typesupport_fastrtps_c.h
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__rosidl_typesupport_fastrtps_c.h
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__rosidl_typesupport_fastrtps_c.so
+[0.518s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__rosidl_typesupport_fastrtps_cpp.hpp
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/dds_fastrtps
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__rosidl_typesupport_fastrtps_cpp.hpp
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__rosidl_typesupport_fastrtps_cpp.hpp
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__rosidl_typesupport_fastrtps_cpp.hpp
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/dds_fastrtps
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__rosidl_typesupport_fastrtps_cpp.so
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg
+[0.519s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__type_support.c
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__type_support.c
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__rosidl_typesupport_introspection_c.h
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__type_support.c
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__rosidl_typesupport_introspection_c.h
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__rosidl_typesupport_introspection_c.h
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__type_support.c
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__rosidl_typesupport_introspection_c.h
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__rosidl_typesupport_introspection_c.so
+[0.520s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__rosidl_typesupport_c.so
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/vehicle_state.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__builder.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__traits.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__builder.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__struct.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__traits.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__struct.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__traits.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__builder.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__struct.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/vehicle_control.hpp
+[0.521s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/vehicle_status.hpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__traits.hpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__struct.hpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__builder.hpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/toggle_control_safety_switch.hpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__rosidl_typesupport_introspection_cpp.hpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__type_support.cpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__type_support.cpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_state__rosidl_typesupport_introspection_cpp.hpp
+[0.522s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_control__rosidl_typesupport_introspection_cpp.hpp
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/msg/detail/vehicle_status__type_support.cpp
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__rosidl_typesupport_introspection_cpp.hpp
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/include/roar_msgs/srv/detail/toggle_control_safety_switch__type_support.cpp
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__rosidl_typesupport_introspection_cpp.so
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__rosidl_typesupport_cpp.so
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/pythonpath.sh
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/pythonpath.dsv
+[0.523s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/__init__.py
+[0.552s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg
+[0.552s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg/_vehicle_state_s.c
+[0.552s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg/__init__.py
+[0.552s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg/_vehicle_state.py
+[0.552s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg/_vehicle_status_s.c
+[0.552s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg/_vehicle_control.py
+[0.552s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg/_vehicle_status.py
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/msg/_vehicle_control_s.c
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/srv
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/srv/_toggle_control_safety_switch_s.c
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/srv/__init__.py
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/srv/_toggle_control_safety_switch.py
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/roar_msgs_s__rosidl_typesupport_fastrtps_c.cpython-38-x86_64-linux-gnu.so
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/roar_msgs_s__rosidl_typesupport_introspection_c.cpython-38-x86_64-linux-gnu.so
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/python3.8/site-packages/roar_msgs/roar_msgs_s__rosidl_typesupport_c.cpython-38-x86_64-linux-gnu.so
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/lib/libroar_msgs__python.so
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/msg/VehicleControl.idl
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/msg/VehicleState.idl
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/srv/ToggleControlSafetySwitch.idl
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/msg/VehicleStatus.idl
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/msg/VehicleControl.msg
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/msg/VehicleState.msg
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/srv/ToggleControlSafetySwitch.srv
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/srv/ToggleControlSafetySwitch_Request.msg
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/srv/ToggleControlSafetySwitch_Response.msg
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/msg/VehicleStatus.msg
+[0.553s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/ament_index/resource_index/package_run_dependencies/roar_msgs
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/ament_index/resource_index/parent_prefix_path/roar_msgs
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/ament_prefix_path.sh
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/ament_prefix_path.dsv
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/path.sh
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/environment/path.dsv
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/local_setup.bash
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/local_setup.sh
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/local_setup.zsh
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/local_setup.dsv
+[0.554s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/package.dsv
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/ament_index/resource_index/packages/roar_msgs
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_generator_cExport.cmake
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_generator_cExport-noconfig.cmake
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_introspection_cExport.cmake
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[0.554s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_cExport.cmake
+[0.555s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_cExport-noconfig.cmake
+[0.555s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_generator_cppExport.cmake
+[0.556s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_introspection_cppExport.cmake
+[0.556s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[0.556s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_cppExport.cmake
+[0.556s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgs__rosidl_typesupport_cppExport-noconfig.cmake
+[0.556s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/rosidl_cmake-extras.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/ament_cmake_export_dependencies-extras.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/ament_cmake_export_libraries-extras.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/ament_cmake_export_targets-extras.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/ament_cmake_export_include_directories-extras.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgsConfig.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/cmake/roar_msgsConfig-version.cmake
+[0.557s] -- Up-to-date: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/roar_msgs/share/roar_msgs/package.xml
+[0.557s] Invoked command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --install /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_msgs
