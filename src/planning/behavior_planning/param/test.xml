@@ -2,9 +2,9 @@
 
  <root BTCPP_format="4" >
      <BehaviorTree ID="MainTree">
-        <Sequence name="root_sequence">
-            <Condition ID="IfGoalReached" />
-            
-        </Sequence>
+        <ReactiveSequence>
+            <Condition ID="IfGoalReached" goal="{goal}" current_pose="{current_pose}" is_goal_reached="{is_goal_reached}"/>
+            <!-- <Action ID="StopCarImmediate" rde_params="{rde_params}" speed_type="{speed_type}" stop_type="{stop_type}" strategy_type="{strategy_type}"/> -->
+        </ReactiveSequence>
      </BehaviorTree>
  </root>

@@ -18,6 +18,7 @@ namespace roar
                     const rclcpp::Logger &logger,
                     rclcpp::Clock &clock) : BT::ConditionNode(condition_name, conf), logger_(logger), clock_(clock)
                 {
+                    RCLCPP_INFO(logger_, "IfGoalReached created");
                 }
 
                 BT::NodeStatus IfGoalReached::tick()
@@ -29,10 +30,10 @@ namespace roar
                 BT::PortsList IfGoalReached::providedPorts()
                 {
                     return {
-                        BT::InputPort<const std::shared_ptr<ros_parameters::Params>>(
-                            "rde_params"),
-                        BT::InputPort<const common::RdeInputs::ConstSharedPtr>(
-                            "rde_inputs")};
+                        BT::InputPort<std::string>("goal"),
+                        BT::InputPort<std::string>("current_pose"),
+                        BT::OutputPort<std::string>("is_goal_reached"),
+                    };
                 }
             } // namespace condition
         }     // namespace behavior
