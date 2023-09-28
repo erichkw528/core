@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+ <root BTCPP_format="4" >
+     <BehaviorTree ID="MainTree">
+        <Sequence name="root_sequence">
+            <Condition ID="IfGoalReached" />
+            
+        </Sequence>
+     </BehaviorTree>
+ </root>

@@ -17,6 +17,7 @@ namespace roar
                 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn BehaviorPlannerBaseLifecycleNode::on_configure(const rclcpp_lifecycle::State &previous_state)
                 {
                     RCLCPP_INFO(get_logger(), "BehaviorPlannerBaseLifecycleNode is now configuring.");
+                    Initialize();
                     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
                 }
 
