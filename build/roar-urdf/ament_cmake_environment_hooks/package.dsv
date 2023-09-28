@@ -1,0 +1,4 @@
+source;share/roar-urdf/local_setup.bash
+source;share/roar-urdf/local_setup.dsv
+source;share/roar-urdf/local_setup.sh
+source;share/roar-urdf/local_setup.zsh

@@ -1,0 +1,8 @@
+source;share/roar-urdf/hook/cmake_prefix_path.ps1
+source;share/roar-urdf/hook/cmake_prefix_path.dsv
+source;share/roar-urdf/hook/cmake_prefix_path.sh
+source;share/roar-urdf/local_setup.bash
+source;share/roar-urdf/local_setup.dsv
+source;share/roar-urdf/local_setup.ps1
+source;share/roar-urdf/local_setup.sh
+source;share/roar-urdf/local_setup.zsh

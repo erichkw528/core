@@ -1,0 +1,2 @@
+source;share/roar-urdf/environment/ament_prefix_path.sh
+source;share/roar-urdf/environment/path.sh

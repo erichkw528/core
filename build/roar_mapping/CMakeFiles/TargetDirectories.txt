@@ -1,0 +1,9 @@
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/install/local.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/install.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/list_install_components.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/rebuild_cache.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/edit_cache.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/test.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/install/strip.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/roar_mapping_uninstall.dir
+/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar_mapping/CMakeFiles/uninstall.dir

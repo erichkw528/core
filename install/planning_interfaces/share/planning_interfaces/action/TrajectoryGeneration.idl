@@ -1,0 +1,41 @@
+// generated from rosidl_adapter/resource/action.idl.em
+// with input from planning_interfaces/action/TrajectoryGeneration.action
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/PolygonStamped.idl"
+#include "geometry_msgs/msg/PoseStamped.idl"
+#include "nav2_msgs/msg/Costmap.idl"
+#include "nav_msgs/msg/Odometry.idl"
+#include "nav_msgs/msg/Path.idl"
+#include "planning_interfaces/msg/Trajectories.idl"
+#include "planning_interfaces/msg/Trajectory.idl"
+
+module planning_interfaces {
+  module action {
+    @verbatim (language="comment", text=
+      " Trajectory Generation interface")
+    struct TrajectoryGeneration_Goal {
+      @verbatim (language="comment", text=
+        " Request")
+      nav2_msgs::msg::Costmap costmap;
+
+      nav_msgs::msg::Odometry odom;
+
+      nav_msgs::msg::Path global_path;
+
+      geometry_msgs::msg::PoseStamped next_waypoint;
+
+      geometry_msgs::msg::PolygonStamped footprint;
+    };
+    struct TrajectoryGeneration_Result {
+      @verbatim (language="comment", text=
+        " Result")
+      planning_interfaces::msg::Trajectories trajectories;
+    };
+    struct TrajectoryGeneration_Feedback {
+      @verbatim (language="comment", text=
+        " Feedback")
+      planning_interfaces::msg::Trajectory trajectory;
+    };
+  };
+};

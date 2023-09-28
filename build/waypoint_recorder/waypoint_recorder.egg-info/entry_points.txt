@@ -1,0 +1,3 @@
+[console_scripts]
+record_waypoint_to_txt_node = waypoint_recorder.record_waypoint_to_txt_node:main
+

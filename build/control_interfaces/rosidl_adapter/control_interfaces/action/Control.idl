@@ -1,0 +1,34 @@
+// generated from rosidl_adapter/resource/action.idl.em
+// with input from control_interfaces/action/Control.action
+// generated code does not contain a copyright notice
+
+#include "nav_msgs/msg/Path.idl"
+
+module control_interfaces {
+  module action {
+    @verbatim (language="comment", text=
+      " Request")
+    struct Control_Goal {
+      @verbatim (language="comment", text=
+        " the path to follow")
+      nav_msgs::msg::Path path;
+
+      int32 target_spd;
+
+      boolean overwrite_previous;
+    };
+    module Control_Result_Constants {
+      const int8 NORMAL = 1;
+      const int8 FAILED = 2;
+    };
+    struct Control_Result {
+      int8 status;
+    };
+    struct Control_Feedback {
+      @verbatim (language="comment", text=
+        " Feedback" "\n"
+        " current executing index")
+      uint32 curr_index;
+    };
+  };
+};

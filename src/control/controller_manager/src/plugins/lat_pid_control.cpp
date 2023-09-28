@@ -93,6 +93,10 @@ namespace roar
                 // dt in seconds + nano seconds
                 const auto dt = this_pid_time - lat_state().last_pid_time;
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
+
+                // TODO: update param based on speed
+                update_params();
+                // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 
                 RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);

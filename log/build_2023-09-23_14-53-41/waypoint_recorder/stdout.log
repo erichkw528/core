@@ -1,0 +1,37 @@
+running egg_info
+creating ../../../build/waypoint_recorder/waypoint_recorder.egg-info
+writing ../../../build/waypoint_recorder/waypoint_recorder.egg-info/PKG-INFO
+writing dependency_links to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/dependency_links.txt
+writing entry points to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/entry_points.txt
+writing requirements to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/requires.txt
+writing top-level names to ../../../build/waypoint_recorder/waypoint_recorder.egg-info/top_level.txt
+writing manifest file '../../../build/waypoint_recorder/waypoint_recorder.egg-info/SOURCES.txt'
+reading manifest file '../../../build/waypoint_recorder/waypoint_recorder.egg-info/SOURCES.txt'
+writing manifest file '../../../build/waypoint_recorder/waypoint_recorder.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build/lib
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build/lib/waypoint_recorder
+copying waypoint_recorder/record_waypoint_to_txt_node.py -> /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build/lib/waypoint_recorder
+copying waypoint_recorder/__init__.py -> /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build/lib/waypoint_recorder
+running install
+running install_lib
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder
+copying /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build/lib/waypoint_recorder/record_waypoint_to_txt_node.py -> /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder
+copying /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/build/lib/waypoint_recorder/__init__.py -> /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder
+byte-compiling /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder/record_waypoint_to_txt_node.py to record_waypoint_to_txt_node.cpython-38.pyc
+byte-compiling /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder/__init__.py to __init__.cpython-38.pyc
+running install_data
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/share/ament_index
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/share/ament_index/resource_index
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/share/ament_index/resource_index/packages
+copying resource/waypoint_recorder -> /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/share/ament_index/resource_index/packages
+copying package.xml -> /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/share/waypoint_recorder
+creating /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/share/waypoint_recorder/launch
+copying launch/waypoint_recorder.launch.py -> /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/share/waypoint_recorder/launch
+running install_egg_info
+Copying ../../../build/waypoint_recorder/waypoint_recorder.egg-info to /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/python3.8/site-packages/waypoint_recorder-0.0.0-py3.8.egg-info
+running install_scripts
+Installing record_waypoint_to_txt_node script to /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/waypoint_recorder/lib/waypoint_recorder
+writing list of installed files to '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/waypoint_recorder/install.log'

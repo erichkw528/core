@@ -1,0 +1,38 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from roar_msgs/msg/VehicleState.msg
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/PoseStamped.idl"
+#include "nav_msgs/msg/Odometry.idl"
+#include "nav_msgs/msg/Path.idl"
+#include "roar_msgs/msg/VehicleControl.idl"
+#include "roar_msgs/msg/VehicleStatus.idl"
+#include "sensor_msgs/msg/Imu.idl"
+#include "std_msgs/msg/Header.idl"
+
+module roar_msgs {
+  module msg {
+    struct VehicleState {
+      std_msgs::msg::Header header;
+
+      @verbatim (language="comment", text=
+        " raw sensor data")
+      nav_msgs::msg::Odometry odometry;
+
+      sensor_msgs::msg::Imu imu;
+
+      roar_msgs::msg::VehicleStatus vehicle_status;
+
+      @verbatim (language="comment", text=
+        " global planner")
+      nav_msgs::msg::Path global_path;
+
+      geometry_msgs::msg::PoseStamped next_waypoint;
+
+      @verbatim (language="comment", text=
+        " behavior planner" "\n"
+        " Vehicle control commands")
+      roar_msgs::msg::VehicleControl vehicle_control;
+    };
+  };
+};

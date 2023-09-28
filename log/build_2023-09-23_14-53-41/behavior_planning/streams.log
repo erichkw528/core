@@ -1,0 +1,106 @@
+[0.045s] Invoking command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/behavior_planning -DCMAKE_INSTALL_PREFIX=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning
+[0.099s] -- The C compiler identification is GNU 9.4.0
+[0.159s] -- The CXX compiler identification is GNU 9.4.0
+[0.166s] -- Check for working C compiler: /usr/bin/cc
+[0.226s] -- Check for working C compiler: /usr/bin/cc -- works
+[0.227s] -- Detecting C compiler ABI info
+[0.290s] -- Detecting C compiler ABI info - done
+[0.299s] -- Detecting C compile features
+[0.299s] -- Detecting C compile features - done
+[0.301s] -- Check for working CXX compiler: /usr/bin/c++
+[0.371s] -- Check for working CXX compiler: /usr/bin/c++ -- works
+[0.371s] -- Detecting CXX compiler ABI info
+[0.445s] -- Detecting CXX compiler ABI info - done
+[0.460s] -- Detecting CXX compile features
+[0.460s] -- Detecting CXX compile features - done
+[0.466s] -- Found ament_cmake: 0.9.9 (/opt/ros/foxy/share/ament_cmake/cmake)
+[0.497s] -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.8.10", minimum required is "3") 
+[0.498s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[0.747s] -- Found ament_cmake_auto: 0.9.9 (/opt/ros/foxy/share/ament_cmake_auto/cmake)
+[0.889s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.902s] -- Found rosidl_adapter: 1.2.1 (/opt/ros/foxy/share/rosidl_adapter/cmake)
+[0.996s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "1.1.1f")  
+[1.028s] -- Found FastRTPS: /opt/ros/foxy/include  
+[1.127s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.216s] -- Found rmw_implementation_cmake: 1.0.3 (/opt/ros/foxy/share/rmw_implementation_cmake/cmake)
+[1.220s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[1.221s] -- Looking for pthread.h
+[1.289s] -- Looking for pthread.h - found
+[1.289s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.360s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+[1.360s] -- Looking for pthread_create in pthreads
+[1.410s] -- Looking for pthread_create in pthreads - not found
+[1.410s] -- Looking for pthread_create in pthread
+[1.471s] -- Looking for pthread_create in pthread - found
+[1.472s] -- Found Threads: TRUE  
+[2.384s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/foxy/share/eigen3_cmake_module/cmake)
+[2.389s] -- Found Eigen3: TRUE (found version "3.3.7") 
+[6.553s] -- Configuring done
+[6.670s] -- Generating done
+[6.673s] -- Build files have been written to: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning
+[6.686s] Invoked command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/src/planning/behavior_planning -DCMAKE_INSTALL_PREFIX=/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning
+[6.688s] Invoking command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --build /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning -- -j16 -l16
+[6.731s] [35m[1mScanning dependencies of target default_behavior_planner_exe[0m
+[6.734s] [35m[1mScanning dependencies of target behavior_planning_COMMON[0m
+[6.748s] [ 11%] [32mBuilding CXX object CMakeFiles/behavior_planning_COMMON.dir/src/common/utils.cpp.o[0m
+[6.771s] [ 22%] [32mBuilding CXX object CMakeFiles/default_behavior_planner_exe.dir/rclcpp_components/node_main_default_behavior_planner_exe.cpp.o[0m
+[6.774s] [ 33%] [32m[1mLinking CXX shared library libbehavior_planning_COMMON.so[0m
+[6.852s] [ 33%] Built target behavior_planning_COMMON
+[6.862s] [35m[1mScanning dependencies of target behavior_planning_BASE[0m
+[6.899s] [ 44%] [32mBuilding CXX object CMakeFiles/behavior_planning_BASE.dir/src/base/base_lifecycle_node.cpp.o[0m
+[6.899s] [ 55%] [32mBuilding CXX object CMakeFiles/behavior_planning_BASE.dir/src/base/base_bt_lifecycle_node.cpp.o[0m
+[8.702s] [ 66%] [32m[1mLinking CXX executable default_behavior_planner_exe[0m
+[8.817s] [ 66%] Built target default_behavior_planner_exe
+[9.294s] [ 77%] [32m[1mLinking CXX shared library libbehavior_planning_BASE.so[0m
+[9.488s] [ 77%] Built target behavior_planning_BASE
+[9.499s] [35m[1mScanning dependencies of target DEFAULT_BT[0m
+[9.530s] [ 88%] [32mBuilding CXX object CMakeFiles/DEFAULT_BT.dir/src/default_behavior_planner.cpp.o[0m
+[11.971s] [100%] [32m[1mLinking CXX shared library libDEFAULT_BT.so[0m
+[12.166s] [100%] Built target DEFAULT_BT
+[12.176s] Invoked command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --build /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning -- -j16 -l16
+[12.209s] Invoking command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --install /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning
+[12.217s] -- Install configuration: ""
+[12.217s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/behavior_planning/default_behavior_planner_exe
+[12.218s] -- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/behavior_planning/default_behavior_planner_exe" to ""
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/behavior_planner_manager.hpp
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/common
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/common/utils.hpp
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/default_behavior_planner.hpp
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/base
+[12.218s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/base/base_bt_lifecycle_node.hpp
+[12.219s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/include/behavior_planning/base/base_lifecycle_node.hpp
+[12.219s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/library_path.sh
+[12.219s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/library_path.dsv
+[12.219s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_COMMON.so
+[12.219s] -- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_COMMON.so" to ""
+[12.219s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_BASE.so
+[12.219s] -- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libbehavior_planning_BASE.so" to ""
+[12.219s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libDEFAULT_BT.so
+[12.220s] -- Set runtime path of "/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/lib/libDEFAULT_BT.so" to ""
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/param
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/param/.gitkeep
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/launch
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/launch/behavior_planning.launch.py
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/launch/.gitkeep
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/package_run_dependencies/behavior_planning
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/parent_prefix_path/behavior_planning
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/ament_prefix_path.sh
+[12.220s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/ament_prefix_path.dsv
+[12.221s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/path.sh
+[12.221s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/environment/path.dsv
+[12.221s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.bash
+[12.221s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.sh
+[12.221s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.zsh
+[12.221s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/local_setup.dsv
+[12.221s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/package.dsv
+[12.222s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/packages/behavior_planning
+[12.222s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/ament_index/resource_index/rclcpp_components/behavior_planning
+[12.222s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/ament_cmake_export_dependencies-extras.cmake
+[12.222s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/ament_cmake_export_include_directories-extras.cmake
+[12.223s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/ament_cmake_export_libraries-extras.cmake
+[12.223s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/behavior_planningConfig.cmake
+[12.223s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/cmake/behavior_planningConfig-version.cmake
+[12.223s] -- Installing: /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/install/behavior_planning/share/behavior_planning/package.xml
+[12.226s] Invoked command in '/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/waypoint_recorder:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_manual_controller:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_carla_interface:/home/roar/Desktop/projects/lilian/roar-gokart-ws/install/roar_manual_control:/home/roar/carla-ros-bridge/install/rqt_carla_control:/home/roar/carla-ros-bridge/install/carla_waypoint_publisher:/home/roar/carla-ros-bridge/install/carla_ackermann_control:/home/roar/carla-ros-bridge/install/carla_ros_bridge:/home/roar/carla-ros-bridge/install/carla_spawn_objects:/home/roar/carla-ros-bridge/install/carla_manual_control:/home/roar/carla-ros-bridge/install/carla_ad_agent:/home/roar/carla-ros-bridge/install/ros_compatibility:/home/roar/carla-ros-bridge/install/carla_walker_agent:/home/roar/carla-ros-bridge/install/carla_twist_to_control:/home/roar/carla-ros-bridge/install/carla_ros_scenario_runner:/home/roar/carla-ros-bridge/install/carla_common:/opt/ros/foxy /usr/bin/cmake --install /home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/behavior_planning
