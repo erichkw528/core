@@ -8,6 +8,9 @@
 #include "controller_manager/controller_state.hpp"
 #include "controller_manager/pid_controller.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+#include <iostream>
 using namespace roar::control;
 namespace roar
 {
@@ -95,6 +98,29 @@ namespace roar
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
 
                 // TODO: update param based on speed
+                // Open the file for reading
+                FILE* fp = fopen("carla_pid_lat.json", "r");
+            
+                // Use a FileReadStream to
+                // read the data from the file
+                char readBuffer[65536];
+                rapidjson::FileReadStream is(fp, readBuffer,
+                                            sizeof(readBuffer));
+            
+                // Parse the JSON data 
+                // using a Document object
+                rapidjson::Document d;
+                d.ParseStream(is);
+            
+                // Close the file
+                fclose(fp);
+            
+                // Access the data in the JSON document
+                std::cout << d["1"].GetString() << std::endl;
+                std::cout << d["10"].GetInt() << std::endl;
+                config_.steering_pid_param.kp = kp;
+                config_.steering_pid_param.ki = ki;
+                config_.steering_pid_param.kd = kd;
                 update_params();
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
