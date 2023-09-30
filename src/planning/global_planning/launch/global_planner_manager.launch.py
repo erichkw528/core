@@ -16,12 +16,11 @@ def generate_launch_description():
 
     ld = launch.LaunchDescription()
     base_path = Path(get_package_share_directory("global_planning"))
-    config_file_path = base_path / "param" / "carla" / "manager.yaml"
-    assert config_file_path.exists(), f"[{config_file_path}] does not exist"
+    params_file = LaunchConfiguration('params_file')  
+
     ld.add_action(DeclareLaunchArgument('params_file', 
-                                        default_value= config_file_path.as_posix(), 
                                         description="params_file"))
-    ld.add_action(LogInfo(msg=f"Global Planning config file path: [{config_file_path.as_posix()}]"))
+    ld.add_action(LogInfo(msg=f"Global Planning config file path: [{params_file}]"))
     
     global_planner_manager = launch_ros.actions.Node(
         package="global_planning",
@@ -35,7 +34,6 @@ def generate_launch_description():
         ]
     )
     ld.add_action(global_planner_manager)
-
 
     map_server = Node(
         parameters=[launch.substitutions.LaunchConfiguration("params_file")],
