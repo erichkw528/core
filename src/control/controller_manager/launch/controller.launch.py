@@ -18,6 +18,7 @@ def generate_launch_description():
 
     config_file = base_path / "params" / "configs.yaml"
     assert config_file.exists()
+    params_file = LaunchConfiguration('params_file')  
     ld.add_action(launch.actions.DeclareLaunchArgument(name="params_file",
                                                     default_value=config_file.as_posix()))
     controller_manager = Node(
