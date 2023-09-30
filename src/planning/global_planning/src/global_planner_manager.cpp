@@ -138,11 +138,14 @@ namespace ROAR
             StepInput input;
             input.odom = this->current_odom;
             StepResult result = this->planner->step(input);
-
+            
             // publish global path
             if (result.global_path != nullptr)
             {
+                RCLCPP_DEBUG(get_logger(), "Publishing global path");
                 this->global_path_publisher_->publish(*result.global_path);
+            } else {
+                RCLCPP_DEBUG(get_logger(), "Global path is null");
             }
         }
 
