@@ -33,7 +33,10 @@ namespace ROAR
             // construct global path, if exist
             if (global_path_msg != nullptr)
             {
+                RCLCPP_DEBUG_STREAM(m_logger_, "Global path: [" << global_path_msg->poses.size() << "]");
                 result.global_path = global_path_msg;
+            } else {
+                RCLCPP_DEBUG_STREAM(m_logger_, "Global path: [NULL]");
             }
 
             return result;
