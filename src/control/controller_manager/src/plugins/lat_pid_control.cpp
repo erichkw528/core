@@ -5,6 +5,7 @@
 #include "controller_manager/controller_plugin_interface.hpp"
 #include "nav2_util/lifecycle_node.hpp"
 #include "roar_msgs/msg/vehicle_control.hpp"
+#include "roar_msgs/msg/vehicle_status.hpp"
 #include "controller_manager/controller_state.hpp"
 #include "controller_manager/pid_controller.hpp"
 #include "nav_msgs/msg/path.hpp"
@@ -25,6 +26,7 @@ namespace roar
         {
             double steering_error = 0.0;
             double steering_output = 0.0;
+            double current_speed = 0.0;
             PidController steering_pid;
             rclcpp::Time last_pid_time;
             rclcpp::TimerBase::SharedPtr pid_timer;
@@ -115,14 +117,25 @@ namespace roar
                 // Close the file
                 fclose(fp);
             
+                //Access current speed
+                
+                lat_state().current_speed = roar_msgs::msg::VehicleStatus::speed
+        
                 // Access the data in the JSON document
-                double k_p_value = d["1"]["k_p"].GetDouble();
-                double k_i_value = d["1"]["k_i"].GetDouble();
-                double k_d_value = d["1"]["k_d"].GetDouble();
+                for (i in d){
+                    if (lat_state().current_speed <= i)
+                    {
+                        double k_p_value = d[i]["k_p"].GetDouble();
+                        double k_i_value = d[i]["k_i"].GetDouble();
+                        double k_d_value = d[i]["k_d"].GetDouble();
 
-                config_.steering_pid_param.k_p = k_p_value;
-                config_.steering_pid_param.k_i = k_i_value;
-                config_.steering_pid_param.k_d = k_d_value;
+                        config_.steering_pid_param.k_p = k_p_value;
+                        config_.steering_pid_param.k_i = k_i_value;
+                        config_.steering_pid_param.k_d = k_d_value;
+                    }
+                    else
+                    {}
+                }
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 

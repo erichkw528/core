@@ -1,1 +1,0 @@
-control_interfaces;nav2_util;nav2_msgs;nav2_core;tf2_ros;nav_2d_utils;ackermann_msgs;std_msgs;visualization_msgs;ament_lint_auto;ament_lint_common
