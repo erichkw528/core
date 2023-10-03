@@ -116,12 +116,13 @@ namespace roar
                 fclose(fp);
             
                 // Access the data in the JSON document
-                std::cout << d["1"].GetString() << std::endl;
-                std::cout << d["10"].GetInt() << std::endl;
-                config_.steering_pid_param.kp = kp;
-                config_.steering_pid_param.ki = ki;
-                config_.steering_pid_param.kd = kd;
-                update_params();
+                double k_p_value = d["1"]["k_p"].GetDouble();
+                double k_i_value = d["1"]["k_i"].GetDouble();
+                double k_d_value = d["1"]["k_d"].GetDouble();
+
+                config_.steering_pid_param.k_p = k_p_value;
+                config_.steering_pid_param.k_i = k_i_value;
+                config_.steering_pid_param.k_d = k_d_value;
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 
