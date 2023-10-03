@@ -1,3 +1,0 @@
-source;share/trajectory_generator/environment/ament_prefix_path.sh
-source;share/trajectory_generator/environment/library_path.sh
-source;share/trajectory_generator/environment/path.sh

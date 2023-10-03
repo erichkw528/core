@@ -1,9 +1,0 @@
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/install/local.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/install.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/list_install_components.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/rebuild_cache.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/edit_cache.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/test.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/install/strip.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/roar-urdf_uninstall.dir
-/home/roar/Desktop/projects/lilian/roar-gokart-ws/src/core/core/build/roar-urdf/CMakeFiles/uninstall.dir

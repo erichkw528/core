@@ -26,7 +26,7 @@ nav2_util::CallbackReturn VehicleStateManagerNode::on_configure(const rclcpp_lif
 
     odom_subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>(
         "/roar/odometry", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::odom_callback, this, std::placeholders::_1));
-
+//add vehicle state subscriber
     imu_subscriber_ = this->create_subscription<sensor_msgs::msg::Imu>(
         "/roar/imu", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::imu_callback, this, std::placeholders::_1));
 
