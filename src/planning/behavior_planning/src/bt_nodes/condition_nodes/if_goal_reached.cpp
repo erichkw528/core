@@ -27,33 +27,54 @@ namespace roar
                 {
                     RCLCPP_DEBUG(logger_, "IfGoalReached ticked");
 
-                    // const std::shared_ptr<roar::planning::behavior::BTInputs> inputs = config().blackboard->get<std::shared_ptr<roar::planning::behavior::BTInputs>>("inputs");
+                    // const std::shared_ptr<roar::planning::behavior::BTInputs> inputs =
+                    auto inputs = config().blackboard->get<roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs");
+                    if (!inputs)
+                    {
+                        RCLCPP_ERROR(logger_, "IfGoalReached: no inputs");
+                        return BT::NodeStatus::FAILURE;
+                    }
 
-                    // if (!inputs)
-                    // {
-                    //     RCLCPP_ERROR(logger_, "IfGoalReached: no inputs");
-                    //     return BT::NodeStatus::FAILURE;
-                    // }
+                    if (!inputs->goal_pose)
+                    {
+                        RCLCPP_WARN(logger_, "IfGoalReached: no goal pose");
+                        return BT::NodeStatus::FAILURE;
+                    }
 
-                    // // if within a certain radius of the goal, return success
-                    // double distance = roar::planning::behavior::utils::distance(inputs->goal_pose, inputs->current_pose);
-                    // if (distance < 0)
-                    // {
-                    //     RCLCPP_ERROR(logger_, "IfGoalReached: distance < 0");
-                    //     return BT::NodeStatus::FAILURE;
-                    // }
-                    // else if (distance < 0.5)
-                    // {
-                    //     return BT::NodeStatus::SUCCESS;
-                    // }
-                    return BT::NodeStatus::SUCCESS;
+                    if (!inputs->current_pose)
+                    {
+                        RCLCPP_WARN(logger_, "IfGoalReached: no current pose");
+                        return BT::NodeStatus::FAILURE;
+                    }
+
+                    float goal_radius = config().blackboard->get<float>("goal_radius");
+                    if (goal_radius <= 0)
+                    {
+                        RCLCPP_ERROR(logger_, "IfGoalReached: goal_radius cannot be <= 0");
+                        return BT::NodeStatus::FAILURE;
+                    }
+
+                    // if within a certain radius of the goal, return success
+                    double distance = roar::planning::behavior::utils::distance(inputs->goal_pose, inputs->current_pose);
+                    if (distance < 0)
+                    {
+                        RCLCPP_ERROR(logger_, "IfGoalReached: distance cannot be zero");
+                        return BT::NodeStatus::FAILURE;
+                    }
+                    else if (distance <= goal_radius)
+                    {
+                        RCLCPP_INFO_STREAM(logger_, "IfGoalReached: distance: " << distance);
+                        return BT::NodeStatus::SUCCESS;
+                    }
+
+                    return BT::NodeStatus::FAILURE;
                 }
 
                 BT::PortsList IfGoalReached::providedPorts()
                 {
                     return {
                         BT::InputPort<float>("goal_radius"),
-                        BT::InputPort<const roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs"),
+                        BT::InputPort<roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs"),
                     };
                 }
 

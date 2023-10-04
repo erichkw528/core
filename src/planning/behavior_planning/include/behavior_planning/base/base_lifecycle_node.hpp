@@ -9,6 +9,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp_lifecycle/lifecycle_publisher.hpp"
+#include "behavior_planning/common/utils.hpp"
 
 namespace roar
 {
@@ -41,9 +42,14 @@ namespace roar
                     void on_timer_callback();
                     virtual bool on_step() = 0;
 
+                    // accessor methods
+                    const roar::planning::behavior::BTInputs::ConstSharedPtr GetInputs();
+
                 private:
                     rclcpp::TimerBase::SharedPtr timer_{};
                     double loop_rate_ = 0.1;
+
+                    roar::planning::behavior::BTInputs::SharedPtr bt_inputs_{};
                 };
             } // namespace base
         }     // namespace behavior_planning

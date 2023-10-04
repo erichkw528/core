@@ -31,6 +31,7 @@ namespace roar
                     timer_ =
                         rclcpp::create_timer(
                             this, this->get_clock(), rclcpp::Duration::from_seconds(this->loop_rate_), std::bind(&BehaviorPlannerBaseLifecycleNode::on_timer_callback, this));
+                    bt_inputs_ = std::make_shared<roar::planning::behavior::BTInputs>();
 
                     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
                 }
@@ -88,6 +89,18 @@ namespace roar
                     {
                         RCLCPP_ERROR(get_logger(), "BehaviorPlannerBaseLifecycleNode failed to step due to %s", e.what());
                     }
+                }
+
+                const roar::planning::behavior::BTInputs::ConstSharedPtr
+                BehaviorPlannerBaseLifecycleNode::GetInputs()
+                {
+                    if (bt_inputs_ == nullptr)
+                    {
+                        bt_inputs_ = std::make_shared<roar::planning::behavior::BTInputs>();
+                        RCLCPP_WARN(get_logger(), "BehaviorPlannerBaseLifecycleNode: bt_inputs_ was null");
+                    }
+
+                    return bt_inputs_;
                 }
 
             } // namespace base

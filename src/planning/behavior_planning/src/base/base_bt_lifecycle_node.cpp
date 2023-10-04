@@ -1,4 +1,5 @@
 #include "behavior_planning/base/base_bt_lifecycle_node.hpp"
+#include "behavior_planning/common/utils.hpp"
 
 #include "behavior_planning/bt_nodes/condition_nodes/if_goal_reached.hpp"
 
@@ -39,7 +40,8 @@ namespace roar
                     // TODO: update blackboard from params
 
                     // TODO: update inputs
-
+                    blackboard_->set<const roar::planning::behavior::BTInputs::ConstSharedPtr>(
+                        "inputs", GetInputs());
                     // tick tree
                     RunTree();
                     return true;
