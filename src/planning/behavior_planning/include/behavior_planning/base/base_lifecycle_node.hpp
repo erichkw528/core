@@ -38,6 +38,12 @@ namespace roar
 
                 protected:
                     virtual void Initialize() = 0;
+                    void on_timer_callback();
+                    virtual bool on_step() = 0;
+
+                private:
+                    rclcpp::TimerBase::SharedPtr timer_{};
+                    double loop_rate_ = 0.1;
                 };
             } // namespace base
         }     // namespace behavior_planning

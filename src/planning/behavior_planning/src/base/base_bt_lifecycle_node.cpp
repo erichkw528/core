@@ -12,15 +12,18 @@ namespace roar
             {
                 BehaviorPlannerBTLifeCycleNode::BehaviorPlannerBTLifeCycleNode(const rclcpp::NodeOptions &options) : BehaviorPlannerBaseLifecycleNode(options)
                 {
-                    RCLCPP_INFO(get_logger(), "BehaviorPlannerBTLifeCycleNode is now online.");
+                    this->declare_parameter("bt_xml_path", "./src/core/core/src/planning/behavior_planning/param/default.yml");
+                    bt_xml_path_ = this->get_parameter("bt_xml_path").as_string();
+                    RCLCPP_INFO_STREAM(get_logger(), "BehaviorPlannerBTLifeCycleNode is now online. bt_xml_path_: [" << bt_xml_path_ << "]");
                 }
 
                 void BehaviorPlannerBTLifeCycleNode::Initialize()
                 {
-                    RCLCPP_INFO(this->get_logger(), "Initialized BT Base Node");
+                    RCLCPP_DEBUG(this->get_logger(), "Initialized BT Base Node");
                     blackboard_ = BT::Blackboard::create();
                     RegisterTreeNodes();
-                    bt_tree_ = factory_.createTreeFromFile("/home/michael/Desktop/projects/roar-gokart-ws/src/core/core/src/planning/behavior_planning/param/test.xml", blackboard_);
+                    RCLCPP_INFO_STREAM(this->get_logger(), "Loading BT XML from: [" << bt_xml_path_ << "]");
+                    bt_tree_ = factory_.createTreeFromFile(bt_xml_path_, blackboard_);
                     std::string groot_ip = "192.168.50.200";
                     groot_monitor_ =
                         std::make_unique<BT::PublisherZMQ>(
@@ -30,8 +33,16 @@ namespace roar
                             static_cast<unsigned>(1667));
                     groot_log_file_ = std::make_unique<BT::FileLogger>(bt_tree_, "bt_trace.fbl");
                 }
-                void BehaviorPlannerBTLifeCycleNode::PostRunTree()
+                bool BehaviorPlannerBTLifeCycleNode::on_step()
                 {
+                    RCLCPP_DEBUG(this->get_logger(), "Stepping BT Base Node");
+                    // TODO: update blackboard from params
+
+                    // TODO: update inputs
+
+                    // tick tree
+                    RunTree();
+                    return true;
                 }
 
                 BT::Blackboard::Ptr &BehaviorPlannerBTLifeCycleNode::GetBlackboard()
