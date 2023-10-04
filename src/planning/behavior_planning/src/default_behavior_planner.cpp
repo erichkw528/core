@@ -12,23 +12,23 @@ namespace roar
                 DefaultBehaviorPlanner::DefaultBehaviorPlanner(const rclcpp::NodeOptions &options)
                     : base::BehaviorPlannerBTLifeCycleNode(options)
                 {
-                    RCLCPP_INFO(get_logger(), "Constructing Default Behavior Planner");
+                    RCLCPP_DEBUG(get_logger(), "Constructing Default Behavior Planner");
                 }
 
                 void DefaultBehaviorPlanner::Initialize()
                 {
                     base::BehaviorPlannerBTLifeCycleNode::Initialize();
-                    RCLCPP_INFO(get_logger(), "Initializing Default Behavior Planner");
+                    RCLCPP_DEBUG(get_logger(), "Initializing Default Behavior Planner");
                 }
 
                 void DefaultBehaviorPlanner::RunTree()
                 {
-                    RCLCPP_INFO(get_logger(), "Running Default Behavior Planner");
+                    this->GetBtTree().rootNode()->executeTick();
                 }
 
                 void DefaultBehaviorPlanner::PostRunTree()
                 {
-                    RCLCPP_INFO(get_logger(), "Post Running Default Behavior Planner");
+                    RCLCPP_DEBUG(get_logger(), "Post Running Default Behavior Planner");
                 }
             } // namespace impl
         }     // namespace behavior_planning

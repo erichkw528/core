@@ -4,6 +4,8 @@
 #include "behaviortree_cpp_v3/tree_node.h"
 #include "behaviortree_cpp_v3/basic_types.h"
 
+#include "behavior_planning/common/utils.hpp"
+
 namespace roar
 {
     namespace planning
@@ -18,23 +20,43 @@ namespace roar
                     const rclcpp::Logger &logger,
                     rclcpp::Clock &clock) : BT::ConditionNode(condition_name, conf), logger_(logger), clock_(clock)
                 {
-                    RCLCPP_INFO(logger_, "IfGoalReached created");
+                    RCLCPP_DEBUG(logger_, "IfGoalReached created");
                 }
 
                 BT::NodeStatus IfGoalReached::tick()
                 {
-                    RCLCPP_INFO(logger_, "IfGoalReached ticked");
+                    RCLCPP_DEBUG(logger_, "IfGoalReached ticked");
+
+                    // const std::shared_ptr<roar::planning::behavior::BTInputs> inputs = config().blackboard->get<std::shared_ptr<roar::planning::behavior::BTInputs>>("inputs");
+
+                    // if (!inputs)
+                    // {
+                    //     RCLCPP_ERROR(logger_, "IfGoalReached: no inputs");
+                    //     return BT::NodeStatus::FAILURE;
+                    // }
+
+                    // // if within a certain radius of the goal, return success
+                    // double distance = roar::planning::behavior::utils::distance(inputs->goal_pose, inputs->current_pose);
+                    // if (distance < 0)
+                    // {
+                    //     RCLCPP_ERROR(logger_, "IfGoalReached: distance < 0");
+                    //     return BT::NodeStatus::FAILURE;
+                    // }
+                    // else if (distance < 0.5)
+                    // {
+                    //     return BT::NodeStatus::SUCCESS;
+                    // }
                     return BT::NodeStatus::SUCCESS;
                 }
 
                 BT::PortsList IfGoalReached::providedPorts()
                 {
                     return {
-                        BT::InputPort<std::string>("goal"),
-                        BT::InputPort<std::string>("current_pose"),
-                        BT::OutputPort<std::string>("is_goal_reached"),
+                        BT::InputPort<float>("goal_radius"),
+                        BT::InputPort<const roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs"),
                     };
                 }
+
             } // namespace condition
         }     // namespace behavior
     }         // namespace planning
