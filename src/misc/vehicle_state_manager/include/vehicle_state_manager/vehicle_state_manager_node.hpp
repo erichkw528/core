@@ -39,6 +39,8 @@ namespace roar
         rclcpp::Subscription<roar_msgs::msg::VehicleControl>::SharedPtr vehicle_control_sub_;
         void vehicle_control_callback(const roar_msgs::msg::VehicleControl::SharedPtr msg);
 
+        rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr next_waypoint_sub_;
+        void next_waypoint_callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
     private:
         rclcpp::TimerBase::SharedPtr update_timer;
         void update_callback();

@@ -32,6 +32,9 @@ namespace local_planning
   {
     RCLCPP_DEBUG(this->get_logger(), "on_configure");
 
+    this->next_waypoint_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+        std::string{get_namespace()} + "/next_waypoint", 10);
+
     this->odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
         "/odometry", rclcpp::SystemDefaultsQoS(),
         std::bind(&LocalPlannerManagerNode::onLatestOdomReceived, this, std::placeholders::_1));
@@ -88,6 +91,8 @@ namespace local_planning
     this->possible_trajectory_publisher_->on_activate();
     this->diagnostic_pub_->on_activate();
 
+    this->next_waypoint_publisher_->on_activate();
+
     return nav2_util::CallbackReturn::SUCCESS;
   }
   nav2_util::CallbackReturn LocalPlannerManagerNode::on_deactivate(const rclcpp_lifecycle::State &state)
@@ -97,6 +102,7 @@ namespace local_planning
     trajectory_generator_node_->deactivate();
     trajectory_picker_node_->deactivate();
     diagnostic_pub_->on_deactivate();
+    this->next_waypoint_publisher_->on_deactivate();
     return nav2_util::CallbackReturn::SUCCESS;
   }
   nav2_util::CallbackReturn LocalPlannerManagerNode::on_cleanup(const rclcpp_lifecycle::State &state)
@@ -132,6 +138,8 @@ namespace local_planning
         return;
       }
       RCLCPP_DEBUG_STREAM(this->get_logger(), "next waypoint: x:" << next_waypoint->pose.position.x << " y: " << next_waypoint->pose.position.y << " z: " << next_waypoint->pose.position.z);
+
+      this->next_waypoint_publisher_->publish(*next_waypoint);
 
       // construct goal
       planning_interfaces::action::TrajectoryGeneration_Goal goal_msg = TrajectoryGeneration::Goal();
