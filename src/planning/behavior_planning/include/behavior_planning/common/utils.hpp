@@ -2,6 +2,7 @@
 #define ROAR__BEHAVIOR_PLANNING__UTILS_HPP_
 #include <geometry_msgs/msg/pose.hpp>
 #include <cmath>
+#include "roar_msgs/msg/behavior_status.hpp"
 namespace roar
 {
     namespace planning
@@ -16,6 +17,15 @@ namespace roar
 
                 geometry_msgs::msg::Pose::SharedPtr goal_pose{};
                 geometry_msgs::msg::Pose::SharedPtr current_pose{};
+            };
+
+            struct BTOutputs
+            {
+                typedef std::shared_ptr<BTOutputs> SharedPtr;
+                typedef std::shared_ptr<const BTOutputs> ConstSharedPtr;
+                typedef std::unique_ptr<BTOutputs> UniquePtr;
+
+                roar_msgs::msg::BehaviorStatus::SharedPtr behavior_status{};
             };
 
             namespace utils

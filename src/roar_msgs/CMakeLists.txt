@@ -12,6 +12,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/VehicleState.msg"
   "srv/ToggleControlSafetySwitch.srv"
   "msg/VehicleStatus.msg"
+  "msg/BehaviorStatus.msg"
   DEPENDENCIES std_msgs geometry_msgs nav_msgs gps_msgs sensor_msgs vision_msgs
 )
 

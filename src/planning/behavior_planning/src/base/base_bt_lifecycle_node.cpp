@@ -2,6 +2,7 @@
 #include "behavior_planning/common/utils.hpp"
 
 #include "behavior_planning/bt_nodes/condition_nodes/if_goal_reached.hpp"
+#include "behavior_planning/bt_nodes/action_nodes/stop_car.hpp"
 
 namespace roar
 {
@@ -60,6 +61,8 @@ namespace roar
                 void BehaviorPlannerBTLifeCycleNode::RegisterTreeNodes()
                 {
                     RegisterTreeNodeLogClock<roar::planning::behavior::condition::IfGoalReached>("IfGoalReached");
+
+                    RegisterTreeNodeLogClock<roar::planning::behavior::action::StopCar>("StopCar");
                 }
 
                 template <typename T>
