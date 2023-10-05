@@ -3,6 +3,7 @@
 #include <geometry_msgs/msg/pose.hpp>
 #include <cmath>
 #include "roar_msgs/msg/behavior_status.hpp"
+#include "roar_msgs/msg/vehicle_state.hpp"
 namespace roar
 {
     namespace planning
@@ -17,6 +18,8 @@ namespace roar
 
                 geometry_msgs::msg::Pose::SharedPtr goal_pose{};
                 geometry_msgs::msg::Pose::SharedPtr current_pose{};
+
+                roar_msgs::msg::VehicleState::SharedPtr vehicle_state{};
             };
 
             struct BTOutputs

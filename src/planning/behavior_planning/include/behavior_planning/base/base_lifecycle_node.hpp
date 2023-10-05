@@ -10,6 +10,8 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp_lifecycle/lifecycle_publisher.hpp"
 #include "behavior_planning/common/utils.hpp"
+#include "roar_msgs/msg/behavior_status.hpp"
+#include "roar_msgs/msg/vehicle_state.hpp"
 
 namespace roar
 {
@@ -50,6 +52,13 @@ namespace roar
                     double loop_rate_ = 0.1;
 
                     roar::planning::behavior::BTInputs::SharedPtr bt_inputs_{};
+
+                    // publisher
+                    rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::BehaviorStatus>::SharedPtr behavior_status_pub_{};
+
+                    // subscriber
+                    rclcpp::Subscription<roar_msgs::msg::VehicleState>::SharedPtr vehicle_state_sub_{};
+                    void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg);
                 };
             } // namespace base
         }     // namespace behavior_planning

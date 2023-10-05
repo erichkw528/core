@@ -27,7 +27,9 @@ namespace roar
                 {
                     RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now configuring.");
                     Initialize();
-
+                    behavior_status_pub_ = this->create_publisher<roar_msgs::msg::BehaviorStatus>("behavior_status", 10);
+                    vehicle_state_sub_ = this->create_subscription<roar_msgs::msg::VehicleState>("vehicle_state", 10,
+                                                                                                 std::bind(&BehaviorPlannerBaseLifecycleNode::vehicle_state_callback, this, std::placeholders::_1));
                     timer_ =
                         rclcpp::create_timer(
                             this, this->get_clock(), rclcpp::Duration::from_seconds(this->loop_rate_), std::bind(&BehaviorPlannerBaseLifecycleNode::on_timer_callback, this));
@@ -39,12 +41,14 @@ namespace roar
                 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn BehaviorPlannerBaseLifecycleNode::on_activate(const rclcpp_lifecycle::State &previous_state)
                 {
                     RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now activating.");
+                    behavior_status_pub_->on_activate();
                     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
                 }
 
                 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn BehaviorPlannerBaseLifecycleNode::on_deactivate(const rclcpp_lifecycle::State &previous_state)
                 {
                     RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now deactivating.");
+                    behavior_status_pub_->on_deactivate();
                     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
                 }
 
@@ -89,6 +93,10 @@ namespace roar
                     {
                         RCLCPP_ERROR(get_logger(), "BehaviorPlannerBaseLifecycleNode failed to step due to %s", e.what());
                     }
+                }
+                void BehaviorPlannerBaseLifecycleNode::vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg)
+                {
+                    bt_inputs_->vehicle_state = msg;
                 }
 
                 const roar::planning::behavior::BTInputs::ConstSharedPtr

@@ -36,6 +36,8 @@ nav2_util::CallbackReturn VehicleStateManagerNode::on_configure(const rclcpp_lif
     vehicle_control_sub_ = this->create_subscription<roar_msgs::msg::VehicleControl>(
         "/roar/vehicle_control", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_control_callback, this, std::placeholders::_1));
 
+    next_waypoint_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+        "/roar/next_waypoint", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::next_waypoint_callback, this, std::placeholders::_1));
     return nav2_util::CallbackReturn::SUCCESS;
 }
 
@@ -82,6 +84,11 @@ void VehicleStateManagerNode::vehicle_status_callback(const roar_msgs::msg::Vehi
 void VehicleStateManagerNode::vehicle_control_callback(const roar_msgs::msg::VehicleControl::SharedPtr msg)
 {
     vehicle_state->vehicle_control = *msg;
+}
+
+void VehicleStateManagerNode::next_waypoint_callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+{
+    vehicle_state->next_waypoint = *msg;
 }
 
 void VehicleStateManagerNode::update_callback()
