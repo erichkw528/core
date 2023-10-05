@@ -37,13 +37,13 @@ set(${PROJECT_NAME}_COMMON_SRC
 )
 
 set(${PROJECT_NAME}_BT_NODES_HEADER
-  include/${PROJECT_NAME}/bt_nodes/action_nodes/on_goal_action.hpp
+  include/${PROJECT_NAME}/bt_nodes/action_nodes/stop_car.hpp
   include/${PROJECT_NAME}/bt_nodes/condition_nodes/if_goal_reached.hpp
 
 )
 
 set(${PROJECT_NAME}_BT_NODES_SRC
-  src/bt_nodes/action_nodes/on_goal_action.cpp
+  src/bt_nodes/action_nodes/stop_car.cpp
   src/bt_nodes/condition_nodes/if_goal_reached.cpp
 )
 
