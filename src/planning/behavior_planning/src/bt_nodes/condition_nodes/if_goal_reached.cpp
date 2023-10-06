@@ -40,8 +40,13 @@ namespace roar
                         RCLCPP_WARN(logger_, "IfGoalReached: no vehicle state");
                         return BT::NodeStatus::FAILURE;
                     }
+                    if (inputs->vehicle_state->global_path.poses.empty())
+                    {
+                        // user have not chosen path yet probably
+                        return BT::NodeStatus::FAILURE;
+                    }
 
-                    auto next_waypoint = inputs->vehicle_state->next_waypoint;
+                    auto goal = inputs->vehicle_state->global_path.poses.back();
                     auto odom = inputs->vehicle_state->odometry;
                     BT::Optional<std::string> goal_radius_raw = getInput<std::string>("goal_radius");
                     if (!goal_radius_raw)
@@ -60,8 +65,10 @@ namespace roar
                     float x1, y1, x2, y2;
                     x1 = odom.pose.pose.position.x;
                     y1 = odom.pose.pose.position.y;
-                    x2 = next_waypoint.pose.position.x;
-                    y2 = next_waypoint.pose.position.y;
+                    x2 = goal.pose.position.x;
+                    y2 = goal.pose.position.y;
+
+                    RCLCPP_DEBUG_STREAM(logger_, "x1: " << x1 << " y1: " << y1 << " x2: " << x2 << " y2: " << y2);
 
                     double distance = std::sqrt(std::pow(x1 - x2, 2) + std::pow(y1 - y2, 2));
                     if (distance < 0)

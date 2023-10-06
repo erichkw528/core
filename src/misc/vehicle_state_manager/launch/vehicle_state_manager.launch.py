@@ -20,7 +20,7 @@ def generate_launch_description():
 
     ld.add_action(launch.actions.DeclareLaunchArgument(name="params_file",
                                                     default_value=config_file.as_posix()))
-    controller_manager = Node(
+    node = Node(
         name="vehicle_state_manager",
         executable="vehicle_state_manager_node",
         package="vehicle_state_manager",
@@ -32,6 +32,7 @@ def generate_launch_description():
         output="screen",
         remappings=[
             ("/roar/vehicle_control", "/roar/vehicle/control"),
+            ("/roar/global_path", "/roar/global_planning/global_path")
         ]
     )
 
@@ -44,7 +45,7 @@ def generate_launch_description():
     )
 
     # node
-    ld.add_action(controller_manager)
+    ld.add_action(node)
     ld.add_action(lifecycle_manager)
 
     return ld

@@ -6,7 +6,7 @@
 #include "roar_msgs/msg/vehicle_control.h"
 #include "roar_msgs/msg/vehicle_status.hpp"
 #include "roar_msgs/msg/behavior_status.hpp"
-
+#include "nav_msgs/msg/path.hpp"
 namespace roar
 {
     class VehicleStateManagerNode : public nav2_util::LifecycleNode
@@ -45,7 +45,10 @@ namespace roar
 
         rclcpp::Subscription<roar_msgs::msg::BehaviorStatus>::SharedPtr behavior_status_sub_;
         void behavior_status_callback(const roar_msgs::msg::BehaviorStatus::SharedPtr msg);
-
+        
+        rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr global_path_sub_;
+        void global_path_callback(const nav_msgs::msg::Path::SharedPtr msg);
+        
     private:
         rclcpp::TimerBase::SharedPtr update_timer;
         void update_callback();
