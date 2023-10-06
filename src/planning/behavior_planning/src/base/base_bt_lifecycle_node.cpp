@@ -3,6 +3,7 @@
 
 #include "behavior_planning/bt_nodes/condition_nodes/if_goal_reached.hpp"
 #include "behavior_planning/bt_nodes/action_nodes/stop_car.hpp"
+#include "roar_msgs/msg/behavior_status.hpp"
 
 namespace roar
 {
@@ -38,13 +39,33 @@ namespace roar
                 bool BehaviorPlannerBTLifeCycleNode::on_step()
                 {
                     RCLCPP_DEBUG(this->get_logger(), "Stepping BT Base Node");
+                    // init output
+                    blackboard_->set<roar::planning::behavior::BTOutputs::SharedPtr>("outputs", std::make_shared<roar::planning::behavior::BTOutputs>());
+
                     // TODO: update blackboard from params
 
                     // TODO: update inputs
                     blackboard_->set<const roar::planning::behavior::BTInputs::ConstSharedPtr>(
                         "inputs", GetInputs());
+
+                    auto inputs = blackboard_->get<roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs");
+
                     // tick tree
                     RunTree();
+
+                    // post run tree
+
+                    PostRunTree();
+
+                    // get output
+                    BT::Optional<roar::planning::behavior::BTOutputs::SharedPtr> outputs = blackboard_->get<roar::planning::behavior::BTOutputs::SharedPtr>("outputs");
+                    if (!outputs)
+                    {
+                        RCLCPP_ERROR(this->get_logger(), "BehaviorPlannerBTLifeCycleNode: no outputs");
+                        return false;
+                    }
+
+                    BehaviorPlannerBaseLifecycleNode::PublishBehaviorStatus(std::make_shared<roar_msgs::msg::BehaviorStatus>(outputs.value()->behavior_status));
                     return true;
                 }
 

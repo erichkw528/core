@@ -47,6 +47,9 @@ namespace roar
                     // accessor methods
                     const roar::planning::behavior::BTInputs::ConstSharedPtr GetInputs();
 
+                    // tree methods
+                    void PublishBehaviorStatus(const roar_msgs::msg::BehaviorStatus::SharedPtr behavior_status);
+
                 private:
                     rclcpp::TimerBase::SharedPtr timer_{};
                     double loop_rate_ = 0.1;
