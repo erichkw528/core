@@ -23,7 +23,11 @@ def generate_launch_description():
                 namespace="roar",
                 output='screen',
                 emulate_tty=True,
-                parameters=[LaunchConfiguration('params_file')]
+                parameters=[LaunchConfiguration('params_file')],
+                remappings=[
+                    ("/roar/vehicle_state", "/roar/vehicle_state"),
+                    ("/roar/behavior_status","/roar/behavior/status"),
+                    ],
     )
     ld.add_action(node)
     ld.add_action(LogInfo(msg=f"Behavior Planning launched"))

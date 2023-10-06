@@ -22,6 +22,7 @@
   <depend>nav2_core</depend>
   <depend>behaviortree_cpp_v3</depend>
   <depend>rclcpp_lifecycle</depend>
+  <depend> roar_msgs </depend>
   <exec_depend>groot</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>

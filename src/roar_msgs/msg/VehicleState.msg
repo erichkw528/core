@@ -8,9 +8,12 @@ VehicleStatus vehicle_status
 
 # global planner
 nav_msgs/Path global_path 
-geometry_msgs/PoseStamped next_waypoint
 
 # behavior planner 
+BehaviorStatus behavior_status
+
+# local planner
+geometry_msgs/PoseStamped next_waypoint
 
 
 # Vehicle control commands

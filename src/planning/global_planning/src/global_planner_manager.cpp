@@ -131,21 +131,24 @@ namespace ROAR
             }
             if (this->current_odom == nullptr)
             {
-                RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
+                // probably not initialized yet
+                // RCLCPP_ERROR(get_logger(), "Current odom is not initialized");
                 return;
             }
-            RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now stepping.");
+            // RCLCPP_DEBUG(get_logger(), "GlobalPlannerManager is now stepping.");
             StepInput input;
             input.odom = this->current_odom;
             StepResult result = this->planner->step(input);
-            
+
             // publish global path
             if (result.global_path != nullptr)
             {
                 RCLCPP_DEBUG(get_logger(), "Publishing global path");
                 this->global_path_publisher_->publish(*result.global_path);
-            } else {
-                RCLCPP_DEBUG(get_logger(), "Global path is null");
+            }
+            else
+            {
+                // RCLCPP_DEBUG(get_logger(), "Global path is null, try selecting a path?");
             }
         }
 

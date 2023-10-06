@@ -149,6 +149,7 @@ namespace local_planning
             global_plan_ = msg;
         }
         geometry_msgs::msg::PoseStamped::SharedPtr findNextWaypoint(const float next_waypoint_min_dist);
+        rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr next_waypoint_publisher_;
     };
 } // namespace local_planning
 #endif

@@ -2,15 +2,15 @@
 #include "global_planning/planners/parking_planner.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "global_planning/planners/navfn.hpp"
-
+#include "tf2/buffer_core.h"
 namespace ROAR
 {
     namespace GlobalPlanning
     {
         ParkingPlanner::ParkingPlanner(nav2_util::LifecycleNode *node) : GlobalPlannerInterface(node, "ParkingPlanner")
         {
-            this->m_node_->declare_parameter("map_frame", "map");
-            this->m_node_->declare_parameter("base_link_frame", "base_link");
+            this->m_node_->declare_parameter("ParkingPlanner.map_frame", "map");
+            this->m_node_->declare_parameter("ParkingPlanner.base_link_frame", "base_link");
             this->m_node_->declare_parameter("ParkingPlanner.path_step", 1.0);
             this->path_step = this->m_node_->get_parameter("ParkingPlanner.path_step").as_double();
             RCLCPP_INFO(m_logger_, "ParkingPlanner is initialized");
@@ -22,6 +22,10 @@ namespace ROAR
         void ParkingPlanner::initialize()
         {
             RCLCPP_INFO(m_logger_, "ParkingPlanner is initialized");
+            tf_buffer_ =
+                std::make_unique<tf2_ros::Buffer>(this->m_node_->get_clock());
+            tf_listener_ =
+                std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
         }
 
         bool ParkingPlanner::on_configure()
@@ -43,17 +47,39 @@ namespace ROAR
             return true;
         }
 
+        void ParkingPlanner::onReceiveGoalPose(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+        {
+            RCLCPP_INFO(m_logger_, "Received goal pose");
+            m_goal_pose_stamped = msg;
+            didGoalPoseUpdated = true;
+            // std::string map_frame = this->m_node_->get_parameter("map_frame").as_string();
+            // try
+            // {
+
+            //     // transform to map frame
+            //     auto transformStamped = this->tf_buffer_->lookupTransform(map_frame, msg->header.frame_id, rclcpp::Time(0));
+            //     geometry_msgs::msg::PoseStamped::SharedPtr transformed_goal_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
+            //     tf2::doTransform(*msg, *transformed_goal_pose, transformStamped);
+
+            // }
+            // catch (const std::exception &e)
+            // {
+            //     RCLCPP_ERROR_STREAM(m_logger_, "Failed to transform goal pose to map frame: " << e.what());
+            // }
+        }
+
         StepResult ParkingPlanner::step(const StepInput input)
         {
             // RCLCPP_DEBUG_STREAM(m_logger_, "-----");
 
             StepResult stepResult;
-            // RCLCPP_DEBUG_STREAM(m_logger_,
-            //                     "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
-            //                                              << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
-            //                                              << "\ncheckGlobalMap: " << checkGlobalMap()
-            //                                              << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
-            //                                              << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
+            // TODO: echo every 5 seconds
+            RCLCPP_DEBUG_STREAM(m_logger_,
+                                "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
+                                                         << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
+                                                         << "\ncheckGlobalMap: " << checkGlobalMap()
+                                                         << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
+                                                         << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
             if (didGoalPoseUpdated && didReceiveGoalPose() && checkGlobalMap() && checkGoalWithinGlobalMap() && checkVehicleStatus(input))
             {
                 RCLCPP_DEBUG_STREAM(m_logger_, "Start planning global trajectory");
@@ -171,7 +197,7 @@ namespace ROAR
             // add it to output
             outputs.global_path = std::make_shared<nav_msgs::msg::Path>();
             auto timestamp = this->m_node_->get_clock()->now();
-            std::string frame_id = this->m_node_->get_parameter("map_frame").as_string();
+            std::string frame_id = this->m_node_->get_parameter("ParkingPlanner.map_frame").as_string();
             outputs.global_path->header.stamp = timestamp;
             outputs.global_path->header.frame_id = frame_id;
             int pathLen = navfn.getPathLen();

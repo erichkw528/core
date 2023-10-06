@@ -12,6 +12,7 @@ namespace roar
                     const rclcpp::NodeOptions &options) : rclcpp_lifecycle::LifecycleNode("behavior_planner", options)
                 {
                     this->declare_parameter("loop_rate", 0.1);
+                    this->declare_parameter("base_link_frame", "base_link");
                     loop_rate_ = this->get_parameter("loop_rate").as_double();
                     this->declare_parameter("debug", false);
 
@@ -27,10 +28,13 @@ namespace roar
                 {
                     RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now configuring.");
                     Initialize();
-
+                    behavior_status_pub_ = this->create_publisher<roar_msgs::msg::BehaviorStatus>("behavior_status", 10);
+                    vehicle_state_sub_ = this->create_subscription<roar_msgs::msg::VehicleState>("vehicle_state", 10,
+                                                                                                 std::bind(&BehaviorPlannerBaseLifecycleNode::vehicle_state_callback, this, std::placeholders::_1));
                     timer_ =
                         rclcpp::create_timer(
                             this, this->get_clock(), rclcpp::Duration::from_seconds(this->loop_rate_), std::bind(&BehaviorPlannerBaseLifecycleNode::on_timer_callback, this));
+                    bt_inputs_ = std::make_shared<roar::planning::behavior::BTInputs>();
 
                     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
                 }
@@ -38,12 +42,14 @@ namespace roar
                 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn BehaviorPlannerBaseLifecycleNode::on_activate(const rclcpp_lifecycle::State &previous_state)
                 {
                     RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now activating.");
+                    behavior_status_pub_->on_activate();
                     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
                 }
 
                 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn BehaviorPlannerBaseLifecycleNode::on_deactivate(const rclcpp_lifecycle::State &previous_state)
                 {
                     RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now deactivating.");
+                    behavior_status_pub_->on_deactivate();
                     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
                 }
 
@@ -72,7 +78,7 @@ namespace roar
 
                 void BehaviorPlannerBaseLifecycleNode::on_timer_callback()
                 {
-                    RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now stepping.");
+                    RCLCPP_DEBUG(get_logger(), "-------BehaviorPlannerBaseLifecycleNode--------");
                     // TODO: update params
 
                     try
@@ -88,6 +94,35 @@ namespace roar
                     {
                         RCLCPP_ERROR(get_logger(), "BehaviorPlannerBaseLifecycleNode failed to step due to %s", e.what());
                     }
+                }
+                void BehaviorPlannerBaseLifecycleNode::vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg)
+                {
+                    // RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode received vehicle_state");
+                    bt_inputs_->vehicle_state = msg;
+                }
+
+                const roar::planning::behavior::BTInputs::ConstSharedPtr
+                BehaviorPlannerBaseLifecycleNode::GetInputs()
+                {
+                    if (bt_inputs_ == nullptr)
+                    {
+                        bt_inputs_ = std::make_shared<roar::planning::behavior::BTInputs>();
+                        RCLCPP_WARN(get_logger(), "BehaviorPlannerBaseLifecycleNode: bt_inputs_ was null");
+                    }
+                    return bt_inputs_;
+                }
+
+                void BehaviorPlannerBaseLifecycleNode::PublishBehaviorStatus(const roar_msgs::msg::BehaviorStatus::SharedPtr behavior_status)
+                {
+                    if (behavior_status == nullptr)
+                    {
+                        RCLCPP_WARN(get_logger(), "BehaviorPlannerBaseLifecycleNode: behavior_status was null");
+                        return;
+                    }
+                    behavior_status->header.frame_id = this->get_parameter("base_link_frame").as_string();
+                    behavior_status->header.stamp = this->get_clock()->now();
+
+                    behavior_status_pub_->publish(*behavior_status);
                 }
 
             } // namespace base

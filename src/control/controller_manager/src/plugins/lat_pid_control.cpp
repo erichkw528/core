@@ -78,10 +78,9 @@ namespace roar
 
                 // find the next waypoint
                 int next_waypoint = p_findNextWaypoint(*path_);
-                RCLCPP_DEBUG_STREAM(node().get_logger(), 
-                                    "path[next_waypoint] x =" << path_->poses[next_waypoint].pose.position.x 
-                                    << " y = " << path_->poses[next_waypoint].pose.position.y);
-
+                // RCLCPP_DEBUG_STREAM(node().get_logger(),
+                //                     "path[next_waypoint] x =" << path_->poses[next_waypoint].pose.position.x
+                //   << " y = " << path_->poses[next_waypoint].pose.position.y);
 
                 // find the steering error
                 double steering_error = p_calcAngularError(*path_, next_waypoint);
@@ -95,7 +94,7 @@ namespace roar
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 
-                RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);
                 // assign to controlMsg
                 controlMsg->steering_angle = steering_output;
 
@@ -136,7 +135,7 @@ namespace roar
                     // rad to deg
                     angular_error = angular_error * 180 / M_PI;
                 }
-                RCLCPP_DEBUG_STREAM(node().get_logger(), "angular_error: " << angular_error);
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "angular_error: " << angular_error);
                 return angular_error;
             }
 
