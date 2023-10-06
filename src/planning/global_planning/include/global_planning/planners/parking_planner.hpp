@@ -9,6 +9,7 @@
 #include "planning_interfaces/srv/load_map.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include "global_planning/planners/navfn.hpp"
+#include <tf2_ros/transform_listener.h>
 
 namespace ROAR
 {
@@ -69,12 +70,7 @@ namespace ROAR
 
             // declare subscriber for goal pose
             rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr m_goal_pose_subscriber;
-            void onReceiveGoalPose(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
-            {
-                RCLCPP_INFO(m_logger_, "Received goal pose");
-                m_goal_pose_stamped = msg;
-                didGoalPoseUpdated = true;
-            }
+            void onReceiveGoalPose(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
 
             rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr m_global_map_subscriber;
             void onReceiveGlobalMap(const nav_msgs::msg::OccupancyGrid::SharedPtr msg)
@@ -94,6 +90,9 @@ namespace ROAR
             nav_msgs::msg::OccupancyGrid::SharedPtr m_global_map;
 
             nav_msgs::msg::Odometry::SharedPtr m_odom;
+
+            std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+            std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
             void p_debugGlobalTrajectoryInputs(const NavPlannerGlobalPathFinderInputs &inputs)
             {
