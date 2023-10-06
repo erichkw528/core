@@ -48,12 +48,13 @@ namespace ROAR
             // RCLCPP_DEBUG_STREAM(m_logger_, "-----");
 
             StepResult stepResult;
-            // RCLCPP_DEBUG_STREAM(m_logger_,
-            //                     "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
-            //                                              << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
-            //                                              << "\ncheckGlobalMap: " << checkGlobalMap()
-            //                                              << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
-            //                                              << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
+            // TODO: echo every 5 seconds
+            RCLCPP_DEBUG_STREAM(m_logger_,
+                                "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
+                                                         << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
+                                                         << "\ncheckGlobalMap: " << checkGlobalMap()
+                                                         << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
+                                                         << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
             if (didGoalPoseUpdated && didReceiveGoalPose() && checkGlobalMap() && checkGoalWithinGlobalMap() && checkVehicleStatus(input))
             {
                 RCLCPP_DEBUG_STREAM(m_logger_, "Start planning global trajectory");

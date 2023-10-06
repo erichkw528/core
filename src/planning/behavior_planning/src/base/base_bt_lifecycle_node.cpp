@@ -48,8 +48,6 @@ namespace roar
                     blackboard_->set<const roar::planning::behavior::BTInputs::ConstSharedPtr>(
                         "inputs", GetInputs());
 
-                    auto inputs = blackboard_->get<roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs");
-
                     // tick tree
                     RunTree();
 

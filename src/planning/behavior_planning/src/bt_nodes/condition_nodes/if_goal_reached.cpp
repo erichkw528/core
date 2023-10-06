@@ -66,10 +66,16 @@ namespace roar
                     double distance = std::sqrt(std::pow(x1 - x2, 2) + std::pow(y1 - y2, 2));
                     if (distance < 0)
                     {
-                        RCLCPP_ERROR(logger_, "IfGoalReached: distance cannot be zero");
+                        RCLCPP_ERROR(logger_, "IfGoalReached: distance cannot be  < 0");
                         return BT::NodeStatus::FAILURE;
                     }
-                    else if (distance <= goal_radius)
+                    else if (distance == 0)
+                    {
+                        // cannot be 0
+                        return BT::NodeStatus::FAILURE;
+                    }
+
+                    else if (distance < goal_radius)
                     {
                         RCLCPP_INFO_STREAM(logger_, "Goal Reached");
                         return BT::NodeStatus::SUCCESS;
