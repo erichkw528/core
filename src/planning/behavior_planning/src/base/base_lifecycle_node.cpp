@@ -96,6 +96,7 @@ namespace roar
                 }
                 void BehaviorPlannerBaseLifecycleNode::vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg)
                 {
+                    // RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode received vehicle_state");
                     bt_inputs_->vehicle_state = msg;
                 }
 
@@ -107,8 +108,18 @@ namespace roar
                         bt_inputs_ = std::make_shared<roar::planning::behavior::BTInputs>();
                         RCLCPP_WARN(get_logger(), "BehaviorPlannerBaseLifecycleNode: bt_inputs_ was null");
                     }
-
                     return bt_inputs_;
+                }
+
+                void BehaviorPlannerBaseLifecycleNode::PublishBehaviorStatus(const roar_msgs::msg::BehaviorStatus::SharedPtr behavior_status)
+                {
+                    if (behavior_status == nullptr)
+                    {
+                        RCLCPP_WARN(get_logger(), "BehaviorPlannerBaseLifecycleNode: behavior_status was null");
+                        return;
+                    }
+                    
+                    behavior_status_pub_->publish(*behavior_status);
                 }
 
             } // namespace base

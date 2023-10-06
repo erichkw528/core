@@ -5,6 +5,7 @@
 #include "roar_msgs/msg/vehicle_state.hpp"
 #include "roar_msgs/msg/vehicle_control.h"
 #include "roar_msgs/msg/vehicle_status.hpp"
+#include "roar_msgs/msg/behavior_status.hpp"
 
 namespace roar
 {
@@ -26,7 +27,7 @@ namespace roar
 
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscriber_;
         void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg);
-        
+
         rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
         void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg);
 
@@ -41,6 +42,10 @@ namespace roar
 
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr next_waypoint_sub_;
         void next_waypoint_callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
+
+        rclcpp::Subscription<roar_msgs::msg::BehaviorStatus>::SharedPtr behavior_status_sub_;
+        void behavior_status_callback(const roar_msgs::msg::BehaviorStatus::SharedPtr msg);
+
     private:
         rclcpp::TimerBase::SharedPtr update_timer;
         void update_callback();

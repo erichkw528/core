@@ -21,7 +21,15 @@ namespace roar
 
                 BT::NodeStatus StopCar::tick()
                 {
-                    RCLCPP_DEBUG(logger_, "StopCar ticked");
+                    RCLCPP_DEBUG(logger_, "StopCar actuating...");
+                    BT::Optional<roar::planning::behavior::BTOutputs::SharedPtr> outputs = config().blackboard->get<roar::planning::behavior::BTOutputs::SharedPtr>("outputs");
+                    if (!outputs)
+                    {
+                        RCLCPP_ERROR(logger_, "BehaviorPlannerBTLifeCycleNode: no outputs");
+                        return BT::NodeStatus::FAILURE;
+                    }
+                    outputs.value()->behavior_status.should_stop = true;
+
                     return BT::NodeStatus::SUCCESS;
                 }
 
