@@ -77,7 +77,7 @@ namespace roar
 
                 void BehaviorPlannerBaseLifecycleNode::on_timer_callback()
                 {
-                    RCLCPP_DEBUG(get_logger(), "BehaviorPlannerBaseLifecycleNode is now stepping.");
+                    RCLCPP_DEBUG(get_logger(), "-------BehaviorPlannerBaseLifecycleNode--------");
                     // TODO: update params
 
                     try
@@ -118,7 +118,7 @@ namespace roar
                         RCLCPP_WARN(get_logger(), "BehaviorPlannerBaseLifecycleNode: behavior_status was null");
                         return;
                     }
-                    
+
                     behavior_status_pub_->publish(*behavior_status);
                 }
 

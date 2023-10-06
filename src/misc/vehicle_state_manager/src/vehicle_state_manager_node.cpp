@@ -42,6 +42,9 @@ nav2_util::CallbackReturn VehicleStateManagerNode::on_configure(const rclcpp_lif
     behavior_status_sub_ = this->create_subscription<roar_msgs::msg::BehaviorStatus>(
         "/roar/behavior/status", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::behavior_status_callback, this, std::placeholders::_1));
 
+    global_path_sub_ = this->create_subscription<nav_msgs::msg::Path>(
+        "/roar/global_path", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::global_path_callback, this, std::placeholders::_1));
+
     return nav2_util::CallbackReturn::SUCCESS;
 }
 
@@ -98,6 +101,11 @@ void VehicleStateManagerNode::next_waypoint_callback(const geometry_msgs::msg::P
 void VehicleStateManagerNode::behavior_status_callback(const roar_msgs::msg::BehaviorStatus::SharedPtr msg)
 {
     vehicle_state->behavior_status = *msg;
+}
+
+void VehicleStateManagerNode::global_path_callback(const nav_msgs::msg::Path::SharedPtr msg)
+{
+    vehicle_state->global_path = *msg;
 }
 
 void VehicleStateManagerNode::update_callback()
