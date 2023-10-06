@@ -12,6 +12,7 @@ namespace roar
                     const rclcpp::NodeOptions &options) : rclcpp_lifecycle::LifecycleNode("behavior_planner", options)
                 {
                     this->declare_parameter("loop_rate", 0.1);
+                    this->declare_parameter("base_link_frame", "base_link");
                     loop_rate_ = this->get_parameter("loop_rate").as_double();
                     this->declare_parameter("debug", false);
 
@@ -118,6 +119,8 @@ namespace roar
                         RCLCPP_WARN(get_logger(), "BehaviorPlannerBaseLifecycleNode: behavior_status was null");
                         return;
                     }
+                    behavior_status->header.frame_id = this->get_parameter("base_link_frame").as_string();
+                    behavior_status->header.stamp = this->get_clock()->now();
 
                     behavior_status_pub_->publish(*behavior_status);
                 }

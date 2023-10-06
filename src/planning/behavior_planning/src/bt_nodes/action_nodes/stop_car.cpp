@@ -28,8 +28,7 @@ namespace roar
                         RCLCPP_ERROR(logger_, "BehaviorPlannerBTLifeCycleNode: no outputs");
                         return BT::NodeStatus::FAILURE;
                     }
-                    outputs.value()->behavior_status.should_stop = true;
-
+                    outputs.value()->behavior_status.action_type = roar_msgs::msg::BehaviorStatus::ACTION_STOP;
                     return BT::NodeStatus::SUCCESS;
                 }
 
