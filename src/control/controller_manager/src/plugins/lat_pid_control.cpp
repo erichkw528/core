@@ -68,8 +68,7 @@ namespace roar
                 return true;
             }
 
-            void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg) 
-            {
+            void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg) {
                 lat_state().current_speed = msg->vehicle_status.speed;
             }
 
@@ -124,7 +123,6 @@ namespace roar
                 // Close the file
                 fclose(fp);
 
-                
                 // Access the data in the JSON document
                 for (auto& entry : d.GetObject()) {
                     int speedThreshold = std::stoi(entry.name.GetString());
