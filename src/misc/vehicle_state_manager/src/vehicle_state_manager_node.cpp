@@ -33,8 +33,8 @@ nav2_util::CallbackReturn VehicleStateManagerNode::on_configure(const rclcpp_lif
     vehicle_status_sub_ = this->create_subscription<roar_msgs::msg::VehicleStatus>(
         "/roar/vehicle/status", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_status_callback, this, std::placeholders::_1));
 
-    vehicle_state_sub_ = this->create_subscription<roar_msgs::msg::VehicleState>(
-        "/roar/vehicle/state", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_state_callback, this, std::placeholders::_1));
+    //vehicle_state_sub_ = this->create_subscription<roar_msgs::msg::VehicleState>(
+        //"/roar/vehicle/state", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_state_callback, this, std::placeholders::_1));
 
     vehicle_control_sub_ = this->create_subscription<roar_msgs::msg::VehicleControl>(
         "/roar/vehicle_control", rclcpp::SystemDefaultsQoS(), std::bind(&VehicleStateManagerNode::vehicle_control_callback, this, std::placeholders::_1));
@@ -81,6 +81,7 @@ void VehicleStateManagerNode::vehicle_status_callback(const roar_msgs::msg::Vehi
 {
     vehicle_state->vehicle_status = *msg;
 }
+
 
 void VehicleStateManagerNode::vehicle_control_callback(const roar_msgs::msg::VehicleControl::SharedPtr msg)
 {
