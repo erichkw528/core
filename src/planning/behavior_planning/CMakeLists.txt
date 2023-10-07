@@ -36,6 +36,17 @@ set(${PROJECT_NAME}_COMMON_SRC
   src/common/utils.cpp
 )
 
+set(${PROJECT_NAME}_BT_NODES_HEADER
+  include/${PROJECT_NAME}/bt_nodes/action_nodes/stop_car.hpp
+  include/${PROJECT_NAME}/bt_nodes/condition_nodes/if_goal_reached.hpp
+
+)
+
+set(${PROJECT_NAME}_BT_NODES_SRC
+  src/bt_nodes/action_nodes/stop_car.cpp
+  src/bt_nodes/condition_nodes/if_goal_reached.cpp
+)
+
 set(DEFAULT_BT_HEADER
   include/${PROJECT_NAME}/default_behavior_planner.hpp
 )
@@ -43,26 +54,43 @@ set(DEFAULT_BT_SRC
   src/default_behavior_planner.cpp
 )
 
+# Common library
 ament_auto_add_library(${PROJECT_NAME}_COMMON SHARED
     ${${PROJECT_NAME}_COMMON_HEADER}
     ${${PROJECT_NAME}_COMMON_SRC}
 )
 
+# BT Nodes library
+ament_auto_add_library(${PROJECT_NAME}_BT_NODES SHARED
+    ${${PROJECT_NAME}_BT_NODES_HEADER}
+    ${${PROJECT_NAME}_BT_NODES_SRC}
+)
+
+target_link_libraries(${PROJECT_NAME}_BT_NODES
+    ${PROJECT_NAME}_COMMON
+)
+
+# Base library
 ament_auto_add_library(${PROJECT_NAME}_BASE SHARED
     ${${PROJECT_NAME}_BASE_HEADER}
     ${${PROJECT_NAME}_BASE_SRC}
 )
-target_link_libraries(${PROJECT_NAME}_BASE  
-  ${PROJECT_NAME}_COMMON
+
+target_link_libraries(${PROJECT_NAME}_BASE
+    ${PROJECT_NAME}_COMMON
+    ${PROJECT_NAME}_BT_NODES
 )
 
+# Default BT library
 ament_auto_add_library(DEFAULT_BT SHARED
-  ${DEFAULT_BT_HEADER}
-  ${DEFAULT_BT_SRC}
+    ${DEFAULT_BT_HEADER}
+    ${DEFAULT_BT_SRC}
 )
+
 target_link_libraries(DEFAULT_BT
-  ${PROJECT_NAME}_COMMON
-  ${PROJECT_NAME}_BASE
+    ${PROJECT_NAME}_COMMON
+    ${PROJECT_NAME}_BASE
+    ${PROJECT_NAME}_BT_NODES
 )
 
 rclcpp_components_register_node(DEFAULT_BT

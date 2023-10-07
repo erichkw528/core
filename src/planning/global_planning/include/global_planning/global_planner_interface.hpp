@@ -25,7 +25,8 @@ namespace ROAR
         class GlobalPlannerInterface
         {
         public:
-            GlobalPlannerInterface(nav2_util::LifecycleNode *node, std::string name = "GlobalPlannerInterface") : m_node_(node), m_logger_(rclcpp::get_logger(name))
+            GlobalPlannerInterface(nav2_util::LifecycleNode *node, std::string name = "GlobalPlannerInterface") :
+            m_node_(node), m_logger_(rclcpp::get_logger(name))
             {
             }
             virtual ~GlobalPlannerInterface() = default;

@@ -19,6 +19,8 @@
 #include "controller_manager/controller_plugin_interface.hpp"
 #include "rcl_interfaces/msg/set_parameters_result.hpp"
 #include <pluginlib/class_loader.hpp>
+#include "roar_msgs/msg/behavior_status.hpp"
+
 using namespace roar::control;
 
 namespace controller
@@ -69,7 +71,7 @@ namespace controller
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<roar_msgs::msg::VehicleControl>> vehicle_control_publisher_;
         std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
 
-        bool is_auto_control = true;
+        bool is_auto_control = false;
 
         rclcpp::Service<roar_msgs::srv::ToggleControlSafetySwitch>::SharedPtr control_safety_switch_;
         void toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
@@ -86,6 +88,10 @@ namespace controller
         PluginList m_plugins_;
 
         roar::control::ControllerManagerConfig::SharedPtr m_config_;
+
+        // interaction with behavior planning module
+        rclcpp::Subscription<roar_msgs::msg::BehaviorStatus>::SharedPtr behavior_status_sub_;
+        void behavior_status_callback(const roar_msgs::msg::BehaviorStatus::SharedPtr msg);
 
     private:
         ControllerManagerState::SharedPtr m_controller_state_;

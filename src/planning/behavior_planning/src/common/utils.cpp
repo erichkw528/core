@@ -8,6 +8,7 @@ namespace roar
         {
             namespace utils
             {
+                
             } // namespace utils
         }     // namespace behavior_planning
     }         // namespace planning

@@ -70,6 +70,11 @@ namespace controller
     ControllerManagerNode::on_configure(const rclcpp_lifecycle::State &state)
     {
         RCLCPP_DEBUG(get_logger(), "on_configure");
+        // behavior
+        this->behavior_status_sub_ = this->create_subscription<roar_msgs::msg::BehaviorStatus>(
+            "behavior_status", 10,
+            std::bind(&ControllerManagerNode::behavior_status_callback, this,
+                      std::placeholders::_1));
 
         // action server
         this->action_server_ = rclcpp_action::create_server<ControlAction>(
@@ -221,6 +226,12 @@ namespace controller
         }
     }
 
+    void ControllerManagerNode::behavior_status_callback(const roar_msgs::msg::BehaviorStatus::SharedPtr msg)
+    {
+        m_controller_state_->behavior_status = msg;
+        this->on_update();
+    }
+
     void ControllerManagerNode::on_update()
     {
         std::for_each(
@@ -324,6 +335,8 @@ namespace controller
             return;
         }
         controlMsg->is_auto = true;
+
+        RCLCPP_DEBUG_STREAM(get_logger(), "controlMsg: " << controlMsg->steering_angle << " " << controlMsg->target_speed << " " << controlMsg->brake);
         // publish control
         this->vehicle_control_publisher_->publish(*controlMsg);
 

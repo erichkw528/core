@@ -1,6 +1,7 @@
 #ifndef ROAR_CONTROL__PLUGIN__STATE_HPP_
 #define ROAR_CONTROL__PLUGIN__STATE_HPP_
 #include "nav_msgs/msg/path.hpp"
+#include "roar_msgs/msg/behavior_status.hpp"
 namespace roar
 {
     namespace control
@@ -10,7 +11,7 @@ namespace roar
             typedef std::shared_ptr<ControllerManagerState> SharedPtr;
 
             nav_msgs::msg::Path path_ego_centric;
-            //float speed
+            roar_msgs::msg::BehaviorStatus::SharedPtr behavior_status;
         };
 
         struct ControllerManagerConfig
