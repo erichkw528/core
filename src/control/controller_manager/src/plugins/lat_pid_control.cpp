@@ -13,6 +13,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 #include <iostream>
+#include <fstream>
 using namespace roar::control;
 namespace roar
 {
@@ -112,23 +113,22 @@ namespace roar
                 const auto dt = this_pid_time - lat_state().last_pid_time;
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
 
-                // TODO: update param based on speed
-                // Open the file for reading
-                FILE* fp = fopen("carla_pid_lat.json", "r");
-            
-                // Use a FileReadStream to
-                // read the data from the file
+                FILE* fp = fopen("/home/michael/Desktop/lilian/roar-gokart-ws/src/core/core/src/control/controller_manager/src/plugins/carla_pid_lat.json", "r");
+
+                if (fp == nullptr) {
+                    std::cerr << "Error opening file." << std::endl;
+                }
+
                 char readBuffer[65536];
-                rapidjson::FileReadStream is(fp, readBuffer,
-                                            sizeof(readBuffer));
-            
-                // Parse the JSON data 
-                // using a Document object
+                rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
                 rapidjson::Document d;
                 d.ParseStream(is);
-            
-                // Close the file
+
                 fclose(fp);
+
+                if (d.HasParseError()) {
+                    std::cerr << "Error parsing JSON." << std::endl;
+                }
 
                 // Access the data in the JSON document
                 for (auto& entry : d.GetObject()) {
