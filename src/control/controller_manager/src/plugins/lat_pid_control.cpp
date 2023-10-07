@@ -4,7 +4,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "controller_manager/controller_plugin_interface.hpp"
 #include "nav2_util/lifecycle_node.hpp"
-#include "roar_msgs/msg/vehicle_control.hpp"
+#include "roar_msgs/msg/vehicle_state.hpp"
+#include "roar_msgs/msg/vehicle_control.h"
 #include "roar_msgs/msg/vehicle_status.hpp"
 #include "controller_manager/controller_state.hpp"
 #include "controller_manager/pid_controller.hpp"
@@ -66,6 +67,12 @@ namespace roar
                 path_ = std::make_shared<nav_msgs::msg::Path>(state->path_ego_centric);
                 return true;
             }
+
+            void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg) 
+            {
+                lat_state().current_speed = msg->vehicle_status.speed;
+            }
+
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
             {
                 if (path_ == nullptr)
@@ -116,18 +123,17 @@ namespace roar
             
                 // Close the file
                 fclose(fp);
-            
-                //Access current speed
+
                 
-                lat_state().current_speed = roar_msgs::msg::VehicleStatus::speed
-        
                 // Access the data in the JSON document
-                for (i in d){
-                    if (lat_state().current_speed <= i)
+                for (auto& entry : d.GetObject()) {
+                    int speedThreshold = std::stoi(entry.name.GetString());
+                
+                    if (lat_state().current_speed <= speedThreshold)
                     {
-                        double k_p_value = d[i]["k_p"].GetDouble();
-                        double k_i_value = d[i]["k_i"].GetDouble();
-                        double k_d_value = d[i]["k_d"].GetDouble();
+                        double k_p_value = entry.value["k_p"].GetDouble();
+                        double k_i_value = entry.value["k_i"].GetDouble();
+                        double k_d_value = entry.value["k_d"].GetDouble();
 
                         config_.steering_pid_param.k_p = k_p_value;
                         config_.steering_pid_param.k_i = k_i_value;
@@ -136,6 +142,7 @@ namespace roar
                     else
                     {}
                 }
+
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 
