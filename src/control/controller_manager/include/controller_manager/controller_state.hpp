@@ -11,7 +11,11 @@ namespace roar
             typedef std::shared_ptr<ControllerManagerState> SharedPtr;
 
             nav_msgs::msg::Path path_ego_centric;
+<<<<<<< HEAD
             roar_msgs::msg::BehaviorStatus::SharedPtr behavior_status;
+=======
+            //float speed
+>>>>>>> 80c928616d49507bef8883e91096a4d8a6f826b5
         };
 
         struct ControllerManagerConfig

@@ -4,10 +4,15 @@
 #include "rclcpp/rclcpp.hpp"
 #include "controller_manager/controller_plugin_interface.hpp"
 #include "nav2_util/lifecycle_node.hpp"
-#include "roar_msgs/msg/vehicle_control.hpp"
+#include "roar_msgs/msg/vehicle_state.hpp"
+#include "roar_msgs/msg/vehicle_control.h"
+#include "roar_msgs/msg/vehicle_status.hpp"
 #include "controller_manager/controller_state.hpp"
 #include "controller_manager/pid_controller.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+#include <iostream>
 using namespace roar::control;
 namespace roar
 {
@@ -22,6 +27,7 @@ namespace roar
         {
             double steering_error = 0.0;
             double steering_output = 0.0;
+            double current_speed = 0.0;
             PidController steering_pid;
             rclcpp::Time last_pid_time;
             rclcpp::TimerBase::SharedPtr pid_timer;
@@ -61,6 +67,11 @@ namespace roar
                 path_ = std::make_shared<nav_msgs::msg::Path>(state->path_ego_centric);
                 return true;
             }
+
+            void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg) {
+                lat_state().current_speed = msg->vehicle_status.speed;
+            }
+
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
             {
                 if (path_ == nullptr)
@@ -92,6 +103,44 @@ namespace roar
                 // dt in seconds + nano seconds
                 const auto dt = this_pid_time - lat_state().last_pid_time;
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
+
+                // TODO: update param based on speed
+                // Open the file for reading
+                FILE* fp = fopen("carla_pid_lat.json", "r");
+            
+                // Use a FileReadStream to
+                // read the data from the file
+                char readBuffer[65536];
+                rapidjson::FileReadStream is(fp, readBuffer,
+                                            sizeof(readBuffer));
+            
+                // Parse the JSON data 
+                // using a Document object
+                rapidjson::Document d;
+                d.ParseStream(is);
+            
+                // Close the file
+                fclose(fp);
+
+                // Access the data in the JSON document
+                for (auto& entry : d.GetObject()) {
+                    int speedThreshold = std::stoi(entry.name.GetString());
+                
+                    if (lat_state().current_speed <= speedThreshold)
+                    {
+                        double k_p_value = entry.value["k_p"].GetDouble();
+                        double k_i_value = entry.value["k_i"].GetDouble();
+                        double k_d_value = entry.value["k_d"].GetDouble();
+
+                        config_.steering_pid_param.k_p = k_p_value;
+                        config_.steering_pid_param.k_i = k_i_value;
+                        config_.steering_pid_param.k_d = k_d_value;
+                    }
+                    else
+                    {}
+                }
+
+                // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 
                 // RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);

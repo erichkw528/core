@@ -34,6 +34,9 @@ namespace roar
         rclcpp::Subscription<roar_msgs::msg::VehicleStatus>::SharedPtr vehicle_status_sub_;
         void vehicle_status_callback(const roar_msgs::msg::VehicleStatus::SharedPtr msg);
 
+        rclcpp::Subscription<roar_msgs::msg::VehicleState>::SharedPtr vehicle_state_sub_;
+        void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg);
+
         rclcpp::Subscription<roar_msgs::msg::VehicleControl>::SharedPtr vehicle_control_sub_;
         void vehicle_control_callback(const roar_msgs::msg::VehicleControl::SharedPtr msg);
 
