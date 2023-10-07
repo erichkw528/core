@@ -120,10 +120,18 @@ namespace roar
                     std::cerr << "Error opening file." << std::endl;
                 }
 
+                FILE* fp = fopen("/home/michael/Desktop/lilian/roar-gokart-ws/src/core/core/src/control/controller_manager/src/plugins/carla_pid_lat.json", "r");
+
+                if (fp == nullptr) {
+                    std::cerr << "Error opening file." << std::endl;
+                }
+
                 char readBuffer[65536];
+                rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
                 rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
                 rapidjson::Document d;
                 d.ParseStream(is);
+
 
                 fclose(fp);
 
@@ -131,8 +139,7 @@ namespace roar
                     std::cerr << "Error parsing JSON." << std::endl;
                 }
 
-                // iterate through the json file
-
+                // Access the data in the JSON document
                 for (auto& entry : d.GetObject()) {
                     int speedThreshold = std::stoi(entry.name.GetString());
                 
