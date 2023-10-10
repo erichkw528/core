@@ -28,6 +28,7 @@ set(${PROJECT_NAME}_PLUGIN_SRC
   src/plugins/lat_pid_control.cpp
   src/plugins/dummy_lon_controller.cpp
   src/plugins/behavior_controller.cpp
+  src/plugins/lon_trapezoidal_controller.cpp
 )
 
 # Create this project as an executable.
