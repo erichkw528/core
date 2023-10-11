@@ -7,6 +7,6 @@
   </class>
   <class type="roar::control::BehaviorControllerPlugin" base_class_type="roar::control::ControllerPlugin">
   </class>
-  <class type="roar::control::TrapezoidalControllerPlugin" base_class_type="roar::control::ControllerPlugin">
+  <class type="roar::control::LonTrapezoidalControllerPlugin" base_class_type="roar::control::ControllerPlugin">
   </class>
 </library>
