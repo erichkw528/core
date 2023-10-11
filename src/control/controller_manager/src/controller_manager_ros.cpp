@@ -106,6 +106,11 @@ namespace controller
         // output publisher
         this->vehicle_control_publisher_ = this->create_publisher<roar_msgs::msg::VehicleControl>("vehicle_control", 10);
 
+        // vehicle_state listener
+        this->vehicle_state_sub_ = this->create_subscription<roar_msgs::msg::VehicleState>(
+            "vehicle_state", 10,
+            std::bind(&ControllerManagerNode::vehicle_state_callback, this,
+                      std::placeholders::_1));
         RCLCPP_DEBUG(get_logger(), "configured");
 
         return nav2_util::CallbackReturn::SUCCESS;
@@ -336,7 +341,8 @@ namespace controller
         }
         controlMsg->is_auto = true;
 
-        RCLCPP_DEBUG_STREAM(get_logger(), "controlMsg: " << controlMsg->steering_angle << " " << controlMsg->target_speed << " " << controlMsg->brake);
+        RCLCPP_DEBUG_STREAM(get_logger(), "TargetSpeed: " << controlMsg->target_speed << " SteeringAngle: "
+                                                          << controlMsg->steering_angle << " Brake: " << controlMsg->brake);
         // publish control
         this->vehicle_control_publisher_->publish(*controlMsg);
 
