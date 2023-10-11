@@ -48,7 +48,7 @@ namespace roar
                 ControllerPlugin::initialize(node); // Call the base class's initialize function
                 config_ = LatConfig{
                     PidCoefficients{
-                        this->node().declare_parameter<double>("lat_control.pid.kp", 1.0),
+                        this->node().declare_parameter<double>("lat_control.pid.kp", 0.5),
                         this->node().declare_parameter<double>("lat_control.pid.ki", 0.1),
                         this->node().declare_parameter<double>("lat_control.pid.kd", 0.1),
                         this->node().declare_parameter<double>("lat_control.pid.min_cmd", -30.0),

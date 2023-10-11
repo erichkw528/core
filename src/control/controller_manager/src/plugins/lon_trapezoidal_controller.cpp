@@ -5,8 +5,8 @@
 #include "controller_manager/controller_plugin_interface.hpp"
 #include "nav2_util/lifecycle_node.hpp"
 #include "roar_msgs/msg/vehicle_control.hpp"
+#include "roar_msgs/msg/vehicle_state.hpp"
 #include "controller_manager/controller_state.hpp"
-
 using namespace roar::control;
 namespace roar
 {
@@ -26,12 +26,9 @@ namespace roar
 
         struct LonTrapezoidalControllerPluginState
         {
-            double vehicle_x = 0.0;
-            double vehicle_y = 0.0;
-            double goal_x = 0.0;
-            double goal_y = 0.0;
-            double dt;
-            uint32_t last_updated_time = 0;
+            roar_msgs::msg::VehicleState::SharedPtr vehicle_state;
+
+            double last_compute_time = 0.0;
 
             double prev_spd = 0.0;
         };
@@ -62,33 +59,66 @@ namespace roar
                 this->config_.decel_time = this->config_.target_speed / this->config_.decel_rate;
                 this->config_.decel_dist = this->config_.target_speed * this->config_.decel_time / 2;
 
+                RCLCPP_INFO_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                            << "target_speed: " << this->config_.target_speed);
+
+                RCLCPP_INFO_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                            << "accel_rate: " << this->config_.accel_rate);
+                RCLCPP_INFO_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                            << "decel_rate: " << this->config_.decel_rate);
+
+                RCLCPP_INFO_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                            << "accel_time: " << this->config_.accel_time);
+                RCLCPP_INFO_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                            << "accel_dist: " << this->config_.accel_dist);
+                RCLCPP_INFO_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                            << "decel_time: " << this->config_.decel_time);
+                RCLCPP_INFO_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                            << "decel_dist: " << this->config_.decel_dist);
+
                 return true;
             }
 
             bool update(const ControllerManagerState::SharedPtr state)
             {
-                this->state_.vehicle_x = 0.0;
-                this->state_.vehicle_y = 0.0; // path is ego centric, then the vehicle must be at 0
-                this->state_.goal_x = state->path_ego_centric.poses.back().pose.position.x;
-                this->state_.goal_y = state->path_ego_centric.poses.back().pose.position.y;
-
-                this->state_.dt = (state->vehicle_state->header.stamp.nanosec - this->state_.last_updated_time) / 1e9;
-
+                this->state_.vehicle_state = state->vehicle_state;
                 return true;
             }
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
             {
-                double dist = std::sqrt(std::pow(this->state_.goal_x - this->state_.vehicle_x, 2) + std::pow(this->state_.goal_y - this->state_.vehicle_y, 2));
+                if (this->state_.vehicle_state == nullptr)
+                {
+                    RCLCPP_ERROR_STREAM(node().get_logger(), "vehicle_state is null");
+                    return false;
+                }
+
+                double dt = node().now().seconds() + 1e-9 * node().now().nanoseconds() - this->state_.last_compute_time;
+
+                // this->state_.vehicle_state
+                geometry_msgs::msg::PoseStamped lastPose = this->state_.vehicle_state->global_path.poses[this->state_.vehicle_state->global_path.poses.size() - 1];
+
+                double dist = std::sqrt(std::pow(lastPose.pose.position.x - this->state_.vehicle_state->odometry.pose.pose.position.x, 2) +
+                                        std::pow(lastPose.pose.position.y - this->state_.vehicle_state->odometry.pose.pose.position.y, 2));
+
                 if (dist < this->config_.decel_dist)
                 {
+                    // decelerate
+
                     double time_left = dist * 2 / this->config_.target_speed;
                     controlMsg->target_speed = this->config_.decel_rate * time_left;
+                    RCLCPP_DEBUG_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                                 << " decelerating->"
+                                                                 << "dist: [" << dist << "] decel_dist: ["
+                                                                 << this->config_.decel_dist << "] setting target speed to: " << controlMsg->target_speed);
                     return true;
                 }
                 // accelerate until reaching target spd
-                controlMsg->target_speed = std::max(this->state_.prev_spd + this->config_.accel_rate * this->state_.dt, this->config_.target_speed);
-
+                controlMsg->target_speed = std::min(this->state_.prev_spd + this->config_.accel_rate * dt, this->config_.target_speed);
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "[LonTrapezoidalController]: "
+                                                             << "accelerating -> setting target speed to: " << controlMsg->target_speed);
                 this->state_.prev_spd = controlMsg->target_speed;
+
+                this->state_.last_compute_time = node().now().seconds() + 1e-9 * node().now().nanoseconds();
                 return true;
             }
 
