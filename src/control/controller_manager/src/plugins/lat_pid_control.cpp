@@ -71,15 +71,15 @@ namespace roar
                 lat_state().steering_pid = PidController("steering", config_.steering_pid_param);
                 return true;
             }
+
             bool update(const ControllerManagerState::SharedPtr state) override
             {
                 path_ = std::make_shared<nav_msgs::msg::Path>(state->path_ego_centric);
+
+                lat_state().current_speed = state->vehicle_state->vehicle_status.speed;
                 return true;
             }
 
-            void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg) {
-                lat_state().current_speed = msg->vehicle_status.speed;
-            }
 
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
             {
@@ -130,23 +130,37 @@ namespace roar
                     std::cerr << "Error parsing JSON." << std::endl;
                 }
 
-                // Access the data in the JSON document
+                // iterate through the json file
+
                 for (auto& entry : d.GetObject()) {
                     int speedThreshold = std::stoi(entry.name.GetString());
                 
                     if (lat_state().current_speed <= speedThreshold)
-                    {
+                    {   
                         double k_p_value = entry.value["k_p"].GetDouble();
                         double k_i_value = entry.value["k_i"].GetDouble();
                         double k_d_value = entry.value["k_d"].GetDouble();
-
+                        
                         config_.steering_pid_param.k_p = k_p_value;
                         config_.steering_pid_param.k_i = k_i_value;
                         config_.steering_pid_param.k_d = k_d_value;
+
+                        rclcpp::Parameter param1("kp", k_p_value);
+                        rclcpp::Parameter param2("ki", k_i_value);
+                        rclcpp::Parameter param3("kd", k_d_value);
+
+                        lat_state().steering_pid.try_update_param("kp", param1);
+                        lat_state().steering_pid.try_update_param("ki", param2);
+                        lat_state().steering_pid.try_update_param("kd", param3);
                     }
                     else
                     {}
                 }
+                
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "speed: " << lat_state().current_speed);
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "k_p: " << config_.steering_pid_param.k_p);
+ 
+
 
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
