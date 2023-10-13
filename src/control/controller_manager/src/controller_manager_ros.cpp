@@ -75,6 +75,11 @@ namespace controller
             "behavior_status", 10,
             std::bind(&ControllerManagerNode::behavior_status_callback, this,
                       std::placeholders::_1));
+        // vehicle state subscriber
+        this->vehicle_state_subscriber_ = this->create_subscription<roar_msgs::msg::VehicleState>(
+            "vehicle_state", 10,
+            std::bind(&ControllerManagerNode::vehicle_state_callback, this, std::placeholders::_1));
+
 
         // action server
         this->action_server_ = rclcpp_action::create_server<ControlAction>(
@@ -353,6 +358,11 @@ namespace controller
         return;
     }
 
+    void ControllerManagerNode::vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg)
+    {
+        m_controller_state_->vehicle_state = msg;
+    }
+
     nav_msgs::msg::Path ControllerManagerNode::p_transformToEgoCentric(nav_msgs::msg::Path path)
     {
         std::string target_frame = this->get_parameter("base_link_frame").as_string();
@@ -385,6 +395,12 @@ namespace controller
                 // You can choose to skip or abort the transformation for this pose.
                 RCLCPP_WARN(this->get_logger(), "Failed to transform pose: %s", ex.what());
             }
+        }
+
+        // print transformed path[0]
+        if (transformed_path.poses.size() > 0)
+        {
+            RCLCPP_DEBUG(this->get_logger(), "transformed path[0]: %f, %f", transformed_path.poses[0].pose.position.x, transformed_path.poses[0].pose.position.y);
         }
         return transformed_path;
     }
