@@ -33,7 +33,8 @@ def generate_launch_description():
         output="screen",
         remappings=[
             ("/roar/vehicle_control", "/roar/vehicle/control"),
-            ("/roar/behavior_status", "/roar/behavior/status")
+            ("/roar/behavior_status", "/roar/behavior/status"),
+            ("/roar/vehicle_state", "/roar/vehicle_state"),
         ],
         condition=UnlessCondition(manual_control),
     )

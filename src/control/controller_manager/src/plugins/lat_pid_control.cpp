@@ -47,14 +47,22 @@ namespace roar
                 ControllerPlugin::initialize(node); // Call the base class's initialize function
                 config_ = LatConfig{
                     PidCoefficients{
-                        this->node().declare_parameter<double>("lat_control.pid.kp", 1.0),
+                        this->node().declare_parameter<double>("lat_control.pid.kp", 0.5),
                         this->node().declare_parameter<double>("lat_control.pid.ki", 0.1),
-                        this->node().declare_parameter<double>("lat_control.pid.kd", 0.1),
+                        this->node().declare_parameter<double>("lat_control.pid.kd", 0.5),
                         this->node().declare_parameter<double>("lat_control.pid.min_cmd", -30.0),
                         this->node().declare_parameter<double>("lat_control.pid.max_cmd", 30.0),
                         this->node().declare_parameter<double>("lat_control.pid.min_i", -10.0),
                         this->node().declare_parameter<double>("lat_control.pid.max_i", 10.0),
                     }};
+                RCLCPP_INFO_STREAM(node->get_logger(), "[LatPIDControllerPlugin]: "
+                                                           << "\nkp: " << config_.steering_pid_param.k_p
+                                                           << "\nki: " << config_.steering_pid_param.k_i
+                                                           << "\nkd: " << config_.steering_pid_param.k_d
+                                                           << "\nmin_cmd: " << config_.steering_pid_param.min_cmd
+                                                           << "\nmax_cmd: " << config_.steering_pid_param.max_cmd
+                                                           << "\nmin_i: " << config_.steering_pid_param.min_i
+                                                           << "\nmax_i: " << config_.steering_pid_param.max_i);
             }
 
             bool configure(const ControllerManagerConfig::SharedPtr config) override

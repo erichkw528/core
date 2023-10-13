@@ -93,6 +93,13 @@ namespace controller
         rclcpp::Subscription<roar_msgs::msg::BehaviorStatus>::SharedPtr behavior_status_sub_;
         void behavior_status_callback(const roar_msgs::msg::BehaviorStatus::SharedPtr msg);
 
+        // vehicle state listener
+        rclcpp::Subscription<roar_msgs::msg::VehicleState>::SharedPtr vehicle_state_sub_;
+        void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg)
+        {
+            m_controller_state_->vehicle_state = msg;
+        }
+
     private:
         ControllerManagerState::SharedPtr m_controller_state_;
     };
