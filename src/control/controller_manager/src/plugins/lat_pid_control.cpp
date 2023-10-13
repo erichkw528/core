@@ -139,7 +139,8 @@ namespace roar
                     std::cerr << "Error parsing JSON." << std::endl;
                 }
 
-                // Access the data in the JSON document
+                // iterate through the json file
+
                 for (auto& entry : d.GetObject()) {
                     int speedThreshold = std::stoi(entry.name.GetString());
                 
