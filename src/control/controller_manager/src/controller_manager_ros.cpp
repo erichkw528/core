@@ -76,7 +76,6 @@ namespace controller
             std::bind(&ControllerManagerNode::behavior_status_callback, this,
                       std::placeholders::_1));
 
-
         // action server
         this->action_server_ = rclcpp_action::create_server<ControlAction>(
             this,
@@ -387,6 +386,8 @@ namespace controller
                 RCLCPP_WARN(this->get_logger(), "Failed to transform pose: %s", ex.what());
             }
         }
+        return transformed_path;
+    }
 
 
     void ControllerManagerNode::toggle_safety_switch(const std::shared_ptr<roar_msgs::srv::ToggleControlSafetySwitch::Request> request,
