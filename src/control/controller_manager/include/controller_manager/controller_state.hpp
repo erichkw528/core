@@ -13,7 +13,6 @@ namespace roar
             typedef std::shared_ptr<ControllerManagerState> SharedPtr;
 
             nav_msgs::msg::Path path_ego_centric;
-<<<<<<< HEAD
             roar_msgs::msg::BehaviorStatus::SharedPtr behavior_status;
             roar_msgs::msg::VehicleState::SharedPtr vehicle_state;
         };
