@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-
- <root BTCPP_format="4" >
-     <BehaviorTree ID="MainTree">
-        <ReactiveSequence>
-            <Action ID="LatPIDTuner" inputs="file_path" outputs="{outputs}"/>
-        </ReactiveSequence>
-     </BehaviorTree>
- </root>
