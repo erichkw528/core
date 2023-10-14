@@ -76,7 +76,7 @@ namespace controller
             std::bind(&ControllerManagerNode::behavior_status_callback, this,
                       std::placeholders::_1));
         // vehicle state subscriber
-        this->vehicle_state_subscriber_ = this->create_subscription<roar_msgs::msg::VehicleState>(
+        this->vehicle_state_sub_ = this->create_subscription<roar_msgs::msg::VehicleState>(
             "vehicle_state", 10,
             std::bind(&ControllerManagerNode::vehicle_state_callback, this, std::placeholders::_1));
 
@@ -358,10 +358,10 @@ namespace controller
         return;
     }
 
-    void ControllerManagerNode::vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg)
-    {
-        m_controller_state_->vehicle_state = msg;
-    }
+    // void ControllerManagerNode::vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg)
+    // {
+    //     m_controller_state_->vehicle_state = msg;
+    // }
 
     nav_msgs::msg::Path ControllerManagerNode::p_transformToEgoCentric(nav_msgs::msg::Path path)
     {
