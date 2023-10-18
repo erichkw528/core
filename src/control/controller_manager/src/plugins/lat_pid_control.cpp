@@ -10,10 +10,11 @@
 #include "controller_manager/controller_state.hpp"
 #include "controller_manager/pid_controller.hpp"
 #include "nav_msgs/msg/path.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <functional>
+
 using namespace roar::control;
 namespace roar
 {
@@ -31,7 +32,6 @@ namespace roar
             double current_speed = 0.0;
             PidController steering_pid;
             rclcpp::Time last_pid_time;
-            rclcpp::TimerBase::SharedPtr pid_timer;
         };
 
         class LatPIDControllerPlugin : public ControllerPlugin
@@ -43,35 +43,45 @@ namespace roar
             {
                 return "LatPIDControllerPlugin";
             }
-            void initialize(nav2_util::LifecycleNode *node) override
-            {
-                ControllerPlugin::initialize(node); // Call the base class's initialize function
-                config_ = LatConfig{
-                    PidCoefficients{
-                        this->node().declare_parameter<double>("lat_control.pid.kp", 1.0),
-                        this->node().declare_parameter<double>("lat_control.pid.ki", 0.1),
-                        this->node().declare_parameter<double>("lat_control.pid.kd", 0.1),
-                        this->node().declare_parameter<double>("lat_control.pid.min_cmd", -30.0),
-                        this->node().declare_parameter<double>("lat_control.pid.max_cmd", 30.0),
-                        this->node().declare_parameter<double>("lat_control.pid.min_i", -10.0),
-                        this->node().declare_parameter<double>("lat_control.pid.max_i", 10.0),
-                    }};
-            }
+            public:
+                void initialize(nav2_util::LifecycleNode *node) override
+                {
+                    ControllerPlugin::initialize(node); // Call the base class's initialize function
+                    config_ = LatConfig{
+                        PidCoefficients{
+                            this->node().declare_parameter<double>("lat_control.pid.kp", 0.5),
+                            this->node().declare_parameter<double>("lat_control.pid.ki", 0.1),
+                            this->node().declare_parameter<double>("lat_control.pid.kd", 0.5),
+                            this->node().declare_parameter<double>("lat_control.pid.min_cmd", -30.0),
+                            this->node().declare_parameter<double>("lat_control.pid.max_cmd", 30.0),
+                            this->node().declare_parameter<double>("lat_control.pid.min_i", -10.0),
+                            this->node().declare_parameter<double>("lat_control.pid.max_i", 10.0),
+                        }};
+                    RCLCPP_INFO_STREAM(node->get_logger(), "[LatPIDControllerPlugin]: "
+                                                            << "\nkp: " << config_.steering_pid_param.k_p
+                                                            << "\nki: " << config_.steering_pid_param.k_i
+                                                            << "\nkd: " << config_.steering_pid_param.k_d
+                                                            << "\nmin_cmd: " << config_.steering_pid_param.min_cmd
+                                                            << "\nmax_cmd: " << config_.steering_pid_param.max_cmd
+                                                            << "\nmin_i: " << config_.steering_pid_param.min_i
+                                                            << "\nmax_i: " << config_.steering_pid_param.max_i);
+                }
+
 
             bool configure(const ControllerManagerConfig::SharedPtr config) override
             {
                 lat_state().steering_pid = PidController("steering", config_.steering_pid_param);
                 return true;
             }
+
             bool update(const ControllerManagerState::SharedPtr state) override
             {
                 path_ = std::make_shared<nav_msgs::msg::Path>(state->path_ego_centric);
+
+                lat_state().current_speed = state->vehicle_state->vehicle_status.speed;
                 return true;
             }
 
-            void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg) {
-                lat_state().current_speed = msg->vehicle_status.speed;
-            }
 
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
             {
@@ -87,6 +97,18 @@ namespace roar
                     lat_state().last_pid_time = node().now();
                     return false;
                 }
+                
+                // update param 
+                
+                double k_p_value = this->node().get_parameter("lat_control.pid.kp").as_double();
+                double k_i_value = this->node().get_parameter("lat_control.pid.ki").as_double();
+                double k_d_value = this->node().get_parameter("lat_control.pid.kd").as_double();
+                    
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
+                this->config_.steering_pid_param.k_p = k_p_value;
+                this->config_.steering_pid_param.k_i = k_i_value;
+                this->config_.steering_pid_param.k_d = k_d_value;
+
 
                 // find the next waypoint
                 int next_waypoint = p_findNextWaypoint(*path_);
@@ -105,40 +127,6 @@ namespace roar
                 const auto dt = this_pid_time - lat_state().last_pid_time;
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
 
-                FILE* fp = fopen("/home/michael/Desktop/lilian/roar-gokart-ws/src/core/core/src/control/controller_manager/src/plugins/carla_pid_lat.json", "r");
-
-                if (fp == nullptr) {
-                    std::cerr << "Error opening file." << std::endl;
-                }
-
-                char readBuffer[65536];
-                rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-                rapidjson::Document d;
-                d.ParseStream(is);
-
-                fclose(fp);
-
-                if (d.HasParseError()) {
-                    std::cerr << "Error parsing JSON." << std::endl;
-                }
-
-                // Access the data in the JSON document
-                for (auto& entry : d.GetObject()) {
-                    int speedThreshold = std::stoi(entry.name.GetString());
-                
-                    if (lat_state().current_speed <= speedThreshold)
-                    {
-                        double k_p_value = entry.value["k_p"].GetDouble();
-                        double k_i_value = entry.value["k_i"].GetDouble();
-                        double k_d_value = entry.value["k_d"].GetDouble();
-
-                        config_.steering_pid_param.k_p = k_p_value;
-                        config_.steering_pid_param.k_i = k_i_value;
-                        config_.steering_pid_param.k_d = k_d_value;
-                    }
-                    else
-                    {}
-                }
 
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
@@ -200,6 +188,7 @@ namespace roar
         };
     } // namespace control
 } // roar
+
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(roar::control::LatPIDControllerPlugin, roar::control::ControllerPlugin)
