@@ -3,6 +3,7 @@
 
 #include "behavior_planning/bt_nodes/condition_nodes/if_goal_reached.hpp"
 #include "behavior_planning/bt_nodes/action_nodes/stop_car.hpp"
+#include "behavior_planning/bt_nodes/action_nodes/lat_pid_tuner.hpp"
 #include "roar_msgs/msg/behavior_status.hpp"
 
 namespace roar
@@ -82,6 +83,8 @@ namespace roar
                     RegisterTreeNodeLogClock<roar::planning::behavior::condition::IfGoalReached>("IfGoalReached");
 
                     RegisterTreeNodeLogClock<roar::planning::behavior::action::StopCar>("StopCar");
+
+                    RegisterTreeNodeLogClock<roar::planning::behavior::action::LatPIDtuner>("LatPIDtuner");
                 }
 
                 template <typename T>
