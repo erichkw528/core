@@ -80,6 +80,7 @@ namespace roar
 
                 void BehaviorPlannerBTLifeCycleNode::RegisterTreeNodes()
                 {
+                    RCLCPP_INFO(this->get_logger(), "Registering Tree Nodes");
                     RegisterTreeNodeLogClock<roar::planning::behavior::condition::IfGoalReached>("IfGoalReached");
 
                     RegisterTreeNodeLogClock<roar::planning::behavior::action::StopCar>("StopCar");
@@ -90,6 +91,7 @@ namespace roar
                 template <typename T>
                 void BehaviorPlannerBTLifeCycleNode::RegisterTreeNodeLogClock(const std::string &node_name)
                 {
+                    RCLCPP_DEBUG_STREAM(this->get_logger(), "Registering Tree Node: [" << node_name << "]");
                     BT::NodeBuilder builder =
                         [&](const std::string &name, const BT::NodeConfiguration &config)
                     {

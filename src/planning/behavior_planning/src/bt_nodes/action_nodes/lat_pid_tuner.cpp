@@ -69,7 +69,6 @@ namespace roar
                 BT::PortsList LatPIDtuner::providedPorts()
                 {
                     return {
-                        BT::InputPort<roar::planning::behavior::BTInputs::ConstSharedPtr>("file_path"),
                         BT::OutputPort<roar::planning::behavior::BTOutputs::SharedPtr>("outputs")};
                 }
 
