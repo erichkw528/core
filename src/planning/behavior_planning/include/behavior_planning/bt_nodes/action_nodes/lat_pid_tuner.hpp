@@ -7,7 +7,7 @@
 
 #include "rclcpp/clock.hpp"
 #include "rclcpp/logger.hpp"
-
+#include <map>
 namespace roar
 {
     namespace planning
@@ -16,6 +16,12 @@ namespace roar
         {
             namespace action
             {
+                struct PidCoefficients
+                {
+                    double k_p = 1.0;
+                    double k_i = 0.0;
+                    double k_d = 0.0;
+                };
                 class LatPIDtuner : public BT::SyncActionNode
                 {
                 public:
@@ -26,10 +32,12 @@ namespace roar
                         rclcpp::Clock &clock);
                     BT::NodeStatus tick() override;
                     static BT::PortsList providedPorts();
+                    void p_readConfig();
 
                 private:
                     rclcpp::Logger logger_;
                     rclcpp::Clock &clock_;
+                    std::map<int, PidCoefficients> pid_coefficients_;
                 };
             } // namespace action
         }     // namespace behavior
