@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include "rapidjson/document.h"
+
 using namespace rapidjson;
 
 namespace roar
@@ -22,9 +23,11 @@ namespace roar
                     const std::string &action_name,
                     const BT::NodeConfiguration &conf,
                     const rclcpp::Logger &logger,
-                    rclcpp::Clock &clock) : BT::SyncActionNode(action_name, conf), logger_(logger), clock_(clock)
+                    rclcpp::Clock &clock,
+                    rclcpp_lifecycle::LifecycleNode::SharedPtr node) : BT::SyncActionNode(action_name, conf), logger_(logger), clock_(clock), node(node)
                 {
                     RCLCPP_DEBUG(logger_, "LatPIDtuner created");
+                    set_pid_client_ = node->create_client<rcl_interfaces::srv::SetParametersAtomically>("controller_set_param_service"); // E.g.: serviceName = "/turtlesim/set_parameters_atomically"
 
                     p_readConfig();
                 }
@@ -84,13 +87,69 @@ namespace roar
                         return BT::NodeStatus::FAILURE;
                     }
 
+                    // get vehicle_speed
+                    auto inputs = config().blackboard->get<roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs");
+                    if (!inputs)
+                    {
+                        RCLCPP_ERROR(logger_, "LatPIDtuner: no inputs");
+                        return BT::NodeStatus::FAILURE;
+                    }
+
+                    if (!inputs->vehicle_state)
+                    {
+                        RCLCPP_WARN(logger_, "LatPIDtuner: no vehicle state");
+                        return BT::NodeStatus::FAILURE;
+                    }
+
+                    double speed = inputs->vehicle_state->vehicle_status.speed;
+
+                    // loop through pid_coefficients_
+                    // if vehicle_speed <= key, use the value corresponding to that key
+                    // set param via c++
+                    // return BT::NodeStatus::SUCCESS;
+                    for (auto const &x : pid_coefficients_)
+                    {
+                        if (speed <= x.first)
+                        {
+                            p_setParameter(x.second.k_p, x.second.k_i, x.second.k_d);
+                            RCLCPP_DEBUG(logger_, "LatPIDtuner: speed: [%f] -> k_p: [%f], k_d: [%f], k_i: [%f]", speed, x.second.k_p, x.second.k_d, x.second.k_i);
+                            return BT::NodeStatus::SUCCESS;
+                        }
+                    }
+
                     return BT::NodeStatus::SUCCESS;
+                }
+
+                void LatPIDtuner::p_setParameter(float kp, float ki, float kd)
+                {
+                    auto request = std::make_shared<rcl_interfaces::srv::SetParametersAtomically::Request>();
+
+                    auto kp_param = rcl_interfaces::msg::Parameter();
+                    kp_param.name = "lat_control.pid.kp";
+                    kp_param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE;
+                    kp_param.value.double_value = kp;
+                    request->parameters.push_back(kp_param);
+
+                    auto kd_param = rcl_interfaces::msg::Parameter();
+                    kd_param.name = "lat_control.pid.kd";
+                    kd_param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE;
+                    kd_param.value.double_value = kd;
+                    request->parameters.push_back(kd_param);
+
+                    auto ki_param = rcl_interfaces::msg::Parameter();
+                    ki_param.name = "lat_control.pid.ki";
+                    ki_param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE;
+                    ki_param.value.double_value = ki;
+                    request->parameters.push_back(ki_param);
+
+                    auto result = set_pid_client_->async_send_request(request);
                 }
 
                 BT::PortsList LatPIDtuner::providedPorts()
                 {
                     return {
                         BT::InputPort<std::string>("pid_file_path"),
+                        BT::InputPort<roar::planning::behavior::BTInputs::ConstSharedPtr>("inputs"),
                         BT::OutputPort<roar::planning::behavior::BTOutputs::SharedPtr>("outputs")};
                 }
             }

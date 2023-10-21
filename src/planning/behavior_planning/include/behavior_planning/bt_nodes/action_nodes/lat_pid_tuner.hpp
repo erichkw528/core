@@ -8,6 +8,13 @@
 #include "rclcpp/clock.hpp"
 #include "rclcpp/logger.hpp"
 #include <map>
+
+#include "rcl_interfaces/msg/parameter.hpp"
+#include "rcl_interfaces/msg/parameter_type.hpp"
+#include "rcl_interfaces/srv/set_parameters_atomically.hpp"
+#include "rclcpp/client.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+
 namespace roar
 {
     namespace planning
@@ -29,15 +36,20 @@ namespace roar
                         const std::string &action_name,
                         const BT::NodeConfiguration &conf,
                         const rclcpp::Logger &logger,
-                        rclcpp::Clock &clock);
+                        rclcpp::Clock &clock,
+                        rclcpp_lifecycle::LifecycleNode::SharedPtr node);
                     BT::NodeStatus tick() override;
                     static BT::PortsList providedPorts();
                     void p_readConfig();
+                    void p_setParameter(float kp, float ki, float kd);
 
                 private:
                     rclcpp::Logger logger_;
                     rclcpp::Clock &clock_;
                     std::map<int, PidCoefficients> pid_coefficients_;
+                    rclcpp::Client<rcl_interfaces::srv::SetParametersAtomically>::SharedPtr set_pid_client_;
+
+                    rclcpp_lifecycle::LifecycleNode::SharedPtr node;
                 };
             } // namespace action
         }     // namespace behavior

@@ -134,12 +134,13 @@ namespace roar
 
             void p_updatePID()
             {
-
+                // TODO: @qingyue, use callback to set param
+                // https://roboticsbackend.com/rclcpp-params-tutorial-get-set-ros2-params-with-cpp/#Get_params_one_by_one
                 double k_p_value = this->node().get_parameter("lat_control.pid.kp").as_double();
                 double k_i_value = this->node().get_parameter("lat_control.pid.ki").as_double();
                 double k_d_value = this->node().get_parameter("lat_control.pid.kd").as_double();
 
-                RCLCPP_DEBUG_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
+                RCLCPP_INFO_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
                 this->config_.steering_pid_param.k_p = k_p_value;
                 this->config_.steering_pid_param.k_i = k_i_value;
                 this->config_.steering_pid_param.k_d = k_d_value;
