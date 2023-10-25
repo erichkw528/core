@@ -73,13 +73,12 @@ namespace ROAR
             // RCLCPP_DEBUG_STREAM(m_logger_, "-----");
 
             StepResult stepResult;
-            // TODO: echo every 5 seconds
-            RCLCPP_DEBUG_STREAM(m_logger_,
-                                "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
-                                                         << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
-                                                         << "\ncheckGlobalMap: " << checkGlobalMap()
-                                                         << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
-                                                         << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
+            // RCLCPP_DEBUG_STREAM(m_logger_,
+            //                     "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
+            //                                              << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
+            //                                              << "\ncheckGlobalMap: " << checkGlobalMap()
+            //                                              << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
+            //                                              << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
             if (didGoalPoseUpdated && didReceiveGoalPose() && checkGlobalMap() && checkGoalWithinGlobalMap() && checkVehicleStatus(input))
             {
                 RCLCPP_DEBUG_STREAM(m_logger_, "Start planning global trajectory");
@@ -106,7 +105,7 @@ namespace ROAR
 
             if (m_global_path == nullptr)
             {
-                // TODO: emit diagnoise msg
+                // TODO: emit diagnois msg
                 stepResult.status = false;
                 return stepResult;
             }
@@ -167,7 +166,7 @@ namespace ROAR
             RCLCPP_DEBUG_STREAM(m_logger_, "Goal: " << goal[0] << ", " << goal[1]);
 
             // set up costmap
-            navfn.setCostmap(reinterpret_cast<const unsigned char *>(inputs.global_map->data.data()), false, true);
+            navfn.setCostmap(m_cost_map.get(), false, true);
             RCLCPP_DEBUG(m_logger_, "Costmap is set");
 
             // setup granularities
