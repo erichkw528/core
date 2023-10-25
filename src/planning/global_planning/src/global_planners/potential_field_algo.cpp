@@ -1,4 +1,4 @@
-#include "global_planning/planners/potential_field_planning.hpp"
+#include "global_planning/planners/potential_field_algo.hpp"
 #include <iostream>
 #include <stack>
 #include <map>
@@ -35,6 +35,18 @@ void PotentialFieldPlanning::setObstacleCoords(std::vector<std::tuple<uint64_t, 
 }
 
 void PotentialFieldPlanning::setObstacles(std::vector<uint8_t> obstacle_map)
+{
+    // check if obstacle_map is same size as map
+    if (obstacle_map.size() != nx * ny)
+    {
+        throw std::invalid_argument("obstacle_map size does not match map size");
+    }
+
+    // set map
+    map_ = std::make_shared<std::vector<float>>(std::vector<float>(obstacle_map.begin(), obstacle_map.end()));
+}
+
+void PotentialFieldPlanning::setObstacles(std::vector<int8_t> obstacle_map)
 {
     // check if obstacle_map is same size as map
     if (obstacle_map.size() != nx * ny)

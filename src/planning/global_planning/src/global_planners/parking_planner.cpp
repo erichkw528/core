@@ -1,7 +1,7 @@
 #include "global_planning/global_planner_interface.hpp"
 #include "global_planning/planners/parking_planner.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "global_planning/planners/navfn.hpp"
+#include "global_planning/planners/potential_field_algo.hpp"
 #include "tf2/buffer_core.h"
 namespace ROAR
 {
@@ -90,7 +90,9 @@ namespace ROAR
                 NavPlannerGlobalPathFinderOutput planning_outputs = planTrajectory(planning_inputs);
                 if (planning_outputs.status)
                 {
+                    RCLCPP_DEBUG_STREAM(m_logger_, "Path planned successfully: " << planning_outputs.global_path->poses.size() << " points");
                     m_global_path = planning_outputs.global_path;
+
                     stepResult.global_path = planning_outputs.global_path;
                     stepResult.status = true;
                 }
@@ -109,7 +111,7 @@ namespace ROAR
                 stepResult.status = false;
                 return stepResult;
             }
-
+            // p_debugPath(m_global_path);
             stepResult.status = true;
             stepResult.global_path = m_global_path;
             return stepResult;
@@ -149,72 +151,79 @@ namespace ROAR
             p_debugGlobalTrajectoryInputs(inputs);
             int nx = inputs.global_map->info.width;
             int ny = inputs.global_map->info.height;
-            roar::global_planning::NavFn navfn(nx, ny);
+            ROAR::global_planning::PotentialFieldPlanning potentialFieldPlanning(nx, ny);
 
             // set start
-            int *start = new int[2]{
-                int(inputs.odom->pose.pose.position.x / inputs.global_map->info.resolution),
-                int(inputs.odom->pose.pose.position.y / inputs.global_map->info.resolution)};
-            navfn.setStart(start);
-            RCLCPP_DEBUG_STREAM(m_logger_, "Start: " << start[0] << ", " << start[1]);
-
-            // set goal
-            int *goal = new int[2]{
-                int(inputs.goal_pose->pose.position.x / inputs.global_map->info.resolution),
-                int(inputs.goal_pose->pose.position.y / inputs.global_map->info.resolution)};
-            navfn.setGoal(goal);
-            RCLCPP_DEBUG_STREAM(m_logger_, "Goal: " << goal[0] << ", " << goal[1]);
-
-            // set up costmap
-            navfn.setCostmap(m_cost_map.get(), false, true);
-            RCLCPP_DEBUG(m_logger_, "Costmap is set");
-
-            // setup granularities
-            navfn.pathStep = this->path_step;
-
-            bool status = navfn.calcNavFnAstar();
+            std::tuple<uint64_t, uint64_t> start = std::make_tuple(
+                uint64_t(inputs.odom->pose.pose.position.x / inputs.global_map->info.resolution),
+                uint64_t(inputs.odom->pose.pose.position.y / inputs.global_map->info.resolution));
+            bool status = potentialFieldPlanning.setStart(start);
             if (!status)
             {
-                RCLCPP_ERROR(m_logger_, "Failed to calculate global path");
+                RCLCPP_ERROR(m_logger_, "Failed to set start");
                 outputs.status = false;
                 return outputs;
             }
-            int len = navfn.calcPath(nx * ny, NULL);
+            RCLCPP_DEBUG_STREAM(m_logger_, "Start: " << std::get<0>(start) << ", " << std::get<1>(start));
 
-            if (len > 0)
-            { // found plan
-                RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "[NavFn] Path found, %d steps\n", len);
-            }
-            else
+            // set up costmap
+            potentialFieldPlanning.setObstacles(inputs.global_map->data);
+            RCLCPP_DEBUG(m_logger_, "Costmap is set");
+
+            // inflate obstacles
+            // potentialFieldPlanning.inflateObstacles(1, 1.0);
+
+            // set goal
+            std::tuple<uint64_t, uint64_t> goal = std::make_tuple(
+                uint64_t(inputs.goal_pose->pose.position.x / inputs.global_map->info.resolution),
+                uint64_t(inputs.goal_pose->pose.position.y / inputs.global_map->info.resolution));
+
+            RCLCPP_DEBUG_STREAM(m_logger_, "Goal: " << std::get<0>(goal) << ", " << std::get<1>(goal));
+
+            // set up input
+            ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput::SharedPtr input = std::make_shared<ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput>();
+            input->goal = goal;
+            input->max_iter = nx * ny;
+            input->goal_threshold = 10; // TODO: adjust according to resolution and inputs
+
+            // calculate timing
+            auto start_time = std::chrono::high_resolution_clock::now();
+            ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningResult output = potentialFieldPlanning.plan(input);
+            auto end_time = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+            RCLCPP_DEBUG_STREAM(m_logger_, "Path planned in: [" << duration.count() / 1000.0 << "] seconds");
+
+            if (!output.status)
             {
-                RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "[NavFn] No path found\n");
+                RCLCPP_ERROR(m_logger_, "Failed to plan");
+                outputs.status = false;
+                return outputs;
             }
-
-            // // print out path
-            // this->p_debugPath(&navfn);
-
-            // add it to output
-            outputs.global_path = std::make_shared<nav_msgs::msg::Path>();
-            auto timestamp = this->m_node_->get_clock()->now();
-            std::string frame_id = this->m_node_->get_parameter("ParkingPlanner.map_frame").as_string();
-            outputs.global_path->header.stamp = timestamp;
-            outputs.global_path->header.frame_id = frame_id;
-            int pathLen = navfn.getPathLen();
-            float *pathX = navfn.getPathX();
-            float *pathY = navfn.getPathY();
-            outputs.global_path->poses.resize(pathLen);
-            for (int i = 0; i < pathLen; i++)
+            RCLCPP_DEBUG_STREAM(m_logger_, "Path found! Path length = " << output.path->size());
+            // convert path to global path
+            nav_msgs::msg::Path::SharedPtr global_path = std::make_shared<nav_msgs::msg::Path>();
+            global_path->header.frame_id = inputs.global_map->header.frame_id;
+            global_path->header.stamp = this->m_node_->get_clock()->now();
+            for (auto &point : *output.path)
             {
-                outputs.global_path->poses[i].header.stamp = timestamp;
-                outputs.global_path->poses[i].header.frame_id = frame_id;
-                outputs.global_path->poses[i].pose.position.x = pathX[i] * inputs.global_map->info.resolution;
-                outputs.global_path->poses[i].pose.position.y = pathY[i] * inputs.global_map->info.resolution;
-                outputs.global_path->poses[i].pose.position.z = 0;
-                outputs.global_path->poses[i].pose.orientation.x = 0;
-                outputs.global_path->poses[i].pose.orientation.y = 0;
-                outputs.global_path->poses[i].pose.orientation.z = 0;
-                outputs.global_path->poses[i].pose.orientation.w = 1;
+                geometry_msgs::msg::PoseStamped pose_stamped;
+                pose_stamped.header.frame_id = inputs.global_map->header.frame_id;
+                pose_stamped.header.stamp = this->m_node_->get_clock()->now();
+                pose_stamped.pose.position.x = std::get<0>(point) * inputs.global_map->info.resolution;
+                pose_stamped.pose.position.y = std::get<1>(point) * inputs.global_map->info.resolution;
+                pose_stamped.pose.position.z = 0;
+                pose_stamped.pose.orientation.x = 0;
+                pose_stamped.pose.orientation.y = 0;
+                pose_stamped.pose.orientation.z = 0;
+                pose_stamped.pose.orientation.w = 1;
+                global_path->poses.push_back(pose_stamped);
             }
+            outputs.global_path = global_path;
+
+            // print out path
+            p_debugPath(outputs.global_path);
+
             outputs.status = true;
             return outputs;
         }

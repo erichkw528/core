@@ -44,6 +44,8 @@ namespace ROAR
 
             void setObstacles(std::vector<uint8_t> obstacle_map);
 
+            void setObstacles(std::vector<int8_t> obstacle_map);
+
             // @brief inflate obstacle by radius, with each layer of obstacle having weight of weight/radius
             void inflateObstacles(int radius, float weight);
             /**
