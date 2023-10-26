@@ -14,6 +14,7 @@
 #include <fstream>
 #include <chrono>
 #include <functional>
+#include "rcl_interfaces/msg/set_parameters_result.hpp"
 
 using namespace roar::control;
 namespace roar
@@ -96,7 +97,7 @@ namespace roar
                     lat_state().last_pid_time = node().now();
                     return false;
                 }
-
+                
                 // update param
                 p_updatePID();
 
@@ -120,8 +121,8 @@ namespace roar
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 
-                // RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);
-                // assign to controlMsg
+                //RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);
+                //assign to controlMsg
                 controlMsg->steering_angle = steering_output;
 
                 // update the state
@@ -132,6 +133,17 @@ namespace roar
                 return true;
             }
 
+            rcl_interfaces::msg::SetParametersResult parametersCallback(
+                const std::vector<rclcpp::Parameter> &parameters)
+            {
+                rcl_interfaces::msg::SetParametersResult result;
+                result.successful = true;
+                result.reason = "success";
+                RCLCPP_INFO_STREAM(node().get_logger(), "callbacking");
+                // Here update class attributes, do some actions, etc.
+                return result;
+            }
+
             void p_updatePID()
             {
                 // TODO: @qingyue, use callback to set param
@@ -140,14 +152,21 @@ namespace roar
                 double k_i_value = this->node().get_parameter("lat_control.pid.ki").as_double();
                 double k_d_value = this->node().get_parameter("lat_control.pid.kd").as_double();
 
-                RCLCPP_INFO_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
+                // RCLCPP_INFO_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
                 this->config_.steering_pid_param.k_p = k_p_value;
                 this->config_.steering_pid_param.k_i = k_i_value;
                 this->config_.steering_pid_param.k_d = k_d_value;
+                // RCLCPP_INFO_STREAM(node().get_logger(), "updated pid");
+                //add an rclcpp parameter callback to the node
+                this->callback_handle_ = this->node().add_on_set_parameters_callback(    
+                     std::bind(&LatPIDControllerPlugin::parametersCallback, this, std::placeholders::_1));
+                // RCLCPP_INFO_STREAM(node().get_logger(), "added callback");
             }
 
         private:
             nav_msgs::msg::Path::SharedPtr path_;
+            //store the rclcpp callback handle as a shared pointer
+            rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr callback_handle_;
 
         protected:
             int p_findNextWaypoint(nav_msgs::msg::Path path)
