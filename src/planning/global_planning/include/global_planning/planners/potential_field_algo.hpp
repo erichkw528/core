@@ -6,6 +6,7 @@
 #include <math.h>
 #include <memory>
 #include <iostream>
+#include <rclcpp/rclcpp.hpp>
 
 namespace ROAR
 {
@@ -42,9 +43,9 @@ namespace ROAR
              */
             void setObstacleCoords(std::vector<std::tuple<uint64_t, uint64_t>> obstacle_map);
 
-            void setObstacles(std::vector<uint8_t> obstacle_map);
+            int setObstacles(std::vector<uint8_t> obstacle_map);
 
-            void setObstacles(std::vector<int8_t> obstacle_map);
+            int setObstacles(std::vector<int8_t> obstacle_map);
 
             // @brief inflate obstacle by radius, with each layer of obstacle having weight of weight/radius
             void inflateObstacles(int radius, float weight);
@@ -73,6 +74,26 @@ namespace ROAR
 
                 // get copy of existing map
                 std::shared_ptr<std::vector<float>> costmap = std::make_shared<std::vector<float>>(*map_);
+
+                // find how many obstacles there are on the costmap
+                // uint64_t num_obstacles = 0;
+                // for (uint64_t i = 0; i < nx * ny; i++)
+                // {
+                //     if ((*costmap)[i] >= OBSTACLE_THRESHOLD)
+                //     {
+                //         num_obstacles++;
+                         
+                //         // get coord
+                //         auto coord = getCoordFromIndex(i);
+                //         uint64_t x = std::get<0>(coord);
+                //         if (300 < x && x < 500) {
+                //             uint64_t y = std::get<1>(coord);
+                //             RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ParkingPlanner"), "[p_generateCostMapFromGoal] obstacle at coord: " << x << "," << y << " cost: " << (*costmap)[i]);
+                //         }
+                        
+                //     }
+                // }
+                // RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ParkingPlanner"), "[p_generateCostMapFromGoal] Before imposing goal cost -> num_obstacles: " << num_obstacles);
 
                 // map goal cost to all points
                 for (uint64_t i = 0; i < nx * ny; i++)

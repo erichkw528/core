@@ -34,7 +34,7 @@ void PotentialFieldPlanning::setObstacleCoords(std::vector<std::tuple<uint64_t, 
     this->setObstacles(obs_map_linear);
 }
 
-void PotentialFieldPlanning::setObstacles(std::vector<uint8_t> obstacle_map)
+int PotentialFieldPlanning::setObstacles(std::vector<uint8_t> obstacle_map)
 {
     // check if obstacle_map is same size as map
     if (obstacle_map.size() != nx * ny)
@@ -44,9 +44,19 @@ void PotentialFieldPlanning::setObstacles(std::vector<uint8_t> obstacle_map)
 
     // set map
     map_ = std::make_shared<std::vector<float>>(std::vector<float>(obstacle_map.begin(), obstacle_map.end()));
+    int num_obstacles = 0;
+    for (uint64_t i = 0; i < map_->size(); i++)
+    {
+        if ((*map_)[i] > OBSTACLE_THRESHOLD)
+        {
+            num_obstacles++;
+            (*map_)[i] = 99999999999;
+        }
+    }
+    return num_obstacles;
 }
 
-void PotentialFieldPlanning::setObstacles(std::vector<int8_t> obstacle_map)
+int PotentialFieldPlanning::setObstacles(std::vector<int8_t> obstacle_map)
 {
     // check if obstacle_map is same size as map
     if (obstacle_map.size() != nx * ny)
@@ -54,8 +64,26 @@ void PotentialFieldPlanning::setObstacles(std::vector<int8_t> obstacle_map)
         throw std::invalid_argument("obstacle_map size does not match map size");
     }
 
-    // set map
-    map_ = std::make_shared<std::vector<float>>(std::vector<float>(obstacle_map.begin(), obstacle_map.end()));
+    int num_obstacles = 0;
+    for (uint64_t i = 0; i < map_->size(); i++)
+    {
+        if (obstacle_map[i] > 0)
+        {
+            num_obstacles++;
+            (*map_)[i] = 9999;
+        }
+
+        if ((*map_)[i] > 100) {
+            // get coord
+            auto coord = getCoordFromIndex(i);
+            uint64_t x = std::get<0>(coord);
+            uint64_t y = std::get<1>(coord);
+
+            // RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ParkingPlanner"), "[setObstacles] obstacle at coord: " << x << "," << y << " cost: " << (*map_)[i]);
+            
+        }
+    }
+    return num_obstacles;
 }
 
 void PotentialFieldPlanning::inflateObstacles(int radius, float weight)
@@ -141,6 +169,16 @@ PotentialFieldPlanning::PotentialFieldPlanningResult PotentialFieldPlanning::pla
         return result;
     }
 
+    uint64_t num_obstacles = 0;
+    for (uint64_t i = 0; i < nx * ny; i++)
+    {
+        if ((*map_)[i] >= OBSTACLE_THRESHOLD)
+        {
+            num_obstacles++;
+        }
+    }
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ParkingPlanner"), "[plan] num_obstacles: " << num_obstacles);
+
     // generate costmap
     std::shared_ptr<std::vector<float>> costmap = p_generateCostMapFromGoal(input->goal);
     result.costmap = costmap;
@@ -160,6 +198,16 @@ bool PotentialFieldPlanning::p_greedySearch(std::shared_ptr<std::vector<std::tup
                                             uint64_t max_iter, uint64_t nx, uint64_t ny, uint64_t goal_threshold,
                                             const std::shared_ptr<std::vector<float>> costmap)
 {
+    uint64_t num_obstacles = 0;
+    for (uint64_t i = 0; i < nx * ny; i++)
+    {
+        if ((*costmap)[i] >= OBSTACLE_THRESHOLD)
+        {
+            num_obstacles++;
+        }
+    }
+    RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ParkingPlanner"), "[p_greedySearch] num_obstacles: " << num_obstacles);
+
     // check if start is within bounds
     uint64_t x = std::get<0>(start);
     uint64_t y = std::get<1>(start);
@@ -203,8 +251,6 @@ bool PotentialFieldPlanning::p_greedySearch(std::shared_ptr<std::vector<std::tup
     // clear path
     path->clear();
 
-    // dfs to goal
-
     // define a priority queue that uses the cost as comparator, and index as value
     struct potential_field_planning_queue_comparator
     {
@@ -237,12 +283,15 @@ bool PotentialFieldPlanning::p_greedySearch(std::shared_ptr<std::vector<std::tup
         }
 
         int64_t index = pq.top();
-        visited[index] = true; // mark as visited
         pq.pop();
+        visited[index] = true; // mark as visited
 
         uint64_t x = index % nx;
         uint64_t y = index / nx;
         std::tuple<uint64_t, uint64_t> coord = std::make_tuple(x, y);
+        
+        // print the coord and the cost
+        RCLCPP_INFO_STREAM(rclcpp::get_logger("ParkingPlanner"), "coord: " << x << ", " << y << ", cost: " << costmap->at(index));
 
         if (this->isWithinGoal(coord, goal, goal_threshold))
         {

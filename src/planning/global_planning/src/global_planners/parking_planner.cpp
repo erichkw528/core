@@ -12,6 +12,11 @@ namespace ROAR
             this->m_node_->declare_parameter("ParkingPlanner.map_frame", "map");
             this->m_node_->declare_parameter("ParkingPlanner.base_link_frame", "base_link");
             this->m_node_->declare_parameter("ParkingPlanner.path_step", 1.0);
+
+            this->m_node_->declare_parameter("ParkingPlanner.goal_threshold_m", 0.1);
+            this->m_node_->declare_parameter("ParkingPlanner.obstacle_radius_m", 0.1);
+            this->m_node_->declare_parameter("ParkingPlanner.obstacle_weight", 0.25);
+
             this->path_step = this->m_node_->get_parameter("ParkingPlanner.path_step").as_double();
             RCLCPP_INFO(m_logger_, "ParkingPlanner is initialized");
         }
@@ -147,16 +152,36 @@ namespace ROAR
             }
 
             RCLCPP_DEBUG_STREAM(m_logger_, "Start planning global trajectory");
-            // print debug infos
             p_debugGlobalTrajectoryInputs(inputs);
+
+            // print debug infos
             int nx = inputs.global_map->info.width;
             int ny = inputs.global_map->info.height;
             ROAR::global_planning::PotentialFieldPlanning potentialFieldPlanning(nx, ny);
 
+            // set up costmap
+            int num_obstacles = potentialFieldPlanning.setObstacles(inputs.global_map->data);
+            RCLCPP_DEBUG_STREAM(m_logger_, "Costmap is set: [" << num_obstacles << "] obstacles");
+
+            // inflate obstacles
+            double obstacle_radius_m = this->m_node_->get_parameter("ParkingPlanner.obstacle_radius_m").as_double();
+            double obstacle_weight = this->m_node_->get_parameter("ParkingPlanner.obstacle_weight").as_double();
+            int obstacle_radius = static_cast<int>(obstacle_radius_m / inputs.global_map->info.resolution);
+            potentialFieldPlanning.inflateObstacles(obstacle_radius, obstacle_weight);
+
             // set start
-            std::tuple<uint64_t, uint64_t> start = std::make_tuple(
-                uint64_t(inputs.odom->pose.pose.position.x / inputs.global_map->info.resolution),
-                uint64_t(inputs.odom->pose.pose.position.y / inputs.global_map->info.resolution));
+            float start_x_map = p_safe_cast_to_map(inputs.odom->pose.pose.position.x, 
+                                                   inputs.global_map->info.origin.position.x, 
+                                                   inputs.global_map->info.resolution, 
+                                                   nx);
+
+            float start_y_map = p_safe_cast_to_map(inputs.odom->pose.pose.position.y,
+                                                   inputs.global_map->info.origin.position.y,
+                                                   inputs.global_map->info.resolution,
+                                                   ny);
+
+            std::tuple<uint64_t, uint64_t> start = std::make_tuple(uint64_t(start_x_map),uint64_t(start_y_map));
+            RCLCPP_DEBUG_STREAM(m_logger_, "Start on map: " << std::get<0>(start) << ", " << std::get<1>(start));
             bool status = potentialFieldPlanning.setStart(start);
             if (!status)
             {
@@ -166,25 +191,27 @@ namespace ROAR
             }
             RCLCPP_DEBUG_STREAM(m_logger_, "Start: " << std::get<0>(start) << ", " << std::get<1>(start));
 
-            // set up costmap
-            potentialFieldPlanning.setObstacles(inputs.global_map->data);
-            RCLCPP_DEBUG(m_logger_, "Costmap is set");
-
-            // inflate obstacles
-            // potentialFieldPlanning.inflateObstacles(1, 1.0);
-
             // set goal
-            std::tuple<uint64_t, uint64_t> goal = std::make_tuple(
-                uint64_t(inputs.goal_pose->pose.position.x / inputs.global_map->info.resolution),
-                uint64_t(inputs.goal_pose->pose.position.y / inputs.global_map->info.resolution));
+            float goal_x_map = p_safe_cast_to_map(inputs.goal_pose->pose.position.x,
+                                                  inputs.global_map->info.origin.position.x,
+                                                  inputs.global_map->info.resolution,
+                                                  nx);
 
-            RCLCPP_DEBUG_STREAM(m_logger_, "Goal: " << std::get<0>(goal) << ", " << std::get<1>(goal));
+            float goal_y_map = p_safe_cast_to_map(inputs.goal_pose->pose.position.y,
+                                                  inputs.global_map->info.origin.position.y,
+                                                  inputs.global_map->info.resolution,
+                                                  ny);
+            std::tuple<uint64_t, uint64_t> goal = std::make_tuple(uint64_t(goal_x_map), uint64_t(goal_y_map));
+
+            RCLCPP_DEBUG_STREAM(m_logger_, "Goal on map: " << std::get<0>(goal) << ", " << std::get<1>(goal));
 
             // set up input
             ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput::SharedPtr input = std::make_shared<ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput>();
             input->goal = goal;
             input->max_iter = nx * ny;
-            input->goal_threshold = 10; // TODO: adjust according to resolution and inputs
+
+            uint64_t goal_threshold = static_cast<uint64_t>(this->m_node_->get_parameter("ParkingPlanner.goal_threshold_m").as_double() / inputs.global_map->info.resolution);
+            input->goal_threshold = goal_threshold; // TODO: adjust according to resolution and inputs
 
             // calculate timing
             auto start_time = std::chrono::high_resolution_clock::now();
@@ -201,6 +228,19 @@ namespace ROAR
                 return outputs;
             }
             RCLCPP_DEBUG_STREAM(m_logger_, "Path found! Path length = " << output.path->size());
+
+            // for every point, print out the cost
+            
+            // for (auto &point : *output.path)
+            // {
+            //     uint64_t x = std::get<0>(point);
+            //     uint64_t y = std::get<1>(point);
+            //     uint64_t index = y * nx + x;
+            //     RCLCPP_DEBUG_STREAM(m_logger_, "Point: [" << x << ", " << y << "], cost: " << (*output.costmap)[index]);
+            // }
+
+
+
             // convert path to global path
             nav_msgs::msg::Path::SharedPtr global_path = std::make_shared<nav_msgs::msg::Path>();
             global_path->header.frame_id = inputs.global_map->header.frame_id;
@@ -210,8 +250,8 @@ namespace ROAR
                 geometry_msgs::msg::PoseStamped pose_stamped;
                 pose_stamped.header.frame_id = inputs.global_map->header.frame_id;
                 pose_stamped.header.stamp = this->m_node_->get_clock()->now();
-                pose_stamped.pose.position.x = std::get<0>(point) * inputs.global_map->info.resolution;
-                pose_stamped.pose.position.y = std::get<1>(point) * inputs.global_map->info.resolution;
+                pose_stamped.pose.position.x = std::get<0>(point) * inputs.global_map->info.resolution+inputs.global_map->info.origin.position.x;
+                pose_stamped.pose.position.y = std::get<1>(point) * inputs.global_map->info.resolution+inputs.global_map->info.origin.position.y;
                 pose_stamped.pose.position.z = 0;
                 pose_stamped.pose.orientation.x = 0;
                 pose_stamped.pose.orientation.y = 0;

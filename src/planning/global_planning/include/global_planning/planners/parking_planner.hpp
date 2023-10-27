@@ -123,6 +123,21 @@ namespace ROAR
                 }
                 RCLCPP_DEBUG_STREAM(m_logger_, "Global Path: frame_id:" << global_path->header.frame_id << " | Number of waypoints: " << global_path->poses.size());
             }
+
+            float p_safe_cast_to_map(float input, float map_origin, float map_resolution, float map_max)
+            {
+                float output = (input - map_origin) / map_resolution;
+                
+                if (output < 0)
+                {
+                    output = 0;
+                }
+                else if (output >= map_max)
+                {
+                    output = map_max-1;
+                }
+                return output;
+            }
         };
     }
 } // namespace ROAR
