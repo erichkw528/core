@@ -7,11 +7,11 @@
 
 using namespace ROAR::global_planning;
 
-PotentialFieldPlanning::PotentialFieldPlanning(uint64_t nx, uint64_t ny)
+PotentialFieldPlanning::PotentialFieldPlanning(uint64_t nx, uint64_t ny, uint64_t max_iter)
 {
     this->nx = nx;
     this->ny = ny;
-    this->max_iter = nx * ny;
+    this->max_iter = max_iter;
     this->map_ = std::make_shared<std::vector<float>>(nx * ny);
 }
 
@@ -78,8 +78,6 @@ int PotentialFieldPlanning::setObstacles(std::vector<int8_t> obstacle_map)
             auto coord = getCoordFromIndex(i);
             uint64_t x = std::get<0>(coord);
             uint64_t y = std::get<1>(coord);
-
-            // RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ParkingPlanner"), "[setObstacles] obstacle at coord: " << x << "," << y << " cost: " << (*map_)[i]);
             
         }
     }
@@ -283,6 +281,13 @@ bool PotentialFieldPlanning::p_greedySearch(std::shared_ptr<std::vector<std::tup
         }
 
         int64_t index = pq.top();
+        if (visited[index]) {
+            pq.pop();
+            int x = index % nx;
+            int y = index / nx;
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ParkingPlanner"), "[p_greedySearch] index: " << index << " is visited" << " x: " << x << " y: " << y);
+            continue;
+        }
         pq.pop();
         visited[index] = true; // mark as visited
 
@@ -291,7 +296,7 @@ bool PotentialFieldPlanning::p_greedySearch(std::shared_ptr<std::vector<std::tup
         std::tuple<uint64_t, uint64_t> coord = std::make_tuple(x, y);
         
         // print the coord and the cost
-        RCLCPP_INFO_STREAM(rclcpp::get_logger("ParkingPlanner"), "coord: " << x << ", " << y << ", cost: " << costmap->at(index));
+        RCLCPP_DEBUG_STREAM(rclcpp::get_logger("ParkingPlanner"), "iter: " << iter << "/" << max_iter  <<  " coord: " << x << ", " << y << ", cost: " << costmap->at(index));
 
         if (this->isWithinGoal(coord, goal, goal_threshold))
         {

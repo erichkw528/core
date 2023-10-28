@@ -145,6 +145,11 @@ namespace local_planning
         std::mutex global_plan_mutex_;
         void onLatestGlobalPlanReceived(nav_msgs::msg::Path::SharedPtr msg)
         {
+            if (msg->poses.size() == 0)
+            {
+                RCLCPP_WARN(get_logger(), "Global plan is empty, not accepting it.");
+                return;
+            }
             std::lock_guard<std::mutex> lock(global_plan_mutex_);
             global_plan_ = msg;
         }

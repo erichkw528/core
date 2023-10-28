@@ -34,7 +34,7 @@ namespace ROAR
             /**
              * @brief nx, ny: size of the map
              */
-            PotentialFieldPlanning(uint64_t nx, uint64_t ny);
+            PotentialFieldPlanning(uint64_t nx, uint64_t ny, uint64_t max_iter = 5000);
 
             ~PotentialFieldPlanning();
             /**

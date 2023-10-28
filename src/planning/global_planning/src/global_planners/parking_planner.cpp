@@ -16,6 +16,8 @@ namespace ROAR
             this->m_node_->declare_parameter("ParkingPlanner.goal_threshold_m", 0.1);
             this->m_node_->declare_parameter("ParkingPlanner.obstacle_radius_m", 0.1);
             this->m_node_->declare_parameter("ParkingPlanner.obstacle_weight", 0.25);
+            this->m_node_->declare_parameter("ParkingPlanner.max_iter", 5000);
+            
 
             this->path_step = this->m_node_->get_parameter("ParkingPlanner.path_step").as_double();
             RCLCPP_INFO(m_logger_, "ParkingPlanner is initialized");
@@ -105,6 +107,7 @@ namespace ROAR
                 {
                     RCLCPP_ERROR(m_logger_, "Failed to plan trajectory");
                     stepResult.status = false;
+                    didGoalPoseUpdated = false;
                     return stepResult;
                 }
             }
@@ -157,7 +160,8 @@ namespace ROAR
             // print debug infos
             int nx = inputs.global_map->info.width;
             int ny = inputs.global_map->info.height;
-            ROAR::global_planning::PotentialFieldPlanning potentialFieldPlanning(nx, ny);
+            int max_iter = this->m_node_->get_parameter("ParkingPlanner.max_iter").as_int();
+            ROAR::global_planning::PotentialFieldPlanning potentialFieldPlanning(nx, ny, max_iter);
 
             // set up costmap
             int num_obstacles = potentialFieldPlanning.setObstacles(inputs.global_map->data);
@@ -208,7 +212,6 @@ namespace ROAR
             // set up input
             ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput::SharedPtr input = std::make_shared<ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput>();
             input->goal = goal;
-            input->max_iter = nx * ny;
 
             uint64_t goal_threshold = static_cast<uint64_t>(this->m_node_->get_parameter("ParkingPlanner.goal_threshold_m").as_double() / inputs.global_map->info.resolution);
             input->goal_threshold = goal_threshold; // TODO: adjust according to resolution and inputs
@@ -228,18 +231,6 @@ namespace ROAR
                 return outputs;
             }
             RCLCPP_DEBUG_STREAM(m_logger_, "Path found! Path length = " << output.path->size());
-
-            // for every point, print out the cost
-            
-            // for (auto &point : *output.path)
-            // {
-            //     uint64_t x = std::get<0>(point);
-            //     uint64_t y = std::get<1>(point);
-            //     uint64_t index = y * nx + x;
-            //     RCLCPP_DEBUG_STREAM(m_logger_, "Point: [" << x << ", " << y << "], cost: " << (*output.costmap)[index]);
-            // }
-
-
 
             // convert path to global path
             nav_msgs::msg::Path::SharedPtr global_path = std::make_shared<nav_msgs::msg::Path>();
@@ -263,6 +254,13 @@ namespace ROAR
 
             // print out path
             p_debugPath(outputs.global_path);
+
+            // if global path len is 0, status = false
+            if(global_path->poses.size() == 0) {
+                RCLCPP_ERROR_STREAM(m_logger_, "Output path size = 0");
+                outputs.status = false;
+                return outputs;
+            }
 
             outputs.status = true;
             return outputs;

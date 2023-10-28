@@ -383,7 +383,11 @@ namespace local_planning
     {
       RCLCPP_DEBUG(this->get_logger(), "latest_footprint_ not received, not executing...");
     }
-    return this->latest_odom != nullptr && this->latest_footprint_ != nullptr;
+    if (this->global_plan_ == nullptr)
+    {
+      RCLCPP_DEBUG(this->get_logger(), "global_plan_ not received, not executing...");
+    }
+    return this->latest_odom != nullptr && this->latest_footprint_ != nullptr && this->global_plan_ != nullptr;
   }
   void LocalPlannerManagerNode::p_PrintCostMapInfo(const nav2_msgs::msg::Costmap::SharedPtr msg)
   {
