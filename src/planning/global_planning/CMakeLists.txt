@@ -26,7 +26,7 @@ ament_auto_add_executable(global_planner_manager
   src/global_planner_manager.cpp 
   src/global_planners/race_planner.cpp
   src/global_planners/parking_planner.cpp
-  src/global_planners/navfn.cpp
+  src/global_planners/potential_field_algo.cpp
 )
 
 # add_executable(global_planner_node src/global_planner_node.cpp)

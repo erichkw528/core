@@ -1,7 +1,7 @@
 #include "global_planning/global_planner_interface.hpp"
 #include "global_planning/planners/parking_planner.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "global_planning/planners/navfn.hpp"
+#include "global_planning/planners/potential_field_algo.hpp"
 #include "tf2/buffer_core.h"
 namespace ROAR
 {
@@ -12,6 +12,13 @@ namespace ROAR
             this->m_node_->declare_parameter("ParkingPlanner.map_frame", "map");
             this->m_node_->declare_parameter("ParkingPlanner.base_link_frame", "base_link");
             this->m_node_->declare_parameter("ParkingPlanner.path_step", 1.0);
+
+            this->m_node_->declare_parameter("ParkingPlanner.goal_threshold_m", 0.1);
+            this->m_node_->declare_parameter("ParkingPlanner.obstacle_radius_m", 0.1);
+            this->m_node_->declare_parameter("ParkingPlanner.obstacle_weight", 0.25);
+            this->m_node_->declare_parameter("ParkingPlanner.max_iter", 5000);
+            
+
             this->path_step = this->m_node_->get_parameter("ParkingPlanner.path_step").as_double();
             RCLCPP_INFO(m_logger_, "ParkingPlanner is initialized");
         }
@@ -73,13 +80,12 @@ namespace ROAR
             // RCLCPP_DEBUG_STREAM(m_logger_, "-----");
 
             StepResult stepResult;
-            // TODO: echo every 5 seconds
-            RCLCPP_DEBUG_STREAM(m_logger_,
-                                "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
-                                                         << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
-                                                         << "\ncheckGlobalMap: " << checkGlobalMap()
-                                                         << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
-                                                         << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
+            // RCLCPP_DEBUG_STREAM(m_logger_,
+            //                     "\ndidGoalPoseUpdated: " << didGoalPoseUpdated
+            //                                              << "\ndidReceiveGoalPose: " << didReceiveGoalPose()
+            //                                              << "\ncheckGlobalMap: " << checkGlobalMap()
+            //                                              << "\ncheckGoalWithinGlobalMap: " << checkGoalWithinGlobalMap()
+            //                                              << "\ncheckVehicleStatus: " << checkVehicleStatus(input));
             if (didGoalPoseUpdated && didReceiveGoalPose() && checkGlobalMap() && checkGoalWithinGlobalMap() && checkVehicleStatus(input))
             {
                 RCLCPP_DEBUG_STREAM(m_logger_, "Start planning global trajectory");
@@ -91,7 +97,9 @@ namespace ROAR
                 NavPlannerGlobalPathFinderOutput planning_outputs = planTrajectory(planning_inputs);
                 if (planning_outputs.status)
                 {
+                    RCLCPP_DEBUG_STREAM(m_logger_, "Path planned successfully: " << planning_outputs.global_path->poses.size() << " points");
                     m_global_path = planning_outputs.global_path;
+
                     stepResult.global_path = planning_outputs.global_path;
                     stepResult.status = true;
                 }
@@ -99,6 +107,7 @@ namespace ROAR
                 {
                     RCLCPP_ERROR(m_logger_, "Failed to plan trajectory");
                     stepResult.status = false;
+                    didGoalPoseUpdated = false;
                     return stepResult;
                 }
             }
@@ -106,11 +115,11 @@ namespace ROAR
 
             if (m_global_path == nullptr)
             {
-                // TODO: emit diagnoise msg
+                // TODO: emit diagnois msg
                 stepResult.status = false;
                 return stepResult;
             }
-
+            // p_debugPath(m_global_path);
             stepResult.status = true;
             stepResult.global_path = m_global_path;
             return stepResult;
@@ -146,76 +155,113 @@ namespace ROAR
             }
 
             RCLCPP_DEBUG_STREAM(m_logger_, "Start planning global trajectory");
-            // print debug infos
             p_debugGlobalTrajectoryInputs(inputs);
+
+            // print debug infos
             int nx = inputs.global_map->info.width;
             int ny = inputs.global_map->info.height;
-            roar::global_planning::NavFn navfn(nx, ny);
-
-            // set start
-            int *start = new int[2]{
-                int(inputs.odom->pose.pose.position.x / inputs.global_map->info.resolution),
-                int(inputs.odom->pose.pose.position.y / inputs.global_map->info.resolution)};
-            navfn.setStart(start);
-            RCLCPP_DEBUG_STREAM(m_logger_, "Start: " << start[0] << ", " << start[1]);
-
-            // set goal
-            int *goal = new int[2]{
-                int(inputs.goal_pose->pose.position.x / inputs.global_map->info.resolution),
-                int(inputs.goal_pose->pose.position.y / inputs.global_map->info.resolution)};
-            navfn.setGoal(goal);
-            RCLCPP_DEBUG_STREAM(m_logger_, "Goal: " << goal[0] << ", " << goal[1]);
+            int max_iter = this->m_node_->get_parameter("ParkingPlanner.max_iter").as_int();
+            ROAR::global_planning::PotentialFieldPlanning potentialFieldPlanning(nx, ny, max_iter);
 
             // set up costmap
-            navfn.setCostmap(reinterpret_cast<const unsigned char *>(inputs.global_map->data.data()), false, true);
-            RCLCPP_DEBUG(m_logger_, "Costmap is set");
+            int num_obstacles = potentialFieldPlanning.setObstacles(inputs.global_map->data);
+            RCLCPP_DEBUG_STREAM(m_logger_, "Costmap is set: [" << num_obstacles << "] obstacles");
 
-            // setup granularities
-            navfn.pathStep = this->path_step;
+            // inflate obstacles
+            double obstacle_radius_m = this->m_node_->get_parameter("ParkingPlanner.obstacle_radius_m").as_double();
+            double obstacle_weight = this->m_node_->get_parameter("ParkingPlanner.obstacle_weight").as_double();
+            int obstacle_radius = static_cast<int>(obstacle_radius_m / inputs.global_map->info.resolution);
+            potentialFieldPlanning.inflateObstacles(obstacle_radius, obstacle_weight);
 
-            bool status = navfn.calcNavFnAstar();
+            // set start
+            float start_x_map = p_safe_cast_to_map(inputs.odom->pose.pose.position.x, 
+                                                   inputs.global_map->info.origin.position.x, 
+                                                   inputs.global_map->info.resolution, 
+                                                   nx);
+
+            float start_y_map = p_safe_cast_to_map(inputs.odom->pose.pose.position.y,
+                                                   inputs.global_map->info.origin.position.y,
+                                                   inputs.global_map->info.resolution,
+                                                   ny);
+
+            std::tuple<uint64_t, uint64_t> start = std::make_tuple(uint64_t(start_x_map),uint64_t(start_y_map));
+            RCLCPP_DEBUG_STREAM(m_logger_, "Start on map: " << std::get<0>(start) << ", " << std::get<1>(start));
+            bool status = potentialFieldPlanning.setStart(start);
             if (!status)
             {
-                RCLCPP_ERROR(m_logger_, "Failed to calculate global path");
+                RCLCPP_ERROR(m_logger_, "Failed to set start");
                 outputs.status = false;
                 return outputs;
             }
-            int len = navfn.calcPath(nx * ny, NULL);
+            RCLCPP_DEBUG_STREAM(m_logger_, "Start: " << std::get<0>(start) << ", " << std::get<1>(start));
 
-            if (len > 0)
-            { // found plan
-                RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "[NavFn] Path found, %d steps\n", len);
-            }
-            else
+            // set goal
+            float goal_x_map = p_safe_cast_to_map(inputs.goal_pose->pose.position.x,
+                                                  inputs.global_map->info.origin.position.x,
+                                                  inputs.global_map->info.resolution,
+                                                  nx);
+
+            float goal_y_map = p_safe_cast_to_map(inputs.goal_pose->pose.position.y,
+                                                  inputs.global_map->info.origin.position.y,
+                                                  inputs.global_map->info.resolution,
+                                                  ny);
+            std::tuple<uint64_t, uint64_t> goal = std::make_tuple(uint64_t(goal_x_map), uint64_t(goal_y_map));
+
+            RCLCPP_DEBUG_STREAM(m_logger_, "Goal on map: " << std::get<0>(goal) << ", " << std::get<1>(goal));
+
+            // set up input
+            ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput::SharedPtr input = std::make_shared<ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningInput>();
+            input->goal = goal;
+
+            uint64_t goal_threshold = static_cast<uint64_t>(this->m_node_->get_parameter("ParkingPlanner.goal_threshold_m").as_double() / inputs.global_map->info.resolution);
+            input->goal_threshold = goal_threshold; // TODO: adjust according to resolution and inputs
+
+            // calculate timing
+            auto start_time = std::chrono::high_resolution_clock::now();
+            ROAR::global_planning::PotentialFieldPlanning::PotentialFieldPlanningResult output = potentialFieldPlanning.plan(input);
+            auto end_time = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+            RCLCPP_DEBUG_STREAM(m_logger_, "Path planned in: [" << duration.count() / 1000.0 << "] seconds");
+
+            if (!output.status)
             {
-                RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "[NavFn] No path found\n");
+                RCLCPP_ERROR(m_logger_, "Failed to plan");
+                outputs.status = false;
+                return outputs;
             }
+            RCLCPP_DEBUG_STREAM(m_logger_, "Path found! Path length = " << output.path->size());
 
-            // // print out path
-            // this->p_debugPath(&navfn);
-
-            // add it to output
-            outputs.global_path = std::make_shared<nav_msgs::msg::Path>();
-            auto timestamp = this->m_node_->get_clock()->now();
-            std::string frame_id = this->m_node_->get_parameter("ParkingPlanner.map_frame").as_string();
-            outputs.global_path->header.stamp = timestamp;
-            outputs.global_path->header.frame_id = frame_id;
-            int pathLen = navfn.getPathLen();
-            float *pathX = navfn.getPathX();
-            float *pathY = navfn.getPathY();
-            outputs.global_path->poses.resize(pathLen);
-            for (int i = 0; i < pathLen; i++)
+            // convert path to global path
+            nav_msgs::msg::Path::SharedPtr global_path = std::make_shared<nav_msgs::msg::Path>();
+            global_path->header.frame_id = inputs.global_map->header.frame_id;
+            global_path->header.stamp = this->m_node_->get_clock()->now();
+            for (auto &point : *output.path)
             {
-                outputs.global_path->poses[i].header.stamp = timestamp;
-                outputs.global_path->poses[i].header.frame_id = frame_id;
-                outputs.global_path->poses[i].pose.position.x = pathX[i] * inputs.global_map->info.resolution;
-                outputs.global_path->poses[i].pose.position.y = pathY[i] * inputs.global_map->info.resolution;
-                outputs.global_path->poses[i].pose.position.z = 0;
-                outputs.global_path->poses[i].pose.orientation.x = 0;
-                outputs.global_path->poses[i].pose.orientation.y = 0;
-                outputs.global_path->poses[i].pose.orientation.z = 0;
-                outputs.global_path->poses[i].pose.orientation.w = 1;
+                geometry_msgs::msg::PoseStamped pose_stamped;
+                pose_stamped.header.frame_id = inputs.global_map->header.frame_id;
+                pose_stamped.header.stamp = this->m_node_->get_clock()->now();
+                pose_stamped.pose.position.x = std::get<0>(point) * inputs.global_map->info.resolution+inputs.global_map->info.origin.position.x;
+                pose_stamped.pose.position.y = std::get<1>(point) * inputs.global_map->info.resolution+inputs.global_map->info.origin.position.y;
+                pose_stamped.pose.position.z = 0;
+                pose_stamped.pose.orientation.x = 0;
+                pose_stamped.pose.orientation.y = 0;
+                pose_stamped.pose.orientation.z = 0;
+                pose_stamped.pose.orientation.w = 1;
+                global_path->poses.push_back(pose_stamped);
             }
+            outputs.global_path = global_path;
+
+            // print out path
+            p_debugPath(outputs.global_path);
+
+            // if global path len is 0, status = false
+            if(global_path->poses.size() == 0) {
+                RCLCPP_ERROR_STREAM(m_logger_, "Output path size = 0");
+                outputs.status = false;
+                return outputs;
+            }
+
             outputs.status = true;
             return outputs;
         }

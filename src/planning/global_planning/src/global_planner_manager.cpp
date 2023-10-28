@@ -143,7 +143,7 @@ namespace ROAR
             // publish global path
             if (result.global_path != nullptr)
             {
-                RCLCPP_DEBUG(get_logger(), "Publishing global path");
+                // RCLCPP_DEBUG(get_logger(), "Publishing global path");
                 this->global_path_publisher_->publish(*result.global_path);
             }
             else

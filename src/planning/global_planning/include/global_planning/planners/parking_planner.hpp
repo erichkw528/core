@@ -8,7 +8,6 @@
 #include "nav2_msgs/srv/load_map.hpp"
 #include "planning_interfaces/srv/load_map.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
-#include "global_planning/planners/navfn.hpp"
 #include <tf2_ros/transform_listener.h>
 
 namespace ROAR
@@ -115,16 +114,29 @@ namespace ROAR
                                                    << "\n   position: " << m_goal_pose_stamped->pose.position.x << ", " << m_goal_pose_stamped->pose.position.y
                                                    << "\n   orientation: " << m_goal_pose_stamped->pose.orientation.x << ", " << m_goal_pose_stamped->pose.orientation.y << ", " << m_goal_pose_stamped->pose.orientation.z << ", " << m_goal_pose_stamped->pose.orientation.w);
             }
-            void p_debugPath(roar::global_planning::NavFn *navfn)
+            void p_debugPath(nav_msgs::msg::Path::SharedPtr global_path)
             {
-                float *pathX = navfn->getPathX();
-                float *pathY = navfn->getPathY();
-                int pathLen = navfn->getPathLen();
-                RCLCPP_DEBUG_STREAM(m_logger_, "Path: ");
-                for (int i = 0; i < pathLen; i++)
+                if (global_path == nullptr)
                 {
-                    RCLCPP_DEBUG_STREAM(m_logger_, pathX[i] << ", " << pathY[i]);
+                    RCLCPP_DEBUG(m_logger_, "Global Path is null");
+                    return;
                 }
+                RCLCPP_DEBUG_STREAM(m_logger_, "Global Path: frame_id:" << global_path->header.frame_id << " | Number of waypoints: " << global_path->poses.size());
+            }
+
+            float p_safe_cast_to_map(float input, float map_origin, float map_resolution, float map_max)
+            {
+                float output = (input - map_origin) / map_resolution;
+                
+                if (output < 0)
+                {
+                    output = 0;
+                }
+                else if (output >= map_max)
+                {
+                    output = map_max-1;
+                }
+                return output;
             }
         };
     }
