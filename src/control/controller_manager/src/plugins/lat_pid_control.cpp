@@ -78,9 +78,9 @@ namespace roar
 
             bool update(const ControllerManagerState::SharedPtr state) override
             {   
-                RCLCPP_DEBUG_STREAM(node().get_logger(), "updating");
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "updating");
                 path_ = std::make_shared<nav_msgs::msg::Path>(state->path_ego_centric);
-                RCLCPP_DEBUG_STREAM(node().get_logger(), "path size: " << path_->poses.size());
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "path size: " << path_->poses.size());
                 if (state->vehicle_state == nullptr)
                 {
                     RCLCPP_ERROR_STREAM(node().get_logger(), "vehicle state is null");
@@ -88,7 +88,7 @@ namespace roar
                 }
                 //problem here
                 lat_state().current_speed = state->vehicle_state->vehicle_status.speed;
-                RCLCPP_DEBUG_STREAM(node().get_logger(), "current speed: " << lat_state().current_speed);
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "current speed: " << lat_state().current_speed);
                 return true;
             }
 
@@ -112,9 +112,9 @@ namespace roar
 
                 // find the next waypoint
                 int next_waypoint = p_findNextWaypoint(*path_);
-                // RCLCPP_DEBUG_STREAM(node().get_logger(),
-                //                     "path[next_waypoint] x =" << path_->poses[next_waypoint].pose.position.x
-                //   << " y = " << path_->poses[next_waypoint].pose.position.y);
+                RCLCPP_DEBUG_STREAM(node().get_logger(),
+                                    "path[next_waypoint] x= " << path_->poses[next_waypoint].pose.position.x
+                  << " y= " << path_->poses[next_waypoint].pose.position.y);
 
                 // find the steering error
                 double steering_error = p_calcAngularError(*path_, next_waypoint);
@@ -177,6 +177,7 @@ namespace roar
         protected:
             int p_findNextWaypoint(nav_msgs::msg::Path path)
             {
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "waypoint path size: " << path.poses.size());
                 float min_dist = 1.0;
                 int next_waypoint = 0;
                 for (int i = 0; i < path.poses.size(); i++)
@@ -188,6 +189,7 @@ namespace roar
                         break;
                     }
                 }
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "next_waypoint index: " << next_waypoint);
                 return next_waypoint;
             }
             double p_calcAngularError(nav_msgs::msg::Path path, int next_waypoint)

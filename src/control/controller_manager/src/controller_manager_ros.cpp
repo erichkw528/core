@@ -259,7 +259,10 @@ namespace controller
         nav_msgs::msg::Path path = goal_handle->get_goal()->path;
 
         // transform path to ego centric frame
+        RCLCPP_DEBUG_STREAM(get_logger(), "global_path[0]: " << path.poses[0].pose.position.x << " "
+                                                              << path.poses[0].pose.position.y << " ");
         nav_msgs::msg::Path egoCentricPath = this->p_transformToEgoCentric(path);
+        RCLCPP_DEBUG_STREAM(get_logger(), "egoCentricPath: " << egoCentricPath.poses.size() << " poses");
         if (egoCentricPath.poses.size() == 0)
         {
             diag_status_msg->message = "rejecting goal - path is empty or failed to transform to target frame";
