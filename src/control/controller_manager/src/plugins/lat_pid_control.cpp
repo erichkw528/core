@@ -71,20 +71,29 @@ namespace roar
 
             bool configure(const ControllerManagerConfig::SharedPtr config) override
             {
+                RCLCPP_INFO_STREAM(node().get_logger(), "configuring");
                 lat_state().steering_pid = PidController("steering", config_.steering_pid_param);
                 return true;
             }
 
             bool update(const ControllerManagerState::SharedPtr state) override
-            {
+            {   
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "updating");
                 path_ = std::make_shared<nav_msgs::msg::Path>(state->path_ego_centric);
-
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "path size: " << path_->poses.size());
+                if (state->vehicle_state == nullptr)
+                {
+                    RCLCPP_ERROR_STREAM(node().get_logger(), "vehicle state is null");
+                    return false;
+                }
+                //problem here
                 lat_state().current_speed = state->vehicle_state->vehicle_status.speed;
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "current speed: " << lat_state().current_speed);
                 return true;
             }
 
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
-            {
+            {   
                 if (path_ == nullptr)
                 {
                     RCLCPP_ERROR_STREAM(node().get_logger(), "path is null");
@@ -97,7 +106,7 @@ namespace roar
                     lat_state().last_pid_time = node().now();
                     return false;
                 }
-                
+
                 // update param
                 p_updatePID();
 
@@ -139,7 +148,6 @@ namespace roar
                 rcl_interfaces::msg::SetParametersResult result;
                 result.successful = true;
                 result.reason = "success";
-                RCLCPP_INFO_STREAM(node().get_logger(), "callbacking");
                 // Here update class attributes, do some actions, etc.
                 return result;
             }
@@ -152,15 +160,13 @@ namespace roar
                 double k_i_value = this->node().get_parameter("lat_control.pid.ki").as_double();
                 double k_d_value = this->node().get_parameter("lat_control.pid.kd").as_double();
 
-                // RCLCPP_INFO_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
                 this->config_.steering_pid_param.k_p = k_p_value;
                 this->config_.steering_pid_param.k_i = k_i_value;
                 this->config_.steering_pid_param.k_d = k_d_value;
-                // RCLCPP_INFO_STREAM(node().get_logger(), "updated pid");
                 //add an rclcpp parameter callback to the node
                 this->callback_handle_ = this->node().add_on_set_parameters_callback(    
                      std::bind(&LatPIDControllerPlugin::parametersCallback, this, std::placeholders::_1));
-                // RCLCPP_INFO_STREAM(node().get_logger(), "added callback");
             }
 
         private:

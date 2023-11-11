@@ -28,7 +28,7 @@ namespace ROAR
 
         nav2_util::CallbackReturn BehaviorPlannerManager::on_activate(const rclcpp_lifecycle::State &state)
         {
-
+            behavior_status_pub_
             RCLCPP_DEBUG(get_logger(), "BehaviorPlannerManager is now active.");
             return nav2_util::CallbackReturn::SUCCESS;
         }
