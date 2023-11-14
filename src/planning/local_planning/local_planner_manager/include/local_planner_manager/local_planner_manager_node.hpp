@@ -16,6 +16,8 @@
 #include "diagnostic_msgs/msg/key_value.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "local_planner_manager/local_planner_manager_state.hpp"
+#include "local_planner_manager/local_planner_plugin_interface.hpp"
+#include <pluginlib/class_loader.hpp>
 
 namespace roar
 {
@@ -37,6 +39,12 @@ namespace roar
             private:
                 roar::planning::local::LocalPlannerManagerConfig::SharedPtr m_config_;
                 rclcpp::TimerBase::SharedPtr execution_timer;
+
+                // plugins
+                typedef std::vector<LocalPlannerPlugin::SharedPtr> PluginList;
+                pluginlib::ClassLoader<LocalPlannerPlugin> m_plugin_loader_;
+                PluginList m_plugins_;
+                LocalPlannerManagerState m_state_;
 
             protected:
                 // implement the lifecycle interface
@@ -63,7 +71,6 @@ namespace roar
                 bool canExecute();
 
                 /* footprint */
-                std::shared_ptr<geometry_msgs::msg::PolygonStamped> latest_footprint_;
                 rclcpp::Subscription<geometry_msgs::msg::PolygonStamped>::ConstSharedPtr
                     footprint_sub_;
                 std::mutex footprint_mutex;
@@ -71,7 +78,7 @@ namespace roar
                     geometry_msgs::msg::PolygonStamped::SharedPtr msg)
                 {
                     std::lock_guard<std::mutex> lock(footprint_mutex);
-                    latest_footprint_ = msg;
+                    this->m_state_.robot_footprint = msg;
                 }
 
                 /* Odometry */
@@ -81,15 +88,20 @@ namespace roar
                 void onLatestOdomReceived(nav_msgs::msg::Odometry::SharedPtr msg)
                 {
                     std::lock_guard<std::mutex> lock(odom_mutex_);
-                    latest_odom = msg;
+                    this->m_state_.odom = msg;
                 }
 
-                /* Costmap */
-                void p_updateLatestCostmap();
-                std::shared_ptr<rclcpp::Node> costmap_node_;
-                rclcpp::Client<nav2_msgs::srv::GetCostmap>::SharedPtr costmap_client_;
-                void p_PrintCostMapInfo(const nav2_msgs::msg::Costmap::SharedPtr msg);
-                std::shared_ptr<nav2_msgs::msg::Costmap> latest_costmap_;
+                /* occupancy map */
+                rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr
+                    occupancy_map_sub_;
+                std::mutex occupancy_map_mutex_;
+                void onLatestOccupancyMapReceived(
+                    nav_msgs::msg::OccupancyGrid::SharedPtr msg)
+                {
+                    std::lock_guard<std::mutex> lock(occupancy_map_mutex_);
+                    this->m_state_.occupancy_map = msg;
+                }
+                                
 
                 /* control client */
                 rclcpp_action::Client<ControlAction>::SharedPtr control_action_client_;
@@ -109,7 +121,6 @@ namespace roar
                 std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<diagnostic_msgs::msg::DiagnosticArray>> diagnostic_pub_;
 
                 // global plan
-                std::shared_ptr<nav_msgs::msg::Path> global_plan_;
                 rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr global_plan_sub_;
                 std::mutex global_plan_mutex_;
                 void onLatestGlobalPlanReceived(nav_msgs::msg::Path::SharedPtr msg)
@@ -120,9 +131,8 @@ namespace roar
                         return;
                     }
                     std::lock_guard<std::mutex> lock(global_plan_mutex_);
-                    global_plan_ = msg;
+                    this->m_state_.global_plan = msg;
                 }
-                geometry_msgs::msg::PoseStamped::SharedPtr findNextWaypoint(const float next_waypoint_min_dist);
                 rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr next_waypoint_publisher_;
             };
         } 

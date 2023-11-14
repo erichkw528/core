@@ -6,13 +6,12 @@ namespace roar
   {
     namespace local
     {
-      LocalPlannerManagerNode::LocalPlannerManagerNode() : LifecycleNode("manager", "local_planner", true)
+      LocalPlannerManagerNode::LocalPlannerManagerNode() : LifecycleNode("manager", "local_planner", true), m_plugin_loader_("local_planner_manager", "roar::planning::local::LocalPlannerPlugin")
       {
         m_config_ = std::make_shared<LocalPlannerManagerConfig>(
             LocalPlannerManagerConfig{
                 declare_parameter<bool>("manager.debug", false),
-                declare_parameter<double>("manager.loop_rate", 20.0)
-            });
+                declare_parameter<double>("manager.loop_rate", 20.0)});
 
         if (m_config_->debug)
         {
@@ -32,20 +31,21 @@ namespace roar
         RCLCPP_INFO_STREAM(this->get_logger(), "plugin_names: " << plugin_names.size() << " plugins");
         for (const auto &plugin_name : plugin_names)
         {
-          roar::planning::LocalPlannerPlugin::SharedPtr new_plugin = m_plugin_loader_.createSharedInstance(plugin_name);
+          LocalPlannerPlugin::SharedPtr new_plugin = m_plugin_loader_.createSharedInstance(plugin_name);
           m_plugins_.push_back(new_plugin);
           RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << plugin_name << " loaded");
         }
         std::for_each(
-            m_plugins_.begin(), m_plugins_.end(), [this](roar::planning::LocalPlannerPlugin::SharedPtr &p)
+            m_plugins_.begin(), m_plugins_.end(), [this](LocalPlannerPlugin::SharedPtr &p)
             { 
                 p->initialize(this);
                 RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " initialized"); });
         std::for_each(
-            m_plugins_.begin(), m_plugins_.end(), [this](roar::planning::LocalPlannerPlugin::SharedPtr &p)
+            m_plugins_.begin(), m_plugins_.end(), [this](LocalPlannerPlugin::SharedPtr &p)
             { 
                 p->configure(m_config_);
                 RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " configured"); });
+        m_state_ = LocalPlannerManagerState{};
       }
       LocalPlannerManagerNode ::~LocalPlannerManagerNode()
       {
@@ -68,12 +68,13 @@ namespace roar
         this->footprint_sub_ = this->create_subscription<geometry_msgs::msg::PolygonStamped>(
             "/footprint", rclcpp::SystemDefaultsQoS(),
             std::bind(&LocalPlannerManagerNode::onLatestFootprintReceived, this, std::placeholders::_1));
+        this->occupancy_map_sub_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
+            "/occupancy_map", rclcpp::SystemDefaultsQoS(),
+            std::bind(&LocalPlannerManagerNode::onLatestOccupancyMapReceived, this, std::placeholders::_1));
 
         this->global_plan_sub_ = this->create_subscription<nav_msgs::msg::Path>(
             "/global_path", rclcpp::SystemDefaultsQoS(),
             std::bind(&LocalPlannerManagerNode::onLatestGlobalPlanReceived, this, std::placeholders::_1));
-
-        costmap_client_ = this->create_client<nav2_msgs::srv::GetCostmap>("/local_costmap/get_costmap");
 
         this->control_action_client_ = rclcpp_action::create_client<ControlAction>(this, this->controllerServerRoute);
 
@@ -211,19 +212,28 @@ namespace roar
       }
       bool LocalPlannerManagerNode::didReceiveAllMessages()
       {
-        if (this->latest_odom == nullptr)
+        bool isOK = true;
+        if (this->m_state_.odom == nullptr)
         {
           RCLCPP_DEBUG(this->get_logger(), "odom not received, not executing...");
+          isOK = false;
         }
-        if (this->latest_footprint_ == nullptr)
+        if (this->m_state_.robot_footprint == nullptr)
         {
           RCLCPP_DEBUG(this->get_logger(), "latest_footprint_ not received, not executing...");
+          isOK = false;
         }
-        if (this->global_plan_ == nullptr)
+        if (this->m_state_.global_plan == nullptr)
         {
           RCLCPP_DEBUG(this->get_logger(), "global_plan_ not received, not executing...");
+          isOK = false;
         }
-        return this->latest_odom != nullptr && this->latest_footprint_ != nullptr && this->global_plan_ != nullptr;
+        if (this->m_state_.occupancy_map == nullptr)
+        {
+          RCLCPP_DEBUG(this->get_logger(), "occupancy_map_ not received, not executing...");
+          isOK = false;
+        }
+        return isOK;
       }
 
       /**
@@ -248,99 +258,6 @@ namespace roar
         }
         RCLCPP_DEBUG(this->get_logger(), "");
       }
-
-      void LocalPlannerManagerNode::p_PrintCostMapInfo(const nav2_msgs::msg::Costmap::SharedPtr msg)
-      {
-        auto map_metadata = msg->metadata;
-        RCLCPP_INFO(this->get_logger(), "Map metadata:");
-        RCLCPP_INFO(this->get_logger(), "  resolution: %f", map_metadata.resolution);
-        RCLCPP_INFO(this->get_logger(), "  size_x: %d", map_metadata.size_x);
-        RCLCPP_INFO(this->get_logger(), "  size_y: %d", map_metadata.size_y);
-        RCLCPP_INFO(this->get_logger(), "  layer: %s", map_metadata.layer.c_str());
-        RCLCPP_INFO(this->get_logger(), "  origin:");
-        RCLCPP_INFO(this->get_logger(), "    position:");
-        RCLCPP_INFO(this->get_logger(), "      x: %f", map_metadata.origin.position.x);
-        RCLCPP_INFO(this->get_logger(), "      y: %f", map_metadata.origin.position.y);
-        RCLCPP_INFO(this->get_logger(), "      z: %f", map_metadata.origin.position.z);
-        RCLCPP_INFO(this->get_logger(), "    orientation:");
-        RCLCPP_INFO(this->get_logger(), "      x: %f", map_metadata.origin.orientation.x);
-        RCLCPP_INFO(this->get_logger(), "      y: %f", map_metadata.origin.orientation.y);
-        RCLCPP_INFO(this->get_logger(), "      z: %f", map_metadata.origin.orientation.z);
-        RCLCPP_INFO(this->get_logger(), "      w: %f", map_metadata.origin.orientation.w);
-      }
-      void LocalPlannerManagerNode::p_updateLatestCostmap()
-      {
-        if (costmap_client_ == nullptr)
-        {
-          return ;
-        }
-
-        auto request = std::make_shared<nav2_msgs::srv::GetCostmap::Request>();
-        return ;
-        // TODO: send request and async catch
-        // auto result = costmap_client_->async_send_request(request);
-        // // Wait for the result.
-
-        // if (rclcpp::spin_until_future_complete(costmap_node_, result) == rclcpp::FutureReturnCode::SUCCESS)
-        // {
-        //   // TODO: error on timeout
-        //   // this->p_PrintCostMapInfo(std::make_shared<nav2_msgs::msg::Costmap>(result.get()->map));
-        //   return std::make_shared<nav2_msgs::msg::Costmap>(result.get()->map);
-        // }
-        // else
-        // {
-        //   return nullptr;
-        // }
-      }
-      geometry_msgs::msg::PoseStamped::SharedPtr LocalPlannerManagerNode::findNextWaypoint(const float next_waypoint_min_dist)
-      {
-        if (this->global_plan_ == nullptr)
-        {
-          RCLCPP_DEBUG_STREAM(this->get_logger(), "global_plan_ is null, not finding waypoint");
-          return nullptr;
-        }
-
-        RCLCPP_DEBUG(this->get_logger(), "finding waypoint");
-
-        // find closest waypoint
-        // find the closest waypoint to the current position
-        double min_distance = std::numeric_limits<double>::max();
-        size_t closest_waypoint_index = 0;
-        for (size_t i = 0; i < global_plan_->poses.size(); i++)
-        {
-          double distance = std::sqrt(std::pow(this->latest_odom->pose.pose.position.x - global_plan_->poses[i].pose.position.x, 2) +
-                                      std::pow(this->latest_odom->pose.pose.position.y - global_plan_->poses[i].pose.position.y, 2) +
-                                      std::pow(this->latest_odom->pose.pose.position.z - global_plan_->poses[i].pose.position.z, 2));
-          if (distance < min_distance)
-          {
-            min_distance = distance;
-            closest_waypoint_index = i;
-          }
-        }
-        RCLCPP_DEBUG_STREAM(this->get_logger(), "closest waypoint index: " << closest_waypoint_index << ", distance: " << min_distance);
-
-        // find the next waypoint, including looping back to the beginning
-        // double next_waypoint_dist = cte_and_lookahead.second;
-        double next_waypoint_dist = next_waypoint_min_dist;
-        size_t next_waypoint_index = closest_waypoint_index;
-        for (size_t i = 0; i < global_plan_->poses.size(); i++)
-        {
-          size_t next_index = (closest_waypoint_index + i) % global_plan_->poses.size();
-          double distance = std::sqrt(std::pow(this->latest_odom->pose.pose.position.x - global_plan_->poses[next_index].pose.position.x, 2) +
-                                      std::pow(this->latest_odom->pose.pose.position.y - global_plan_->poses[next_index].pose.position.y, 2) +
-                                      std::pow(this->latest_odom->pose.pose.position.z - global_plan_->poses[next_index].pose.position.z, 2));
-          if (distance > next_waypoint_dist)
-          {
-            next_waypoint_index = next_index;
-            break;
-          }
-        }
-        RCLCPP_DEBUG_STREAM(this->get_logger(), "next waypoint index: " << next_waypoint_index << ", next_waypoint_dist: " << next_waypoint_dist);
-        geometry_msgs::msg::PoseStamped next_waypoint = this->global_plan_->poses[next_waypoint_index];
-
-        return std::make_shared<geometry_msgs::msg::PoseStamped>(next_waypoint);
-      }
-
     } // local
   }   // planning
 } // roar

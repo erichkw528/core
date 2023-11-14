@@ -5,7 +5,8 @@ roar:
         debug: true
         loop_rate: 1000.0
       use_sim_time: true
-
+      plugins: 
+        - "roar::planning::local::SimpleDistancePlanner"
 lifecycle_manager_local_planning:
   ros__parameters:
     autostart: true
