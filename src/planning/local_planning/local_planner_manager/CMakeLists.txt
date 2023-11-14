@@ -56,9 +56,6 @@ ament_target_dependencies(local_planner_manager_node
   nav2_msgs
   nav2_util
   nav2_core
-  trajectory_generator
-  trajectory_scorer
-  trajectory_picker
   planning_interfaces
   control_interfaces
   eigen3_cmake_module
