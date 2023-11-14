@@ -45,7 +45,7 @@ namespace roar
             { 
                 p->configure(m_config_);
                 RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " configured"); });
-        m_state_ = LocalPlannerManagerState{};
+        m_state_ = std::make_shared<LocalPlannerManagerState>();
       }
       LocalPlannerManagerNode ::~LocalPlannerManagerNode()
       {
@@ -57,9 +57,6 @@ namespace roar
       nav2_util::CallbackReturn LocalPlannerManagerNode::on_configure(const rclcpp_lifecycle::State &state)
       {
         RCLCPP_DEBUG(this->get_logger(), "on_configure");
-
-        this->next_waypoint_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
-            std::string{get_namespace()} + "/next_waypoint", 10);
 
         this->odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/odometry", rclcpp::SystemDefaultsQoS(),
@@ -75,6 +72,9 @@ namespace roar
         this->global_plan_sub_ = this->create_subscription<nav_msgs::msg::Path>(
             "/global_path", rclcpp::SystemDefaultsQoS(),
             std::bind(&LocalPlannerManagerNode::onLatestGlobalPlanReceived, this, std::placeholders::_1));
+
+        this->best_path_vis_marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
+            "/best_path", rclcpp::SystemDefaultsQoS());
 
         this->control_action_client_ = rclcpp_action::create_client<ControlAction>(this, this->controllerServerRoute);
 
@@ -92,9 +92,7 @@ namespace roar
             std::chrono::milliseconds(int(this->m_config_->loop_rate)),
             std::bind(&LocalPlannerManagerNode::execute, this));
         this->diagnostic_pub_->on_activate();
-
-        this->next_waypoint_publisher_->on_activate();
-
+        this->best_path_vis_marker_pub_->on_activate();
         return nav2_util::CallbackReturn::SUCCESS;
       }
       nav2_util::CallbackReturn LocalPlannerManagerNode::on_deactivate(const rclcpp_lifecycle::State &state)
@@ -102,7 +100,7 @@ namespace roar
         RCLCPP_DEBUG(this->get_logger(), "on_deactivate");
         execute_timer->cancel();
         diagnostic_pub_->on_deactivate();
-        this->next_waypoint_publisher_->on_deactivate();
+        best_path_vis_marker_pub_->on_deactivate();
         return nav2_util::CallbackReturn::SUCCESS;
       }
       nav2_util::CallbackReturn LocalPlannerManagerNode::on_cleanup(const rclcpp_lifecycle::State &state)
@@ -208,27 +206,32 @@ namespace roar
                                                       << "didReceiveAllMessages() == false");
           return false;
         }
+        if (this->num_execution >= 1) {
+          RCLCPP_DEBUG_STREAM(this->get_logger(), "not executing: "
+                                                      << "num_execution >= 1");
+          return false;
+        }
         return true;
       }
       bool LocalPlannerManagerNode::didReceiveAllMessages()
       {
         bool isOK = true;
-        if (this->m_state_.odom == nullptr)
+        if (this->m_state_->odom == nullptr)
         {
           RCLCPP_DEBUG(this->get_logger(), "odom not received, not executing...");
           isOK = false;
         }
-        if (this->m_state_.robot_footprint == nullptr)
+        if (this->m_state_->robot_footprint == nullptr)
         {
           RCLCPP_DEBUG(this->get_logger(), "latest_footprint_ not received, not executing...");
           isOK = false;
         }
-        if (this->m_state_.global_plan == nullptr)
+        if (this->m_state_->global_plan == nullptr)
         {
           RCLCPP_DEBUG(this->get_logger(), "global_plan_ not received, not executing...");
           isOK = false;
         }
-        if (this->m_state_.occupancy_map == nullptr)
+        if (this->m_state_->occupancy_map == nullptr)
         {
           RCLCPP_DEBUG(this->get_logger(), "occupancy_map_ not received, not executing...");
           isOK = false;
@@ -244,20 +247,71 @@ namespace roar
         RCLCPP_DEBUG(this->get_logger(), "-----LocalPlannerManagerNode START -----");
         if (this->canExecute()) // only one request at a time
         {
-          // geometry_msgs::msg::PoseStamped::SharedPtr next_waypoint = this->findNextWaypoint(float(5.0));
-          // if (next_waypoint == nullptr)
-          // {
-          //   RCLCPP_DEBUG_STREAM(this->get_logger(), "next_waypoint is null, not executing...");
-          //   return;
-          // }
-          // RCLCPP_DEBUG_STREAM(this->get_logger(), "next waypoint: x:" << next_waypoint->pose.position.x << " y: " << next_waypoint->pose.position.y << " z: " << next_waypoint->pose.position.z);
+          // prevent concurrent execution
+          this->num_execution += 1;
 
-          // this->next_waypoint_publisher_->publish(*next_waypoint);
+          // update every planner plugin
+          std::for_each(
+              m_plugins_.begin(), m_plugins_.end(), [this](LocalPlannerPlugin::SharedPtr &p)
+              { 
+                  p->update(this->m_state_);
+                  RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " updated"); 
+              }
+          );
 
-          // num_execution += 1;
+          // compute every planner plugin
+          std::map<std::string, nav_msgs::msg::Path::SharedPtr> pathsMap;
+          std::for_each(
+              m_plugins_.begin(), m_plugins_.end(), [this, &pathsMap](LocalPlannerPlugin::SharedPtr &p)
+              { 
+                  nav_msgs::msg::Path::SharedPtr path = p->compute();
+                  if (path != nullptr) {
+                    pathsMap[p->get_plugin_name()] = path;
+                    RCLCPP_DEBUG_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " computed path of length: " << path->poses.size());
+                  } else {
+                      RCLCPP_WARN_STREAM(this->get_logger(), "plugin: " << p->get_plugin_name() << " returned null path");
+                  }
+              }
+          );
+
+          // pick path
+          std::string best_path_key = this->findBestPath(pathsMap);
+          nav_msgs::msg::Path::SharedPtr best_path = pathsMap[best_path_key];
+          if (best_path == nullptr) {
+              RCLCPP_WARN_STREAM(this->get_logger(), "no path selected");
+              this->num_execution -= 1;
+              return;
+          } else {
+              RCLCPP_DEBUG_STREAM(this->get_logger(), "selected path from [" << best_path_key << "] of length: " << best_path->poses.size());
+          }
+
+          // publish path
+          this->publishBestPathVisualizationMarker(best_path);
+
+          // send path to controller
+          this->control_send_goal(best_path, 1.0);
+          this->num_execution -= 1;
         }
         RCLCPP_DEBUG(this->get_logger(), "");
       }
+
+      std::string LocalPlannerManagerNode::findBestPath(const std::map<std::string, nav_msgs::msg::Path::SharedPtr> pathsMap)
+      {
+        std::string best_path_key = "";
+        int best_path_length = 0;
+        for (auto const &pair : pathsMap)
+        {
+          std::string key = pair.first;
+          nav_msgs::msg::Path::SharedPtr path = pair.second;
+          if (path != nullptr && path->poses.size() > best_path_length)
+          {
+            best_path_key = key;
+            best_path_length = path->poses.size();
+          }
+        }
+        return best_path_key;
+      }
+      
     } // local
   }   // planning
 } // roar

@@ -17,7 +17,7 @@ namespace roar
                 typedef std::shared_ptr<LocalPlannerManagerState> SharedPtr;
 
                 std::shared_ptr<geometry_msgs::msg::PolygonStamped> robot_footprint;
-                std::shared_ptr < nav_msgs::msg::Odometry> odom;
+                std::shared_ptr<nav_msgs::msg::Odometry> odom;
                 std::shared_ptr<nav_msgs::msg::Path> global_plan;
                 std::shared_ptr<nav_msgs::msg::OccupancyGrid> occupancy_map;
             };

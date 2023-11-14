@@ -19,6 +19,8 @@
 #include "local_planner_manager/local_planner_plugin_interface.hpp"
 #include <pluginlib/class_loader.hpp>
 
+#include <visualization_msgs/msg/marker_array.hpp>
+
 namespace roar
 {
     namespace planning
@@ -44,7 +46,7 @@ namespace roar
                 typedef std::vector<LocalPlannerPlugin::SharedPtr> PluginList;
                 pluginlib::ClassLoader<LocalPlannerPlugin> m_plugin_loader_;
                 PluginList m_plugins_;
-                LocalPlannerManagerState m_state_;
+                LocalPlannerManagerState::SharedPtr m_state_;
 
             protected:
                 // implement the lifecycle interface
@@ -70,6 +72,9 @@ namespace roar
                 bool didReceiveAllMessages();
                 bool canExecute();
 
+                // path picking
+                std::string findBestPath(const std::map<std::string, nav_msgs::msg::Path::SharedPtr> pathsMap);
+
                 /* footprint */
                 rclcpp::Subscription<geometry_msgs::msg::PolygonStamped>::ConstSharedPtr
                     footprint_sub_;
@@ -78,7 +83,7 @@ namespace roar
                     geometry_msgs::msg::PolygonStamped::SharedPtr msg)
                 {
                     std::lock_guard<std::mutex> lock(footprint_mutex);
-                    this->m_state_.robot_footprint = msg;
+                    this->m_state_->robot_footprint = msg;
                 }
 
                 /* Odometry */
@@ -88,7 +93,7 @@ namespace roar
                 void onLatestOdomReceived(nav_msgs::msg::Odometry::SharedPtr msg)
                 {
                     std::lock_guard<std::mutex> lock(odom_mutex_);
-                    this->m_state_.odom = msg;
+                    this->m_state_->odom = msg;
                 }
 
                 /* occupancy map */
@@ -99,7 +104,7 @@ namespace roar
                     nav_msgs::msg::OccupancyGrid::SharedPtr msg)
                 {
                     std::lock_guard<std::mutex> lock(occupancy_map_mutex_);
-                    this->m_state_.occupancy_map = msg;
+                    this->m_state_->occupancy_map = msg;
                 }
                                 
 
@@ -131,9 +136,33 @@ namespace roar
                         return;
                     }
                     std::lock_guard<std::mutex> lock(global_plan_mutex_);
-                    this->m_state_.global_plan = msg;
+                    this->m_state_->global_plan = msg;
                 }
-                rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr next_waypoint_publisher_;
+
+                // best path publisher
+                std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>> best_path_vis_marker_pub_;
+                void publishBestPathVisualizationMarker(const nav_msgs::msg::Path::SharedPtr best_path)
+                {
+                    visualization_msgs::msg::MarkerArray::SharedPtr marker_array = std::make_shared<visualization_msgs::msg::MarkerArray>();
+
+                    for 
+
+                    visualization_msgs::msg::Marker marker;
+                    marker.header.frame_id = "map";
+                    marker.header.stamp = this->now();
+                    marker.ns = "best_path";
+                    marker.id = 0;
+                    marker.type = visualization_msgs::msg::Marker::LINE_STRIP;
+                    marker.action = visualization_msgs::msg::Marker::ADD;
+                    marker.pose.orientation.w = 1.0;
+                    marker.scale.x = 0.1;
+                    marker.color.r = 1.0;
+                    marker.color.a = 1.0;
+                    marker.lifetime = rclcpp::Duration(0.1);
+
+                    marker_array->markers.push_back(marker);
+                    this->best_path_vis_marker_pub_->publish(*marker_array);
+                }
             };
         } 
     }

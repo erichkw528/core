@@ -7,6 +7,9 @@ roar:
       use_sim_time: true
       plugins: 
         - "roar::planning::local::SimpleDistancePlanner"
+      
+      SimpleDistancePlanner:
+        next_waypoint_dist: 10.0
 lifecycle_manager_local_planning:
   ros__parameters:
     autostart: true
