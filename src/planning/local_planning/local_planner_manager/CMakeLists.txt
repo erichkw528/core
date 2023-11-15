@@ -21,6 +21,7 @@ set(${PROJECT_NAME}_SRC
 
 set(${PROJECT_NAME}_PLUGIN_SRC
   src/plugins/simple_distance_planner.cpp
+  src/plugins/simple_frenet_frame_planner.cpp
 )
 
 # Create this project as an executable.
