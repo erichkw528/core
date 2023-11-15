@@ -1,10 +1,15 @@
 roar:
   local_planner_manager_node:
     ros__parameters:
-      debug: true
-      manager_rate: 0.1
+      manager:
+        debug: true
+        loop_rate: 1000.0
       use_sim_time: true
-      min_dist: 1.0
+      plugins: 
+        - "roar::planning::local::SimpleDistancePlanner"
+      
+      SimpleDistancePlanner:
+        next_waypoint_dist: 10.0
 lifecycle_manager_local_planning:
   ros__parameters:
     autostart: true

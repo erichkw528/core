@@ -27,6 +27,7 @@ def generate_launch_description():
                 remappings=[
                     ("/roar/vehicle_state", "/roar/vehicle_state"),
                     ("/roar/behavior_status","/roar/behavior/status"),
+                    ("controller_set_param_service","/roar/controller_manager/set_parameters_atomically")
                     ],
     )
     ld.add_action(node)

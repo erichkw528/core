@@ -33,7 +33,7 @@
       <axis xyz="0 1 0" />
     </joint>
 
-    <!-- <gazebo reference="${prefix}_link">
+    <gazebo reference="${prefix}_link">
       <material>Gazebo/Grey</material>
       <collision>
         <surface>
@@ -45,7 +45,7 @@
           </friction>
         </surface>
       </collision>
-    </gazebo> -->
+    </gazebo>
   </xacro:macro>
 
   <xacro:macro name="steer_wheel" params="prefix y_reflect">

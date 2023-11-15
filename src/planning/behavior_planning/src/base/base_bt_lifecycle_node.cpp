@@ -3,6 +3,7 @@
 
 #include "behavior_planning/bt_nodes/condition_nodes/if_goal_reached.hpp"
 #include "behavior_planning/bt_nodes/action_nodes/stop_car.hpp"
+#include "behavior_planning/bt_nodes/action_nodes/lat_pid_tuner.hpp"
 #include "roar_msgs/msg/behavior_status.hpp"
 
 namespace roar
@@ -79,19 +80,40 @@ namespace roar
 
                 void BehaviorPlannerBTLifeCycleNode::RegisterTreeNodes()
                 {
+                    RCLCPP_INFO(this->get_logger(), "Registering Tree Nodes");
                     RegisterTreeNodeLogClock<roar::planning::behavior::condition::IfGoalReached>("IfGoalReached");
 
                     RegisterTreeNodeLogClock<roar::planning::behavior::action::StopCar>("StopCar");
+
+                    RegisterTreeNodeLogClockWithNode<roar::planning::behavior::action::LatPIDtuner>("LatPIDtuner");
                 }
 
                 template <typename T>
                 void BehaviorPlannerBTLifeCycleNode::RegisterTreeNodeLogClock(const std::string &node_name)
                 {
+                    RCLCPP_DEBUG_STREAM(this->get_logger(), "Registering Tree Node: [" << node_name << "]");
                     BT::NodeBuilder builder =
                         [&](const std::string &name, const BT::NodeConfiguration &config)
                     {
                         return std::make_unique<T>(
                             name, config, this->get_logger(), *this->get_clock());
+                    };
+                    factory_.registerBuilder<T>(
+                        node_name,
+                        builder);
+                }
+
+                template <typename T>
+                void BehaviorPlannerBTLifeCycleNode::RegisterTreeNodeLogClockWithNode(const std::string &node_name)
+                {
+                    RCLCPP_DEBUG_STREAM(this->get_logger(), "Registering Tree Node: [" << node_name << "]");
+                    BT::NodeBuilder builder =
+                        [&](const std::string &name, const BT::NodeConfiguration &config)
+                    {
+                        std::shared_ptr<rclcpp_lifecycle::LifecycleNode> sharedPtr(this);
+
+                        return std::make_unique<T>(
+                            name, config, this->get_logger(), *this->get_clock(), sharedPtr);
                     };
                     factory_.registerBuilder<T>(
                         node_name,

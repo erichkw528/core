@@ -33,7 +33,9 @@ def generate_launch_description():
         remappings=[
             ("/odometry","/roar/odometry"),
             ("/footprint","/local_costmap/published_footprint"),
-            ("/global_path", "/roar/global_planning/global_path")
+            ("/global_path", "/roar/global_planning/global_path"),
+            ("/occupancy_map", "/local_costmap/costmap"),
+            ("/best_path", "/roar/local_planning/best_path"),
         ]
     )
 
