@@ -21,6 +21,7 @@ namespace roar
         struct LatConfig
         {
             PidCoefficients steering_pid_param;
+            double min_dist_ = 5.0;
         };
 
         struct LatControlState
@@ -54,7 +55,9 @@ namespace roar
                         this->node().declare_parameter<double>("lat_control.pid.max_cmd", 30.0),
                         this->node().declare_parameter<double>("lat_control.pid.min_i", -10.0),
                         this->node().declare_parameter<double>("lat_control.pid.max_i", 10.0),
-                    }};
+                    },
+                    this->node().declare_parameter<double>("lat_control.min_dist", 5.0)
+                };
                 RCLCPP_INFO_STREAM(node->get_logger(), "[LatPIDControllerPlugin]: "
                                                            << "\nkp: " << config_.steering_pid_param.k_p
                                                            << "\nki: " << config_.steering_pid_param.k_i
@@ -169,12 +172,11 @@ namespace roar
         protected:
             int p_findNextWaypoint(nav_msgs::msg::Path path)
             {
-                float min_dist = 1.0;
                 int next_waypoint = 0;
                 for (int i = 0; i < path.poses.size(); i++)
                 {
                     float dist = sqrt(pow(path.poses[i].pose.position.x, 2) + pow(path.poses[i].pose.position.y, 2));
-                    if (dist > min_dist)
+                    if (dist > config_.min_dist_)
                     {
                         next_waypoint = i;
                         break;

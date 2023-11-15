@@ -143,25 +143,36 @@ namespace roar
                 std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>> best_path_vis_marker_pub_;
                 void publishBestPathVisualizationMarker(const nav_msgs::msg::Path::SharedPtr best_path)
                 {
-                    visualization_msgs::msg::MarkerArray::SharedPtr marker_array = std::make_shared<visualization_msgs::msg::MarkerArray>();
+                    visualization_msgs::msg::MarkerArray marker_array;
 
-                    for 
+                    for (int i = 0; i < best_path->poses.size(); i++)
+                    {
+                        geometry_msgs::msg::Point point;
+                        point.x = best_path->poses[i].pose.position.x;
+                        point.y = best_path->poses[i].pose.position.y;
+                        point.z = best_path->poses[i].pose.position.z;
 
-                    visualization_msgs::msg::Marker marker;
-                    marker.header.frame_id = "map";
-                    marker.header.stamp = this->now();
-                    marker.ns = "best_path";
-                    marker.id = 0;
-                    marker.type = visualization_msgs::msg::Marker::LINE_STRIP;
-                    marker.action = visualization_msgs::msg::Marker::ADD;
-                    marker.pose.orientation.w = 1.0;
-                    marker.scale.x = 0.1;
-                    marker.color.r = 1.0;
-                    marker.color.a = 1.0;
-                    marker.lifetime = rclcpp::Duration(0.1);
+                        marker_array.markers.push_back(visualization_msgs::msg::Marker());
+                        visualization_msgs::msg::Marker &marker = marker_array.markers.back();
+                        marker.header.frame_id = "map";
+                        marker.header.stamp = this->now();
+                        marker.ns = "best_path";
+                        marker.id = i;
+                        marker.type = visualization_msgs::msg::Marker::SPHERE;
+                        marker.action = visualization_msgs::msg::Marker::ADD;
+                        marker.pose.position = point;
+                        marker.pose.orientation.w = 1.0;
+                        marker.scale.x = 0.2;
+                        marker.scale.y = 0.2;
+                        marker.scale.z = 0.2;
+                        marker.color.r = 1.0;
+                        marker.color.g = 0.0;
+                        marker.color.b = 0.0;
+                        marker.color.a = 1.0;
+                        marker.lifetime = rclcpp::Duration(0.1);
+                    }
 
-                    marker_array->markers.push_back(marker);
-                    this->best_path_vis_marker_pub_->publish(*marker_array);
+                    this->best_path_vis_marker_pub_->publish(marker_array);
                 }
             };
         } 

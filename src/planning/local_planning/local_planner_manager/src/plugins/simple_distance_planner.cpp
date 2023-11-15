@@ -101,7 +101,23 @@ namespace roar
                     nav_msgs::msg::Path::SharedPtr path = std::make_shared<nav_msgs::msg::Path>();
                     path->header = global_plan.header;
                     path->header.stamp = node_->now();
-                    path->poses.push_back(*next_waypoint);
+
+                    // generate n waypoints from odom to next_waypoint
+                    int n = 10;
+                    double dx = (next_waypoint->pose.position.x - odom.pose.pose.position.x) / n;
+                    double dy = (next_waypoint->pose.position.y - odom.pose.pose.position.y) / n;
+                    double dz = (next_waypoint->pose.position.z - odom.pose.pose.position.z) / n;
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        geometry_msgs::msg::PoseStamped pose;
+                        pose.header = odom.header;
+                        pose.header.stamp = node_->now();
+                        pose.pose.position.x = odom.pose.pose.position.x + dx * i;
+                        pose.pose.position.y = odom.pose.pose.position.y + dy * i;
+                        pose.pose.position.z = odom.pose.pose.position.z + dz * i;
+                        path->poses.push_back(pose);
+                    }
                     return path;
                 }
 
