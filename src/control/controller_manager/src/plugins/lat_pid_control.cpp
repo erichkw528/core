@@ -10,9 +10,12 @@
 #include "controller_manager/controller_state.hpp"
 #include "controller_manager/pid_controller.hpp"
 #include "nav_msgs/msg/path.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
 #include <iostream>
+#include <fstream>
+#include <chrono>
+#include <functional>
+#include "rcl_interfaces/msg/set_parameters_result.hpp"
+
 using namespace roar::control;
 namespace roar
 {
@@ -31,7 +34,6 @@ namespace roar
             double current_speed = 0.0;
             PidController steering_pid;
             rclcpp::Time last_pid_time;
-            rclcpp::TimerBase::SharedPtr pid_timer;
         };
 
         class LatPIDControllerPlugin : public ControllerPlugin
@@ -43,6 +45,8 @@ namespace roar
             {
                 return "LatPIDControllerPlugin";
             }
+
+        public:
             void initialize(nav2_util::LifecycleNode *node) override
             {
                 ControllerPlugin::initialize(node); // Call the base class's initialize function
@@ -70,21 +74,29 @@ namespace roar
 
             bool configure(const ControllerManagerConfig::SharedPtr config) override
             {
+                RCLCPP_INFO_STREAM(node().get_logger(), "configuring");
                 lat_state().steering_pid = PidController("steering", config_.steering_pid_param);
                 return true;
             }
+
             bool update(const ControllerManagerState::SharedPtr state) override
-            {
+            {   
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "updating");
                 path_ = std::make_shared<nav_msgs::msg::Path>(state->path_ego_centric);
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "path size: " << path_->poses.size());
+                if (state->vehicle_state == nullptr)
+                {
+                    RCLCPP_ERROR_STREAM(node().get_logger(), "vehicle state is null");
+                    return false;
+                }
+                //problem here
+                lat_state().current_speed = state->vehicle_state->vehicle_status.speed;
+                // RCLCPP_DEBUG_STREAM(node().get_logger(), "current speed: " << lat_state().current_speed);
                 return true;
             }
 
-            void vehicle_state_callback(const roar_msgs::msg::VehicleState::SharedPtr msg) {
-                lat_state().current_speed = msg->vehicle_status.speed;
-            }
-
             bool compute(roar_msgs::msg::VehicleControl::SharedPtr controlMsg)
-            {
+            {   
                 if (path_ == nullptr)
                 {
                     RCLCPP_ERROR_STREAM(node().get_logger(), "path is null");
@@ -98,11 +110,14 @@ namespace roar
                     return false;
                 }
 
+                // update param
+                p_updatePID();
+
                 // find the next waypoint
                 int next_waypoint = p_findNextWaypoint(*path_);
-                // RCLCPP_DEBUG_STREAM(node().get_logger(),
-                //                     "path[next_waypoint] x =" << path_->poses[next_waypoint].pose.position.x
-                //   << " y = " << path_->poses[next_waypoint].pose.position.y);
+                RCLCPP_DEBUG_STREAM(node().get_logger(),
+                                    "path[next_waypoint] x= " << path_->poses[next_waypoint].pose.position.x
+                  << " y= " << path_->poses[next_waypoint].pose.position.y);
 
                 // find the steering error
                 double steering_error = p_calcAngularError(*path_, next_waypoint);
@@ -115,47 +130,11 @@ namespace roar
                 const auto dt = this_pid_time - lat_state().last_pid_time;
                 const double dt_sec = dt.seconds() + dt.nanoseconds() / 1e9;
 
-                // TODO: update param based on speed
-                // Open the file for reading
-                FILE* fp = fopen("carla_pid_lat.json", "r");
-            
-                // Use a FileReadStream to
-                // read the data from the file
-                char readBuffer[65536];
-                rapidjson::FileReadStream is(fp, readBuffer,
-                                            sizeof(readBuffer));
-            
-                // Parse the JSON data 
-                // using a Document object
-                rapidjson::Document d;
-                d.ParseStream(is);
-            
-                // Close the file
-                fclose(fp);
-
-                // Access the data in the JSON document
-                for (auto& entry : d.GetObject()) {
-                    int speedThreshold = std::stoi(entry.name.GetString());
-                
-                    if (lat_state().current_speed <= speedThreshold)
-                    {
-                        double k_p_value = entry.value["k_p"].GetDouble();
-                        double k_i_value = entry.value["k_i"].GetDouble();
-                        double k_d_value = entry.value["k_d"].GetDouble();
-
-                        config_.steering_pid_param.k_p = k_p_value;
-                        config_.steering_pid_param.k_i = k_i_value;
-                        config_.steering_pid_param.k_d = k_d_value;
-                    }
-                    else
-                    {}
-                }
-
                 // execute PID
                 double steering_output = lat_state().steering_pid.update(steering_error, dt_sec);
 
-                // RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);
-                // assign to controlMsg
+                //RCLCPP_DEBUG_STREAM(node().get_logger(), "steering_error: " << steering_error << " dt_sec: " << dt_sec << " steering_output: " << steering_output);
+                //assign to controlMsg
                 controlMsg->steering_angle = steering_output;
 
                 // update the state
@@ -166,8 +145,37 @@ namespace roar
                 return true;
             }
 
+            rcl_interfaces::msg::SetParametersResult parametersCallback(
+                const std::vector<rclcpp::Parameter> &parameters)
+            {
+                rcl_interfaces::msg::SetParametersResult result;
+                result.successful = true;
+                result.reason = "success";
+                // Here update class attributes, do some actions, etc.
+                return result;
+            }
+
+            void p_updatePID()
+            {
+                // TODO: @qingyue, use callback to set param
+                // https://roboticsbackend.com/rclcpp-params-tutorial-get-set-ros2-params-with-cpp/#Get_params_one_by_one
+                double k_p_value = this->node().get_parameter("lat_control.pid.kp").as_double();
+                double k_i_value = this->node().get_parameter("lat_control.pid.ki").as_double();
+                double k_d_value = this->node().get_parameter("lat_control.pid.kd").as_double();
+
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "kp: " << k_p_value << " ki: " << k_i_value << " kd: " << k_d_value);
+                this->config_.steering_pid_param.k_p = k_p_value;
+                this->config_.steering_pid_param.k_i = k_i_value;
+                this->config_.steering_pid_param.k_d = k_d_value;
+                //add an rclcpp parameter callback to the node
+                this->callback_handle_ = this->node().add_on_set_parameters_callback(    
+                     std::bind(&LatPIDControllerPlugin::parametersCallback, this, std::placeholders::_1));
+            }
+
         private:
             nav_msgs::msg::Path::SharedPtr path_;
+            //store the rclcpp callback handle as a shared pointer
+            rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr callback_handle_;
 
         protected:
             int p_findNextWaypoint(nav_msgs::msg::Path path)
@@ -182,6 +190,7 @@ namespace roar
                         break;
                     }
                 }
+                RCLCPP_DEBUG_STREAM(node().get_logger(), "next_waypoint index: " << next_waypoint);
                 return next_waypoint;
             }
             double p_calcAngularError(nav_msgs::msg::Path path, int next_waypoint)

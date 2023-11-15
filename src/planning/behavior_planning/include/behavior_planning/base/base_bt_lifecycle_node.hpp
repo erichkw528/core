@@ -45,6 +45,9 @@ namespace roar
 
                     template <typename T>
                     void RegisterTreeNodeLogClock(const std::string &node_name);
+
+                    template <typename T>
+                    void RegisterTreeNodeLogClockWithNode(const std::string &node_name);
                 };
             }
         } // namespace behavior_planning
